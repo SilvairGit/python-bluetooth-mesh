@@ -43,6 +43,7 @@ setup(
         'cryptography>=2.3.1',
         'docopt>=0.6.2',
         'marshmallow>=3.0.0rc3',
+        'pillow>=5.4.1',
         'prompt-toolkit>=2.0.8',
         'pygobject>=3.30.4',
         'pydbus>=0.6.0',

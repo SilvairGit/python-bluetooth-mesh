@@ -21,7 +21,6 @@
 #
 import logging
 import os
-import string
 import time
 
 from contextlib import contextmanager, suppress
@@ -39,7 +38,7 @@ from bluetooth_mesh.gatt import Adapter
 from bluetooth_mesh.proxy import ServiceId, GattProxy
 from bluetooth_mesh.mesh import BeaconType, SecureNetworkBeacon, AccessMessage
 from bluetooth_mesh.schema import NetworkSchema
-from bluetooth_mesh.cli.display import Display
+from bluetooth_mesh.cli.display import Display, Font
 
 
 class GattClient(GObject.Object):
@@ -135,16 +134,17 @@ class CommandLine(REPL, GObject.Object):
             slow=self.cmd_slow,
             show=self.cmd_show,
             src=self.cmd_src,
-            subscribe=self.cmd_subscribe,
+            untranslate=self.cmd_untranslate,
             translate=self.cmd_translate,
             unsubscribe=self.cmd_unsubscribe,
+            subscribe=self.cmd_subscribe,
         )
 
         self._tid = cycle(range(255))
         self._seq = None
         self._seq_load()
 
-        self._display = Display()
+        self._display = Display(client._network)
 
     def _seq_load(self):
         try:
@@ -212,14 +212,13 @@ class CommandLine(REPL, GObject.Object):
             self._send(payload.bytes, address, device_key=True)
 
     def cmd_subscribe(self, argv):
-        letters = (argv or string.ascii_uppercase).upper() + '_'
-
         opcode = b'\x80\x1b'  # subscription add
         model = 0x1000  # generic on off server
 
         for node in self.network.nodes.values():
-            for letter in letters:
-                group = 0xd000 + ord(letter) - ord('A')
+            for letter in argv or Font.LETTERS:
+                index, _ = self._display.font.glyph(letter)
+                group = 0xd000 + index
 
                 print("Subscribe %04x:%04x to %04x" % (node.address, model, group))
 
@@ -227,12 +226,18 @@ class CommandLine(REPL, GObject.Object):
                                          opcode, node.address + 2, group, model)
 
                 self._send(payload.bytes, node.address, device_key=True)
+                time.sleep(0.2)
+
+    def cmd_untranslate(self, argv):
+        opcode = b'\xf8\x36\x01\x03'  # scene translator, translation delete all
+
+        for node in self.network.nodes.values():
+            self._send(opcode, node.address + 2,
+                       device_key=node.address)
 
     def cmd_translate(self, argv):
         opcode = b'\xf8\x36\x01\x00'  # scene translator, translation store
         trigger = 1
-
-        letters = (argv or string.ascii_uppercase).upper() + '_'
 
         for node in self.network.nodes.values():
             try:
@@ -240,11 +245,11 @@ class CommandLine(REPL, GObject.Object):
             except KeyError:
                 continue
 
-            for letter in letters:
-                glyph = self._display.glyph[letter]
+            for letter in argv or Font.LETTERS:
+                index, glyph = self._display.font.glyph(letter)
                 scene = 2 if glyph[row][col] else 1
 
-                group = 0xd000 + ord(letter) - ord('A')
+                group = 0xd000 + index
 
                 payload = bitstring.pack('bytes, uintle:16, uint:8, uintle:16',
                                          opcode, group, trigger, scene)
@@ -254,6 +259,7 @@ class CommandLine(REPL, GObject.Object):
                 # scene translator is on element #2
                 self._send(payload.bytes, node.address + 2,
                            device_key=node.address)
+                time.sleep(0.1)
 
     def cmd_publish(self, argv):
         opcode = b'\x03'  # publication set
@@ -284,15 +290,16 @@ class CommandLine(REPL, GObject.Object):
         resolution = 0
         delay = 0
 
-        for letter in argv.upper().replace(' ', '_'):
-            dst = 0xd000 + ord(letter) - ord('A')
+        for letter in argv.replace('_', ' '):
+            index, _ = self._display.font.glyph(letter)
+            group = 0xd000 + index
             tid = next(self._tid)
 
             payload = bitstring.pack('bytes, uint:8, uint:8, uint:2, uint:6, uint:8',
                                      opcode, value, tid, resolution, steps, delay)
 
-            self._send(payload.bytes, dst)
-            time.sleep(0.3)
+            self._send(payload.bytes, group)
+            time.sleep(1.0)
 
     def _cmd_onoff(self, argv, onoff):
         opcode = b'\x82\x03'  # generic onoff set unacknowledged
@@ -331,8 +338,8 @@ class CommandLine(REPL, GObject.Object):
             except KeyError:
                 continue
 
-            for letter in argv.upper().replace(' ', '_'):
-                glyph = self._display.glyph[letter]
+            for letter in argv.replace('_', ' '):
+                _, glyph = self._display.font.glyph(letter)
                 value = 1 if glyph[row][col] else 0
                 tid = next(self._tid)
 

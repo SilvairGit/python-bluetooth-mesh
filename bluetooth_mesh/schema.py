@@ -21,6 +21,8 @@
 #
 from marshmallow import Schema, fields, decorators
 
+import bitstring
+
 from bluetooth_mesh.crypto import DeviceKey, NetworkKey, ApplicationKey
 from bluetooth_mesh.network import Network, Node, Space
 
@@ -119,6 +121,9 @@ class NetworkSchema(Schema):
 
         for node in data['nodes']:
             network.nodes[node.uuid] = node
+            short_id = int(node.uuid.hex[:4], 16)
+            network.shorts[short_id] = node
+            network.addrs[node.address] = node
             network.device_keys[node.address] = node.device_key
             space = Space(node.tags['spaceName'], node.tags['spaceId'])
             network.spaces[space.id] = space

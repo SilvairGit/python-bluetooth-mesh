@@ -104,7 +104,9 @@ class SarProcessor:
                 segment = yield
             elif sar == SarFlag.LAST:
                 packet += segment
-                yield packet, type
+                segment = yield packet, type
+            else:
+                segment = yield
 
     def __segmentation(self, packet, type):
         if len(packet) <= self._segment_size:

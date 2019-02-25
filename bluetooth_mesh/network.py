@@ -36,6 +36,8 @@ class Network(GObject.Object):
         self.network_keys = network_keys
         self.device_keys = device_keys or {}
         self.nodes = {}
+        self.shorts = {}
+        self.addrs = {}
         self.spaces = {}
         self.iv_index = None
 
