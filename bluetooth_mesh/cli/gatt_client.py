@@ -36,7 +36,7 @@ from bluetooth_mesh.eventloop import use_glib_event_loop
 from bluetooth_mesh.repl import REPL
 from bluetooth_mesh.gatt import Adapter
 from bluetooth_mesh.proxy import ServiceId, GattProxy
-from bluetooth_mesh.mesh import BeaconType, SecureNetworkBeacon, AccessMessage
+from bluetooth_mesh.mesh import BeaconType, SecureNetworkBeacon, AccessMessage, NetworkMessage
 from bluetooth_mesh.schema import NetworkSchema
 from bluetooth_mesh.cli.display import Display, Font
 
@@ -52,6 +52,7 @@ class GattClient(GObject.Object):
         self._proxy = None
 
         self._adapter.device_discovered.connect(self._device_discovered)
+        self._access_message_rxed = {}
 
     @property
     def network_id(self):
@@ -81,6 +82,7 @@ class GattClient(GObject.Object):
             self.logger.info('Connecting to %s "%s"',
                              device.Address, device.Name)
             if device.ServicesResolved:
+                self._stop_discovery()
                 device.Connect()
                 self._start_proxy(device)
             else:
@@ -100,7 +102,27 @@ class GattClient(GObject.Object):
             self._network.beacon_receive(beacon, auth)
 
     def _network_pdu_received(self, _, payload):
-        pass
+        iv_index, ctl, ttl, seq, src, dst, transport_pdu= NetworkMessage.unpack(payload, 
+                                        self._network.network_keys, self._network.iv_index)
+        if transport_pdu:
+            if src >= 0x8000 or dst == 0:
+                return
+            for node in self._network.nodes.values():
+                for ele in node.elements:
+                    if ele['unicastAddress'] == src:
+                        if (iv_index << 24 | seq) <= (self._network.iv_index << 24 | ele["sequenceNumber"]):
+                            return
+                        ele["sequenceNumber"] = seq
+            key = (src, dst, seq)
+            if key in self._access_message_rxed.keys():
+                msg = self._access_message_rxed[key]
+            else:
+                msg = self._access_message_rxed[key] = AccessMessage(src, dst, ttl, None)
+            if not ctl:
+                decrypted_tp_pdu = msg.unpack(seq, iv_index, transport_pdu, self._network.application_keys)
+                if decrypted_tp_pdu and decrypted_tp_pdu != -1:
+                    self._network.network_pdu_received(decrypted_tp_pdu)
+                    self._access_message_rxed.pop(key)
 
     def _is_proxy(self, device):
         proxy_data = device.ServiceData.get(ServiceId.MESH_PROXY.value)
@@ -302,7 +324,7 @@ class CommandLine(REPL, GObject.Object):
             time.sleep(1.0)
 
     def _cmd_onoff(self, argv, onoff):
-        opcode = b'\x82\x03'  # generic onoff set unacknowledged
+        opcode = b'\x82\x02'  # generic onoff set acknowledged
 
         for col, row in (i.split(',') for i in argv.split()):
             try:
