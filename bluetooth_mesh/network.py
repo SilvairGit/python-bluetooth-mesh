@@ -76,12 +76,13 @@ class Network(GObject.Object):
 
 
 class Node:
-    def __init__(self, name, uuid, device_key, address):
+    def __init__(self, name, uuid, device_key, address, elements):
         self.name = name
         self.uuid = uuid
         self.device_key = device_key
         self.address = address
         self.tags = {}
+        self.elements = elements
 
     def __str__(self):
         return '<%s: "%s" %s>' % (type(self).__name__, self.name, self.uuid)
