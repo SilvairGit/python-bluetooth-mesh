@@ -68,6 +68,7 @@ class ElementSchema(Schema):
     models = fields.Nested(ModelSchema, many=True)
     locationDescriptor = fields.Integer()
     unicastAddress = fields.Integer()
+    sequenceNumber = fields.Integer()
 
 
 class NodeSchema(Schema):
@@ -88,7 +89,8 @@ class NodeSchema(Schema):
             data['name'],
             data['uuid'],
             device_key=DeviceKey(bytes.fromhex(data['deviceKey'])),
-            address=data['primaryElementUnicastAddress'])
+            address=data['primaryElementUnicastAddress'],
+            elements=data['elements'])
 
         node.tags = data['tags']
 
