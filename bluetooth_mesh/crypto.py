@@ -37,6 +37,10 @@ def aes_ccm(k, n, m, a=b'', tag_length=4):
     c = aead.AESCCM(k, tag_length)
     return c.encrypt(n, m, a)
 
+def aes_ccm_decrypt(k, n, m, a=b'', tag_length=4):
+    c = aead.AESCCM(k, tag_length)
+    return c.decrypt(n, m, a)
+
 
 def aes_ecb(k, m):
     c = Cipher(algorithms.AES(k), modes.ECB(), backend=default_backend())
