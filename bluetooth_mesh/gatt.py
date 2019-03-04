@@ -25,7 +25,7 @@ import uuid
 
 from contextlib import suppress
 from pydbus import SystemBus
-from gi.repository import GLib, GObject
+from gi.repository import GLib, GObject, Gio
 
 
 BLUEZ_SERVICE = 'org.bluez'
@@ -61,6 +61,12 @@ class BusMixin:
 
 
 class Characteristic(BusMixin, GObject.Object):
+    def __init__(self, path):
+        super().__init__(path)
+        self.logger = logging.getLogger('gatt.Characteristic.%s' % self.UUID)
+        self.read_io = None
+        self.write_io = None
+
     @property
     def UUID(self):
         with suppress(GLib.GError):
@@ -80,21 +86,51 @@ class Characteristic(BusMixin, GObject.Object):
         return self._object.ReadValue(options)
 
     def write(self, value, offset=0):
-        value = GLib.Variant.new_array(
-            None,
-            [GLib.Variant.new_byte(b) for b in value])
+        if self.write_io:
+            self.write_io.write(value)
+            self.write_io.flush()
+            return
 
-        options = {}
-        if offset is not None:
-            options['offset'] = GLib.Variant.new_uint16(offset)
-
-        self._object.WriteValue(value, options)
+        data, fdlist = self._bus.con.call_with_unix_fd_list_sync(
+                                                self._object._bus_name, 
+                                                self._object._path, 
+                                                self._object.AcquireWrite._iface_name, 
+                                                'AcquireWrite',
+                                                GLib.Variant('(a{sv})', [{}]),
+                                                GLib.VariantType.new("(hq)"), 0, -1, None, None
+                                                )
+        fd = fdlist.steal_fds()[data[0]]
+        ch = GLib.IOChannel(filedes=fd)
+        ch.set_encoding(None)
+        ch.write(value)
+        ch.flush()
+        self.write_io = ch
 
     def notify(self, enabled=True):
         if enabled:
-            self._object.StartNotify()
+            notify_data, fdlist = self._bus.con.call_with_unix_fd_list_sync(
+                                                    self._object._bus_name, 
+                                                    self._object._path, 
+                                                    self._object.AcquireNotify._iface_name, 
+                                                    'AcquireNotify',
+                                                    GLib.Variant('(a{sv})', [{}]),
+                                                    GLib.VariantType.new("(hq)"), 0, -1, None, None
+                                                    )
+            fd = fdlist.steal_fds()[notify_data[0]]
+            
+            ch = GLib.IOChannel(filedes=fd)
+            ch.set_encoding(None)
+            ch.set_flags(ch.get_flags() | GLib.IOFlags.NONBLOCK)
+            self.read_io = ch
+            GLib.io_add_watch(ch, GLib.PRIORITY_HIGH, GLib.IOCondition.IN, self.pipe_read_proxy)
+            self.logger.info("AcquireNotify fd: %d, MTU: %s" % (fd, notify_data[1]))
         else:
             self._object.StopNotify()
+    
+    def pipe_read_proxy(self, ch, condition):
+        data = ch.read()
+        self.value_updated.emit(bytes(data))
+        return True
 
     @GObject.Signal(arg_types=(object, ))
     def value_updated(self, value):
