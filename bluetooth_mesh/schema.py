@@ -24,7 +24,7 @@ from marshmallow import Schema, fields, decorators
 import bitstring
 
 from bluetooth_mesh.crypto import DeviceKey, NetworkKey, ApplicationKey
-from bluetooth_mesh.network import Network, Node, Space
+from bluetooth_mesh.network import Network, Node, Space, Element
 
 
 class SceneSchema(Schema):
@@ -68,7 +68,6 @@ class ElementSchema(Schema):
     models = fields.Nested(ModelSchema, many=True)
     locationDescriptor = fields.Integer()
     unicastAddress = fields.Integer()
-    sequenceNumber = fields.Integer()
 
 
 class NodeSchema(Schema):
@@ -89,8 +88,11 @@ class NodeSchema(Schema):
             data['name'],
             data['uuid'],
             device_key=DeviceKey(bytes.fromhex(data['deviceKey'])),
-            address=data['primaryElementUnicastAddress'],
-            elements=data['elements'])
+            address=data['primaryElementUnicastAddress'])
+
+        for ele in data['elements']:
+            addr = ele['unicastAddress']
+            node.elements[addr] = Element(addr)
 
         node.tags = data['tags']
 

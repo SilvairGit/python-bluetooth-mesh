@@ -76,13 +76,13 @@ class Network(GObject.Object):
 
 
 class Node:
-    def __init__(self, name, uuid, device_key, address, elements):
+    def __init__(self, name, uuid, device_key, address):
         self.name = name
         self.uuid = uuid
         self.device_key = device_key
         self.address = address
         self.tags = {}
-        self.elements = elements
+        self.elements = {}
 
     def __str__(self):
         return '<%s: "%s" %s>' % (type(self).__name__, self.name, self.uuid)
@@ -96,3 +96,12 @@ class Space:
 
     def __str__(self):
         return '<%s: "%s" %s>' % (type(self).__name__, self.name, self.id)
+
+
+class Element:
+    def __init__(self, unicast_address):
+        self.unicast_address = unicast_address
+        self.sequence_number = 0
+
+    def __str__(self):
+        return '<%s: %04x>' % (type(self).__name__, self.unicast_address)
