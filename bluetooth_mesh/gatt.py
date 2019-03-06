@@ -64,13 +64,34 @@ class Characteristic(BusMixin, GObject.Object):
     def __init__(self, path):
         super().__init__(path)
         self.logger = logging.getLogger('gatt.Characteristic.%s' % self.UUID)
-        self.read_io = None
-        self.write_io = None
+        self._read_channel = None
+        self._write_channel = None
 
     @property
     def UUID(self):
         with suppress(GLib.GError):
             return uuid.UUID(self._object.UUID)
+
+    @property
+    def read_channel(self):
+        return self._read_channel
+
+    @property
+    def write_channel(self):
+        if not self._write_channel:
+            data, fdlist = self._bus.con.call_with_unix_fd_list_sync(
+                                                    self._object._bus_name, 
+                                                    self._object._path, 
+                                                    self._object.AcquireWrite._iface_name, 
+                                                    'AcquireWrite',
+                                                    GLib.Variant('(a{sv})', [{}]),
+                                                    GLib.VariantType.new("(hq)"), 0, -1, None, None
+                                                    )
+            fd = fdlist.steal_fds()[data[0]]
+            ch = GLib.IOChannel(filedes=fd)
+            ch.set_encoding(None)
+            self._write_channel = ch
+        return self._write_channel
 
     def _properties_changed(self, path, changed, invalidated):
         value = changed.get('Value')
@@ -86,25 +107,8 @@ class Characteristic(BusMixin, GObject.Object):
         return self._object.ReadValue(options)
 
     def write(self, value, offset=0):
-        if self.write_io:
-            self.write_io.write(value)
-            self.write_io.flush()
-            return
-
-        data, fdlist = self._bus.con.call_with_unix_fd_list_sync(
-                                                self._object._bus_name, 
-                                                self._object._path, 
-                                                self._object.AcquireWrite._iface_name, 
-                                                'AcquireWrite',
-                                                GLib.Variant('(a{sv})', [{}]),
-                                                GLib.VariantType.new("(hq)"), 0, -1, None, None
-                                                )
-        fd = fdlist.steal_fds()[data[0]]
-        ch = GLib.IOChannel(filedes=fd)
-        ch.set_encoding(None)
-        ch.write(value)
-        ch.flush()
-        self.write_io = ch
+        self.write_channel.write(value)
+        self.write_channel.flush()
 
     def notify(self, enabled=True):
         if enabled:
@@ -121,7 +125,7 @@ class Characteristic(BusMixin, GObject.Object):
             ch = GLib.IOChannel(filedes=fd)
             ch.set_encoding(None)
             ch.set_flags(ch.get_flags() | GLib.IOFlags.NONBLOCK)
-            self.read_io = ch
+            self._read_channel = ch
             GLib.io_add_watch(ch, GLib.PRIORITY_HIGH, GLib.IOCondition.IN, self.pipe_read_proxy)
             self.logger.info("AcquireNotify fd: %d, MTU: %s" % (fd, notify_data[1]))
         else:
