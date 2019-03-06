@@ -28,6 +28,10 @@ from cryptography.exceptions import InvalidTag
 from bluetooth_mesh.crypto import aes_cmac, aes_ccm, aes_ccm_decrypt, aes_ecb, ApplicationKey
 
 
+class KeyNotFoundException(Exception):
+    pass
+
+
 class BeaconType(enum.Enum):
     UNPROVISIONED_DEVICE = 0x00
     SECURE_NETWORK = 0x01
@@ -173,16 +177,14 @@ class AccessMessage:
             else:
                 szmic = 0
 
-            keys = [key for key in app_keys if key.aid == aid]
-            if keys:
-                app_key = app_keys[0]
-                nonce = self.nonce.application(seq, iv_index, szmic)
-                try:
-                    decrypted = aes_ccm_decrypt(app_key.bytes, nonce, payload[1:], tag_length=8 if szmic else 4)
-                    return decrypted
-                except InvalidTag:
-                    return -1
+            app_key = next(filter(lambda key: key.aid == aid, app_keys), None)
 
+            if not app_key:
+                raise KeyNotFoundException()
+
+            nonce = self.nonce.application(seq, iv_index, szmic)
+            decrypted = aes_ccm_decrypt(app_key.bytes, nonce, payload[1:], tag_length=8 if szmic else 4)
+            return decrypted
 
 
 class NetworkMessage:
@@ -215,26 +217,26 @@ class NetworkMessage:
     @classmethod
     def unpack(cls, payload, network_keys, local_iv_index):     
         ivi, nid = bitstring.BitString(payload).unpack('uint:1, uint:7')
-        keys = [key.encryption_keys for key in network_keys if key.encryption_keys[0] == nid]
-        if keys:
-            _, encryption_key, privacy_key = keys[0]
-            obfuscated = payload[1:7]
-            iv_index = local_iv_index if ivi == 0 else local_iv_index - 1
-            privacy_plain = bitstring.pack('pad:40, uintbe:32, bytes:7',
-                                            iv_index, payload[7:14]).bytes
-            pecb = aes_ecb(privacy_key, privacy_plain)[:6]
-            deobfuscated = bytes(map(operator.xor, obfuscated, pecb))
-            ctl, ttl, seq, src = bitstring.BitString(deobfuscated).unpack('uint:1, uint:7, uintbe:24, uintbe:16')
-            net_mic_len = 4 if ctl == 0 else 8
-            net_mic, encrypted = payload[-net_mic_len:], payload[7:-net_mic_len]
-            nonce = Nonce(src, 0, ttl, ctl)
-            try:
-                encrypted = aes_ccm_decrypt(encryption_key,
-                                        nonce.network(seq, iv_index),
-                                        payload[7:],
-                                        tag_length=net_mic_len)
-            except InvalidTag:
-                return
-            dst, transport_pdu = bitstring.BitString(encrypted).unpack('uintbe:16, bytes')
-            return iv_index, ctl, ttl, seq, src, dst, transport_pdu
-        pass
+        net_key = next(filter(lambda key: key.encryption_keys[0] == nid, network_keys), None)
+        if not net_key:
+            raise KeyNotFoundException()
+
+        _, encryption_key, privacy_key = net_key.encryption_keys
+        obfuscated = payload[1:7]
+        iv_index = local_iv_index if (local_iv_index & 0x01) == ivi else local_iv_index - 1
+        privacy_plain = bitstring.pack('pad:40, uintbe:32, bytes:7',
+                                        iv_index, payload[7:14]).bytes
+        pecb = aes_ecb(privacy_key, privacy_plain)[:6]
+        deobfuscated = bytes(map(operator.xor, obfuscated, pecb))
+        ctl, ttl, seq, src = bitstring.BitString(deobfuscated).unpack('uint:1, uint:7, uintbe:24, uintbe:16')
+        net_mic_len = 4 if ctl == 0 else 8
+        net_mic, encrypted = payload[-net_mic_len:], payload[7:-net_mic_len]
+        nonce = Nonce(src, 0, ttl, ctl)
+
+        encrypted = aes_ccm_decrypt(encryption_key,
+                                nonce.network(seq, iv_index),
+                                payload[7:],
+                                tag_length=net_mic_len)
+        
+        dst, transport_pdu = bitstring.BitString(encrypted).unpack('uintbe:16, bytes')
+        return iv_index, ctl, ttl, seq, src, dst, transport_pdu

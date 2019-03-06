@@ -36,7 +36,7 @@ from bluetooth_mesh.eventloop import use_glib_event_loop
 from bluetooth_mesh.repl import REPL
 from bluetooth_mesh.gatt import Adapter
 from bluetooth_mesh.proxy import ServiceId, GattProxy
-from bluetooth_mesh.mesh import BeaconType, SecureNetworkBeacon, AccessMessage, NetworkMessage
+from bluetooth_mesh.mesh import BeaconType, SecureNetworkBeacon, AccessMessage, NetworkMessage, KeyNotFoundException
 from bluetooth_mesh.schema import NetworkSchema
 from bluetooth_mesh.cli.display import Display, Font
 
@@ -102,26 +102,34 @@ class GattClient(GObject.Object):
             self._network.beacon_receive(beacon, auth)
 
     def _network_pdu_received(self, _, payload):
-        iv_index, ctl, ttl, seq, src, dst, transport_pdu= NetworkMessage.unpack(payload, 
-                                        self._network.network_keys, self._network.iv_index)
+        try:
+            iv_index, ctl, ttl, seq, src, dst, transport_pdu= NetworkMessage.unpack(payload, 
+                                            self._network.network_keys, self._network.iv_index)
+        except:
+            return
         if transport_pdu:
             if src >= 0x8000 or dst == 0:
                 return
-            for node in self._network.nodes.values():
-                for ele in node.elements:
-                    if ele['unicastAddress'] == src:
-                        if (iv_index << 24 | seq) <= (self._network.iv_index << 24 | ele["sequenceNumber"]):
-                            return
-                        ele["sequenceNumber"] = seq
+
+            node = next(filter(lambda node: src in node.elements.keys(), self._network.nodes.values()), None)
+            if not node:
+                return
+
+            element = node.elements[src]
+            if (iv_index << 24 | seq) <= (self._network.iv_index << 24 | element.sequence_number):
+                return
+            element.sequence_number = seq
+            
             key = (src, dst, seq)
-            if key in self._access_message_rxed.keys():
-                msg = self._access_message_rxed[key]
-            else:
-                msg = self._access_message_rxed[key] = AccessMessage(src, dst, ttl, None)
+            msg = self._access_message_rxed.setdefault(key, AccessMessage(src, dst, ttl, None))
             if not ctl:
-                decrypted_tp_pdu = msg.unpack(seq, iv_index, transport_pdu, self._network.application_keys)
-                if decrypted_tp_pdu and decrypted_tp_pdu != -1:
-                    self._network.network_pdu_received(decrypted_tp_pdu)
+                try:
+                    decrypted_tp_pdu = msg.unpack(seq, iv_index, transport_pdu, self._network.application_keys)
+                except:
+                    self._access_message_rxed.pop(key)
+                    return
+                if decrypted_tp_pdu:
+                    # self._network.network_pdu_received(decrypted_tp_pdu)
                     self._access_message_rxed.pop(key)
 
     def _is_proxy(self, device):
