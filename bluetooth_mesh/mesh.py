@@ -90,7 +90,7 @@ class Nonce:
 
     def network(self, seq, iv_index):
         return bitstring.pack('uint:8, uint:1, uint:7, uintbe:24, uintbe:16, pad:16, uintbe:32',
-                              0x00, self.ctl, self.ttl, seq or self.seq, self.src, iv_index).bytes
+                              0x00, self.ctl, self.ttl, seq, self.src, iv_index).bytes
 
     def application(self, seq, iv_index, szmic=False):
         return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
@@ -98,7 +98,7 @@ class Nonce:
 
     def device(self, seq, iv_index, szmic=False):
         return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
-                              0x02, szmic, seq or self.seq, self.src, self.dst, iv_index).bytes
+                              0x02, szmic, seq, self.src, self.dst, iv_index).bytes
 
 
 class AccessMessage:

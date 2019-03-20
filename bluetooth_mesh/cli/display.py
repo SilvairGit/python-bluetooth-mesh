@@ -24,7 +24,7 @@ import string
 
 
 class Font:
-    LETTERS = string.ascii_letters + string.digits + ' #'
+    LETTERS = string.ascii_letters + string.digits + ' @'
 
     def __init__(self, font):
         self.font = ImageFont.load(font)
