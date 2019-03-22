@@ -92,11 +92,11 @@ class Nonce:
         return bitstring.pack('uint:8, uint:1, uint:7, uintbe:24, uintbe:16, pad:16, uintbe:32',
                               0x00, self.ctl, self.ttl, seq, self.src, iv_index).bytes
 
-    def application(self, seq, iv_index, szmic=False):
+    def application(self, seq, iv_index, szmic):
         return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
                               0x01, szmic, seq, self.src, self.dst, iv_index).bytes
 
-    def device(self, seq, iv_index, szmic=False):
+    def device(self, seq, iv_index, szmic):
         return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
                               0x02, szmic, seq, self.src, self.dst, iv_index).bytes
 
@@ -114,16 +114,21 @@ class AccessMessage:
 
         self.nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
 
-    def transport_pdu(self, application_key, seq, iv_index):
+    def transport_pdu(self, application_key, seq, iv_index, szmic=False):
+
+        # Use large MIC if it doesn't affect segmentation
+        if len(self.payload) > 11 and len(self.payload) <=376:
+            if (len(self.payload) + 4) // 12 == (len(self.payload) + 8) // 12:
+                szmic = True
+
         akf = isinstance(application_key, ApplicationKey)
         aid = application_key.aid
 
         nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
-        nonce = (nonce.application if akf else nonce.device)(seq, iv_index)
+        nonce = (nonce.application if akf else nonce.device)(seq, iv_index, szmic)
 
-        upper_transport_pdu = aes_ccm(application_key.bytes,
-                                      nonce,
-                                      self.payload)
+        upper_transport_pdu = aes_ccm(application_key.bytes, nonce,
+                                      self.payload, b'', 8 if szmic else 4)
 
         seg = len(upper_transport_pdu) > self.MAX_TRANSPORT_PDU
 
@@ -136,7 +141,7 @@ class AccessMessage:
 
             for seg_o, segment in enumerate(segments):
                 yield seq + seg_o, bitstring.pack('uint:1, uint:1, uint:6, uint:1, uint:13, uint:5, uint:5, bytes',
-                                                  seg, akf, aid, False, seq_zero, seg_o, seg_n, segment).bytes
+                                                  seg, akf, aid, szmic, seq_zero, seg_o, seg_n, segment).bytes
         else:
             yield seq, bitstring.pack('uint:1, uint:1, uint:6, bytes',
                                       seg, akf, aid, upper_transport_pdu).bytes
