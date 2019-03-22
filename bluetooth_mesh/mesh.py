@@ -105,31 +105,30 @@ class AccessMessage:
     MAX_TRANSPORT_PDU = 15
     SEGMENT_SIZE = 12
 
-    def __init__(self, src, dst, ttl, payload, szmic=False):
+    def __init__(self, src, dst, ttl, payload):
         self.src = src
         self.dst = dst
         self.ttl = ttl
         self.ctl = False
         self.payload = payload
-        self.szmic = szmic
 
         self.nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
 
-    def transport_pdu(self, application_key, seq, iv_index):
+    def transport_pdu(self, application_key, seq, iv_index, szmic=False):
 
         # Use large MIC if it doesn't affect segmentation
         if len(self.payload) > 11 and len(self.payload) <=376:
             if (len(self.payload) + 4) // 12 == (len(self.payload) + 8) // 12:
-                self.szmic = True
+                szmic = True
 
         akf = isinstance(application_key, ApplicationKey)
         aid = application_key.aid
 
         nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
-        nonce = (nonce.application if akf else nonce.device)(seq, iv_index, self.szmic)
+        nonce = (nonce.application if akf else nonce.device)(seq, iv_index, szmic)
 
         upper_transport_pdu = aes_ccm(application_key.bytes, nonce,
-                                      self.payload, b'', 8 if self.szmic else 4)
+                                      self.payload, b'', 8 if szmic else 4)
 
         seg = len(upper_transport_pdu) > self.MAX_TRANSPORT_PDU
 
@@ -142,7 +141,7 @@ class AccessMessage:
 
             for seg_o, segment in enumerate(segments):
                 yield seq + seg_o, bitstring.pack('uint:1, uint:1, uint:6, uint:1, uint:13, uint:5, uint:5, bytes',
-                                                  seg, akf, aid, self.szmic, seq_zero, seg_o, seg_n, segment).bytes
+                                                  seg, akf, aid, szmic, seq_zero, seg_o, seg_n, segment).bytes
         else:
             yield seq, bitstring.pack('uint:1, uint:1, uint:6, bytes',
                                       seg, akf, aid, upper_transport_pdu).bytes
