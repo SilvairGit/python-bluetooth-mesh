@@ -102,51 +102,93 @@ class Nonce:
                               0x02, szmic, seq, self.src, self.dst, iv_index).bytes
 
 
-class AccessMessage:
+class Segment:
     MAX_TRANSPORT_PDU = 15
     SEGMENT_SIZE = 12
 
-    def __init__(self, src, dst, ttl, payload):
+    def __init__(self, src, dst, ttl, ctl, payload):
         self.src = src
         self.dst = dst
         self.ttl = ttl
-        self.ctl = False
+        self.ctl = ctl
         self.payload = payload
-
         self.nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
 
     def transport_pdu(self, application_key, seq, iv_index, szmic=False):
-        # Use large MIC if it doesn't affect segmentation
+        raise NotImplementedError
+
+    def get_opcode(self, application_key):
+        raise NotImplementedError
+
+    def segments(self, application_key, seq, iv_index, payload):
+        opcode = self.get_opcode(application_key)
+        seq_zero = seq & 0x1fff
+        seg = len(payload) > self.MAX_TRANSPORT_PDU
+
+        if seg:
+            segments = list(payload[i:i + self.SEGMENT_SIZE]
+                            for i in range(0, len(payload), self.SEGMENT_SIZE))
+
+            seg_n = len(segments) - 1
+
+            for seg_o, segment in enumerate(segments):
+                yield seq + seg_o, bitstring.pack('uint:1, bits:7, pad:1, uint:13, uint:5, uint:5, bytes',
+                                                  seg, opcode, seq_zero, seg_o, seg_n, segment).bytes
+        else:
+            yield seq, bitstring.pack('uint:1, bits:7, bytes',
+                                  seg, opcode, payload).bytes
+
+
+class AccessMessage(Segment):
+    def __init__(self, src, dst, ttl, payload):
+        super().__init__(src, dst, ttl, False, payload)
+
+    def get_opcode(self, application_key):
+        akf = isinstance(application_key, ApplicationKey)
+        aid = application_key.aid
+        return bitstring.pack('uint:1, uint:6', akf, aid)
+
+    def transport_pdu(self, application_key, seq, iv_index, szmic=False):
+
         short_mic_len = len(self.payload) + 4
         long_mic_len = len(self.payload) + 8
 
+        # Use large MIC if it doesn't affect segmentation
         szmic = szmic or (math.ceil(short_mic_len / self.SEGMENT_SIZE) ==
                           math.ceil(long_mic_len / self.SEGMENT_SIZE))
 
         akf = isinstance(application_key, ApplicationKey)
-        aid = application_key.aid
-
-        nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
-        nonce = (nonce.application if akf else nonce.device)(seq, iv_index, szmic)
+        nonce = (self.nonce.application if akf else self.nonce.device)(seq, iv_index, szmic)
 
         upper_transport_pdu = aes_ccm(application_key.bytes, nonce,
                                       self.payload, b'', 8 if szmic else 4)
 
-        seg = len(upper_transport_pdu) > self.MAX_TRANSPORT_PDU
+        yield from self.segments(application_key, seq, iv_index, payload=upper_transport_pdu)
 
-        if seg:
-            segments = list(upper_transport_pdu[i:i + self.SEGMENT_SIZE]
-                            for i in range(0, len(upper_transport_pdu), self.SEGMENT_SIZE))
 
-            seq_zero = seq & 0x1fff
-            seg_n = len(segments) - 1
+class ControlMessage(Segment):
+    def __init__(self, src, dst, ttl, opcode, payload):
+        super().__init__(src, dst, ttl, True, payload)
+        self.payload = payload
+        self.opcode = opcode
 
-            for seg_o, segment in enumerate(segments):
-                yield seq + seg_o, bitstring.pack('uint:1, uint:1, uint:6, uint:1, uint:13, uint:5, uint:5, bytes',
-                                                  seg, akf, aid, szmic, seq_zero, seg_o, seg_n, segment).bytes
-        else:
-            yield seq, bitstring.pack('uint:1, uint:1, uint:6, bytes',
-                                      seg, akf, aid, upper_transport_pdu).bytes
+    def get_opcode(self, application_key):
+        return bitstring.pack('uint:7', self.opcode)
+
+    def transport_pdu(self, application_key, seq, iv_index, szmic=False):
+        yield from self.segments(application_key, seq, iv_index, payload=self.payload)
+
+
+class SegmentAckMessage(ControlMessage):
+    def __init__(self, src, dst, ttl, seq_zero, ack_segments, obo=False):
+        self.obo = obo
+        self.seq_zero = seq_zero
+        self.block_ack = bitstring.BitArray(i in ack_segments for i in range(32))
+
+        self.payload = bitstring.pack('uint:1, uint:13, pad:2, bits:32',
+                    self.obo, self.seq_zero, reversed(self.block_ack)).bytes
+
+        super().__init__(src, dst, ttl, 0x00, self.payload)
 
 
 class NetworkMessage:
