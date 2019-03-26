@@ -22,8 +22,8 @@
 from pytest import fixture, skip
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
-from bluetooth_mesh.mesh import SecureNetworkBeacon, AccessMessage, NetworkMessage, SegmentAckMessage
-from bluetooth_mesh.mesh import ControlMessage, Nonce
+from bluetooth_mesh.mesh import (SecureNetworkBeacon, AccessMessage, NetworkMessage,
+                                 SegmentAckMessage, ControlMessage, Nonce)
 
 @fixture
 def app_key():
