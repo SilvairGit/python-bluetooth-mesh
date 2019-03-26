@@ -22,6 +22,7 @@
 import bitstring
 import enum
 import itertools
+import math
 import operator
 
 from cryptography.exceptions import InvalidTag
@@ -92,11 +93,11 @@ class Nonce:
         return bitstring.pack('uint:8, uint:1, uint:7, uintbe:24, uintbe:16, pad:16, uintbe:32',
                               0x00, self.ctl, self.ttl, seq, self.src, iv_index).bytes
 
-    def application(self, seq, iv_index, szmic):
+    def application(self, seq, iv_index, szmic=False):
         return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
                               0x01, szmic, seq, self.src, self.dst, iv_index).bytes
 
-    def device(self, seq, iv_index, szmic):
+    def device(self, seq, iv_index, szmic=False):
         return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
                               0x02, szmic, seq, self.src, self.dst, iv_index).bytes
 
@@ -115,11 +116,12 @@ class AccessMessage:
         self.nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
 
     def transport_pdu(self, application_key, seq, iv_index, szmic=False):
-
         # Use large MIC if it doesn't affect segmentation
-        if len(self.payload) > 11 and len(self.payload) <=376:
-            if (len(self.payload) + 4) // 12 == (len(self.payload) + 8) // 12:
-                szmic = True
+        short_mic_len = len(self.payload) + 4
+        long_mic_len = len(self.payload) + 8
+
+        szmic = szmic or (math.ceil(short_mic_len / self.SEGMENT_SIZE) ==
+                          math.ceil(long_mic_len / self.SEGMENT_SIZE))
 
         akf = isinstance(application_key, ApplicationKey)
         aid = application_key.aid
