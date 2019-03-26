@@ -201,7 +201,8 @@ class NetworkMessage:
         for seq, pdu in self.message.transport_pdu(application_key, seq, iv_index):
             network_pdu = aes_ccm(encryption_key,
                                   self.message.nonce.network(seq, iv_index),
-                                  bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes)
+                                  bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes,
+                                  b'', 8 if self.message.ctl else 4)
 
             network_header = bitstring.pack('uint:1, uint:7, uintbe:24, uintbe:16',
                                             self.message.ctl, self.message.ttl, seq, self.message.src).bytes
