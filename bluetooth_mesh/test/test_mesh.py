@@ -22,8 +22,8 @@
 from pytest import fixture, skip
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
-from bluetooth_mesh.mesh import SecureNetworkBeacon, AccessMessage, NetworkMessage, Nonce
-
+from bluetooth_mesh.mesh import SecureNetworkBeacon, AccessMessage, NetworkMessage, SegmentAckMessage
+from bluetooth_mesh.mesh import ControlMessage, Nonce
 
 @fixture
 def app_key():
@@ -56,6 +56,17 @@ def config_appkey_status_message():
 def config_appkey_add_message():
     payload = bytes.fromhex('0056341263964771734fbd76e3b40519d1d94a48')
     return AccessMessage(src=0x0003, dst=0x1201, ttl=0x04, payload=payload)
+
+
+@fixture
+def control_appkey_add_ack_message():
+    return SegmentAckMessage(src=0x2345, dst=0x0003, ttl=0x0b, seq_zero=0x09ab, ack_segments=[1], obo=True)
+
+
+@fixture
+def control_friend_offer_message():
+    parameters = bytes.fromhex('320308ba072f')
+    return ControlMessage(src=0x2345, dst=0x1201, ttl=0x00, opcode=0x04, payload=parameters)
 
 
 def test_beacon_received(net_key):
@@ -140,3 +151,21 @@ def test_application_network_pdu(health_current_status_message, app_key, net_key
         network_message.pack(app_key, net_key, seq=0x000007, iv_index=0x12345678)
 
     assert network_pdu.hex() == '6848cba437860e5673728a627fb938535508e21a6baf57'
+
+
+def test_control_segment_ack_message(control_appkey_add_ack_message, app_key, net_key):
+    network_message = NetworkMessage(control_appkey_add_ack_message)
+
+    (seq, network_pdu), = \
+        network_message.pack(app_key, net_key, seq=0x014835, iv_index=0x12345678)
+
+    assert network_pdu.hex() == '68e476b5579c980d0d730f94d7f3509df987bb417eb7c05f'
+
+
+def test_control_message(control_friend_offer_message, app_key, net_key):
+    network_message = NetworkMessage(control_friend_offer_message)
+
+    (seq, network_pdu), = \
+        network_message.pack(app_key, net_key, seq=0x014820, iv_index=0x12345678)
+
+    assert network_pdu.hex() == '68d4c826296d7979d7dbc0c9b4d43eebec129d20a620d01e'
