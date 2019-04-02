@@ -154,8 +154,9 @@ class AccessMessage(Segment):
         long_mic_len = len(self.payload) + 8
 
         # Use large MIC if it doesn't affect segmentation
-        szmic = szmic or (math.ceil(short_mic_len / self.SEGMENT_SIZE) ==
-                          math.ceil(long_mic_len / self.SEGMENT_SIZE))
+        if len(self.payload) >= self.SEGMENT_SIZE and len(self.payload) < 376:
+            szmic = szmic or (math.ceil(short_mic_len / self.SEGMENT_SIZE) ==
+                              math.ceil(long_mic_len / self.SEGMENT_SIZE))
 
         akf = isinstance(application_key, ApplicationKey)
         nonce = (self.nonce.application if akf else self.nonce.device)(seq, iv_index, szmic)
