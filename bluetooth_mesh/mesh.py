@@ -193,10 +193,15 @@ class NetworkMessage:
     def __init__(self, message):
         self.message = message
 
-    def pack(self, application_key, network_key, seq, iv_index):
+    def pack(self, application_key, network_key, seq, iv_index, *, transport_seq=None):
         nid, encryption_key, privacy_key = network_key.encryption_keys
 
-        for seq, pdu in enumerate(self.message.segments(application_key, seq, iv_index),
+        # when retrying a segment, use the original sequence number during application
+        # encryption, but a newer one on network lever
+        if transport_seq is None:
+            transport_seq = seq
+
+        for seq, pdu in enumerate(self.message.segments(application_key, transport_seq, iv_index),
                                   start=seq):
             network_pdu = aes_ccm(encryption_key,
                                   self.message.nonce.network(seq, iv_index),

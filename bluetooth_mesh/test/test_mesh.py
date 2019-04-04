@@ -150,6 +150,17 @@ def test_application_network_pdu(health_current_status_message, app_key, net_key
     assert network_pdu.hex() == '6848cba437860e5673728a627fb938535508e21a6baf57'
 
 
+def test_application_network_pdu_segmented_retry(health_current_status_message, app_key, net_key):
+    network_message = NetworkMessage(health_current_status_message)
+
+    (seq, network_pdu), = \
+        network_message.pack(app_key, net_key, seq=0x000017, iv_index=0x12345678,
+                             transport_seq=0x000007)
+
+    assert seq == 0x000017
+    assert network_pdu.hex() == '6860f30170e2192e84fb4385254e9e71657aa1bcf2ca90'
+
+
 def test_control_segment_ack_message(control_appkey_add_ack_message, app_key, net_key):
     network_message = NetworkMessage(control_appkey_add_ack_message)
 
