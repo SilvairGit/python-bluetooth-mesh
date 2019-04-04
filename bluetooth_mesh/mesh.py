@@ -114,9 +114,6 @@ class Segment:
         self.payload = payload
         self.nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
 
-    def transport_pdu(self, application_key, seq, iv_index, szmic=False):
-        raise NotImplementedError
-
     def get_opcode(self, application_key):
         raise NotImplementedError
 
@@ -132,11 +129,11 @@ class Segment:
             seg_n = len(segments) - 1
 
             for seg_o, segment in enumerate(segments):
-                yield seq + seg_o, bitstring.pack('uint:1, bits:7, pad:1, uint:13, uint:5, uint:5, bytes',
-                                                  seg, opcode, seq_zero, seg_o, seg_n, segment).bytes
+                yield bitstring.pack('uint:1, bits:7, pad:1, uint:13, uint:5, uint:5, bytes',
+                                     seg, opcode, seq_zero, seg_o, seg_n, segment).bytes
         else:
-            yield seq, bitstring.pack('uint:1, bits:7, bytes',
-                                  seg, opcode, payload).bytes
+            yield bitstring.pack('uint:1, bits:7, bytes',
+                                 seg, opcode, payload).bytes
 
 
 class AccessMessage(Segment):
@@ -148,8 +145,7 @@ class AccessMessage(Segment):
         aid = application_key.aid
         return bitstring.pack('uint:1, uint:6', akf, aid)
 
-    def transport_pdu(self, application_key, seq, iv_index, szmic=False):
-
+    def segments(self, application_key, seq, iv_index, szmic=False):
         short_mic_len = len(self.payload) + 4
         long_mic_len = len(self.payload) + 8
 
@@ -164,7 +160,7 @@ class AccessMessage(Segment):
         upper_transport_pdu = aes_ccm(application_key.bytes, nonce,
                                       self.payload, b'', 8 if szmic else 4)
 
-        yield from self.segments(application_key, seq, iv_index, payload=upper_transport_pdu)
+        yield from super().segments(application_key, seq, iv_index, payload=upper_transport_pdu)
 
 
 class ControlMessage(Segment):
@@ -176,8 +172,8 @@ class ControlMessage(Segment):
     def get_opcode(self, application_key):
         return bitstring.pack('uint:7', self.opcode)
 
-    def transport_pdu(self, application_key, seq, iv_index, szmic=False):
-        yield from self.segments(application_key, seq, iv_index, payload=self.payload)
+    def segments(self, application_key, seq, iv_index, szmic=False):
+        yield from super().segments(application_key, seq, iv_index, payload=self.payload)
 
 
 class SegmentAckMessage(ControlMessage):
@@ -187,7 +183,8 @@ class SegmentAckMessage(ControlMessage):
         self.block_ack = bitstring.BitArray(i in ack_segments for i in range(32))
 
         self.payload = bitstring.pack('uint:1, uint:13, pad:2, bits:32',
-                    self.obo, self.seq_zero, reversed(self.block_ack)).bytes
+                                      self.obo, self.seq_zero,
+                                      reversed(self.block_ack)).bytes
 
         super().__init__(src, dst, ttl, 0x00, self.payload)
 
@@ -199,14 +196,16 @@ class NetworkMessage:
     def pack(self, application_key, network_key, seq, iv_index):
         nid, encryption_key, privacy_key = network_key.encryption_keys
 
-        for seq, pdu in self.message.transport_pdu(application_key, seq, iv_index):
+        for seq, pdu in enumerate(self.message.segments(application_key, seq, iv_index),
+                                  start=seq):
             network_pdu = aes_ccm(encryption_key,
                                   self.message.nonce.network(seq, iv_index),
                                   bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes,
                                   b'', 8 if self.message.ctl else 4)
 
             network_header = bitstring.pack('uint:1, uint:7, uintbe:24, uintbe:16',
-                                            self.message.ctl, self.message.ttl, seq, self.message.src).bytes
+                                            self.message.ctl, self.message.ttl, seq,
+                                            self.message.src).bytes
 
             privacy_random = bitstring.pack('pad:40, uintbe:32, bytes:7',
                                             iv_index, network_pdu[:7]).bytes

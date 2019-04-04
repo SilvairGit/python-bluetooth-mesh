@@ -119,29 +119,26 @@ def test_application_nonce(health_current_status_message):
                  False).application(seq=0x000007, iv_index=0x12345678) == bytes.fromhex('01000000071201ffff12345678')
 
 
-def test_device_transport_pdu(config_appkey_status_message, dev_key):
-    (seq, transport_pdu), = \
-        config_appkey_status_message.transport_pdu(dev_key, seq=0x000006, iv_index=0x12345678)
+def test_device_pdu(config_appkey_status_message, dev_key):
+    segment, = \
+        config_appkey_status_message.segments(dev_key, seq=0x000006, iv_index=0x12345678)
 
-    assert transport_pdu == bytes.fromhex('0089511bf1d1a81c11dcef')
-
-
-def test_application_transport_pdu(health_current_status_message, app_key):
-    (seq, transport_pdu), = \
-        health_current_status_message.transport_pdu(app_key, seq=0x000007, iv_index=0x12345678)
-
-    assert transport_pdu == bytes.fromhex('665a8bde6d9106ea078a')
+    assert segment == bytes.fromhex('0089511bf1d1a81c11dcef')
 
 
-def test_application_transport_pdu_segmented(config_appkey_add_message, dev_key):
-    (seq0, transport_pdu0), (seq1, transport_pdu1) = \
-        config_appkey_add_message.transport_pdu(dev_key, seq=0x3129ab, iv_index=0x12345678)
+def test_application_pdu(health_current_status_message, app_key):
+    segment, = \
+        health_current_status_message.segments(app_key, seq=0x000007, iv_index=0x12345678)
 
-    assert seq0 == 0x3129ab
-    assert transport_pdu0 == bytes.fromhex('8026ac01ee9dddfd2169326d23f3afdf')
+    assert segment == bytes.fromhex('665a8bde6d9106ea078a')
 
-    assert seq1 == 0x3129ab + 1
-    assert transport_pdu1 == bytes.fromhex('8026ac21cfdc18c52fdef772e0e17308')
+
+def test_application_pdu_segmented(config_appkey_add_message, dev_key):
+    segments = list(config_appkey_add_message.segments(dev_key, seq=0x3129ab,
+                                                       iv_index=0x12345678))
+
+    assert segments[0] == bytes.fromhex('8026ac01ee9dddfd2169326d23f3afdf')
+    assert segments[1] == bytes.fromhex('8026ac21cfdc18c52fdef772e0e17308')
 
 
 def test_application_network_pdu(health_current_status_message, app_key, net_key):
