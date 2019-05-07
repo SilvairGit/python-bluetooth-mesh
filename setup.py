@@ -40,6 +40,7 @@ setup(
     python_requires='>=3.6.0',
     install_requires=[
         'bitstring>=3.1.5',
+        'construct>=2.9.45',
         'cryptography>=2.3.1',
         'docopt>=0.6.2',
         'marshmallow>=3.0.0rc3',
