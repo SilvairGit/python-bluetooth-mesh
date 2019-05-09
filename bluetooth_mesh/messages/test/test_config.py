@@ -7,85 +7,85 @@ from bluetooth_mesh.messages.config import *
 valid = [
     pytest.param(
         SecureNetworkBeaconAdapter,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         SecureNetworkBeacon.OFF,
         id="SecureNetworkBeaconAdapter - Off"
     ),
     pytest.param(
         SecureNetworkBeaconAdapter,
-        bytearray([0x01]),
+        bytes.fromhex('01'),
         SecureNetworkBeacon.ON,
         id="SecureNetworkBeaconAdapter - On"
     ),
     pytest.param(
         GATTProxyAdapter,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         GATTProxy.DISABLED,
         id="GATTProxyAdapter - Disabled"
     ),
     pytest.param(
         GATTProxyAdapter,
-        bytearray([0x01]),
+        bytes.fromhex('01'),
         GATTProxy.ENABLED,
         id="GATTProxyAdapter - Enabled"
     ),
     pytest.param(
         GATTProxyAdapter,
-        bytearray([0x02]),
+        bytes.fromhex('02'),
         GATTProxy.NOT_SUPPORTED,
         id="GATTProxyAdapter - NOT_SUPPORTED"
     ),
     pytest.param(
         RelayAdapter,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         Relay.DISABLED,
         id="RelayAdapter - Disabled"
     ),
     pytest.param(
         RelayAdapter,
-        bytearray([0x01]),
+        bytes.fromhex('01'),
         Relay.ENABLED,
         id="RelayAdapter - Enabled"
     ),
     pytest.param(
         RelayAdapter,
-        bytearray([0x02]),
+        bytes.fromhex('02'),
         Relay.NOT_SUPPORTED,
         id="RelayAdapter - NOT_SUPPORTED"
     ),
     pytest.param(
         GATTNamespaceDescriptorAdapter,
-        bytearray([0xDC, 0x00]),
+        bytes.fromhex('DC00'),
         GATTNamespaceDescriptor.TWO_HUNDRED_TWENTIETH,
         id="GATTNamespaceDescriptorAdapter - TWO_HUNDRED_TWENTIETH"
     ),
     pytest.param(
         GATTNamespaceDescriptorAdapter,
-        bytearray([0x00, 0x00]),
+        bytes.fromhex('0000'),
         GATTNamespaceDescriptor.UNKNOWN,
         id="GATTNamespaceDescriptorAdapter - TWO_HUNDRED_TWENTIETH"
     ),
     pytest.param(
         TTL,
-        bytearray([0x7F]),
+        bytes.fromhex('7F'),
         0x7F,
         id="TTL-Max"
     ),
     pytest.param(
         TTL,
-        bytearray([0x6F]),
+        bytes.fromhex('6F'),
         0x6F,
         id="TTL"
     ),
     pytest.param(
         TTL,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         0x00,
         id="TTL-Min"
     ),
     pytest.param(
         SIGModelId,
-        bytearray([0xAD, 0xDE]),
+        bytes.fromhex('ADDE'),
         {
             "model_id": 0xDEAD,
         },
@@ -93,7 +93,7 @@ valid = [
     ),
     pytest.param(
         SIGModelId,
-        bytearray([0xAD, 0xDE]),
+        bytes.fromhex('ADDE'),
         {
             "model_id": 0xDEAD,
             "vendor_id": 0xC0DE
@@ -102,7 +102,7 @@ valid = [
     ),
     pytest.param(
         VendorModelId,
-        bytearray([0xDE, 0xC0, 0xAD, 0xDE]),
+        bytes.fromhex('DEC0ADDE'),
         {
             "model_id" : 0xDEAD,
             "vendor_id": 0xC0DE
@@ -111,7 +111,7 @@ valid = [
     ),
     pytest.param(
         ModelId,
-        bytearray([0xDE, 0xC0, 0xAD, 0xDE]),
+        bytes.fromhex('DEC0ADDE'),
         {
             "model_id": 0xDEAD,
             "vendor_id": 0xC0DE
@@ -120,7 +120,7 @@ valid = [
     ),
     pytest.param(
         ModelId,
-        bytearray([0xAD, 0xDE]),
+        bytes.fromhex('ADDE'),
         {
             "model_id": 0xDEAD
         },
@@ -128,7 +128,7 @@ valid = [
     ),
     pytest.param(
         ModelId,
-        bytearray([0xAD, 0xDE]),
+        bytes.fromhex('ADDE'),
         {
             "model_id": 0xDEAD,
             "vendor_id": None
@@ -137,37 +137,37 @@ valid = [
     ),
     pytest.param(
         UnassignedAddress,
-        bytearray([0x00, 0x00]),
+        bytes.fromhex('0000'),
         0x0000,
         id="UnassignedAddress"
     ),
     pytest.param(
         UnicastAddress,
-        bytearray([0xFF, 0x7F]),
+        bytes.fromhex('FF7F'),
         0x7FFF,
         id="UnicastAddress - Max"
     ),
     pytest.param(
         UnicastAddress,
-        bytearray([0x01, 0x00]),
+        bytes.fromhex('0100'),
         0x0001,
         id="UnicastAddress - Min"
     ),
     pytest.param(
         GroupAddress,
-        bytearray([0x00, 0xC0]),
+        bytes.fromhex('00C0'),
         0xC000,
         id="GroupAddress - Min"
     ),
     pytest.param(
         VirtualLabel,
-        bytearray([0x00, 0x80]),
+        bytes.fromhex('0080'),
         0x8000,
         id="VirtualAddress - Min"
     ),
     pytest.param(
         CompositionDataElement,
-        bytearray([0x00, 0x00, 0x01, 0x01, 0xAD, 0xDE, 0xEF, 0xBE, 0xAD, 0xDE]),
+        bytes.fromhex('00000101ADDEEFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
             "SIG_number": 0x01,
@@ -178,7 +178,7 @@ valid = [
         id="CompositionDataElement",),
     pytest.param(
         CompositionDataElement,
-        bytearray([0x00, 0x00, 0x00, 0x01, 0xEF, 0xBE, 0xAD, 0xDE]),
+        bytes.fromhex('00000001EFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
             "SIG_number": 0x00,
@@ -189,7 +189,7 @@ valid = [
         id="CompositionDataElement - No SIG",),
     pytest.param(
         CompositionDataElement,
-        bytearray([0x00, 0x00, 0x01, 0x00, 0xAD, 0xDE]),
+        bytes.fromhex('00000100ADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
             "SIG_number": 0x01,
@@ -201,7 +201,7 @@ valid = [
     ),
     pytest.param(
         CompositionData,
-        bytearray([0x36, 0x01, 0xCE, 0x00, 0xFE, 0xCA, 0xEF, 0xBE, 0x0B, 0xB0, 0x00, 0x00, 0x00, 0x00]),
+        bytes.fromhex('3601CE00FECAEFBE0BB000000000'),
         {
             "CID": 0x0136,
             "PID": 0x00CE,
@@ -221,7 +221,7 @@ valid = [
         id="CompositionData - One element",),
     pytest.param(
         CompositionData,
-        bytearray([0x36, 0x01, 0xCE, 0x00, 0xFE, 0xCA, 0xEF, 0xBE, 0x0B, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),
+        bytes.fromhex('3601CE00FECAEFBE0BB00000000000000000'),
         {
             "CID": 0x0136,
             "PID": 0x00CE,
@@ -249,7 +249,7 @@ valid = [
     ),
     pytest.param(
         Retransmit,
-        bytearray([0x07]),
+        bytes.fromhex('07'),
         {
             "count": 0x07,
             "interval_steps": 0x00
@@ -258,7 +258,7 @@ valid = [
     ),
     pytest.param(
         Retransmit,
-        bytearray([0xF8]),
+        bytes.fromhex('F8'),
         {
             "count": 0x00,
             "interval_steps": 0x1F
@@ -267,7 +267,7 @@ valid = [
     ),
     pytest.param(
         NetAndAppKeyIndex,
-        bytearray([0x01, 0x23, 0x45]),
+        bytes.fromhex('012345'),
         {
             "net_key_index": 0x301,
             "app_key_index": 0x452
@@ -276,7 +276,7 @@ valid = [
     ),
     pytest.param(
         NetAndAppKeyIndex,
-        bytearray([0xab, 0xcd, 0xef]),
+        bytes.fromhex('abcdef'),
         {
             "net_key_index": 0xdab,
             "app_key_index": 0xefc
@@ -285,7 +285,7 @@ valid = [
     ),
     pytest.param(
         PublishPeriod,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         {
             "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
             "number_of_steps": 0x00
@@ -294,7 +294,7 @@ valid = [
     ),
     pytest.param(
         PublishPeriod,
-        bytearray([0xC0]),
+        bytes.fromhex('C0'),
         {
             "step_resolution": PublishPeriodStepResolution.RESOLUTION_10_MIN,
             "number_of_steps": 0x00
@@ -303,7 +303,7 @@ valid = [
     ),
     pytest.param(
         PublishPeriod,
-        bytearray([0x3F]),
+        bytes.fromhex('3F'),
         {
             "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
             "number_of_steps": 0x3F
@@ -312,13 +312,13 @@ valid = [
     ),
     pytest.param(
         ConfigBeaconGet,
-        bytearray(),
+        bytes(),
         {},
         id="ConfigBeaconGet"
     ),
     pytest.param(
         ConfigBeaconSet,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         {
             "beacon": SecureNetworkBeacon.OFF
         },
@@ -326,7 +326,7 @@ valid = [
     ),
     pytest.param(
         ConfigBeaconStatus,
-        bytearray([0x01]),
+        bytes.fromhex('01'),
         {
             "beacon": SecureNetworkBeacon.ON
         },
@@ -334,7 +334,7 @@ valid = [
     ),
     pytest.param(
         ConfigCompositionDataGet,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         {
             "page": 0x00
         },
@@ -342,7 +342,7 @@ valid = [
     ),
     pytest.param(
         ConfigCompositionDataGet,
-        bytearray([0xFF]),
+        bytes.fromhex('FF'),
         {
             "page": 0xFF
         },
@@ -350,7 +350,7 @@ valid = [
     ),
     pytest.param(
         ConfigCompositionDataStatus,
-        bytearray([0x00, 0x36, 0x01, 0xCE, 0x00, 0xFE, 0xCA, 0xEF, 0xBE, 0x0B, 0xB0, 0x00, 0x00, 0x00, 0x00]),
+        bytes.fromhex('003601CE00FECAEFBE0BB000000000'),
         {
             "page": 0x00,
             "data": {
@@ -373,22 +373,22 @@ valid = [
         id="ConfigCompositionDataStatus - page 0",),
     pytest.param(
         ConfigCompositionDataStatus,
-        bytearray([0x01, 0xCA, 0xFE]),
+        bytes.fromhex('01CAFE'),
         {
             "page": 0x01,
-            "data": bytearray([0xCA, 0xFE])
+            "data": bytes.fromhex('CAFE')
         },
         id="ConfigCompositionDataStatus - not page 0"
     ),
     pytest.param(
         ConfigDefaultTTLGet,
-        bytearray(),
+        bytes(),
         {},
         id="ConfigDefaultTTLGet"
     ),
     pytest.param(
         ConfigDefaultTTLSet,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         {
             "TTL": 0x00
         },
@@ -396,7 +396,7 @@ valid = [
     ),
     pytest.param(
         ConfigDefaultTTLSet,
-        bytearray([0x0B]),
+        bytes.fromhex('0B'),
         {
             "TTL": 0x0B
         },
@@ -404,7 +404,7 @@ valid = [
     ),
     pytest.param(
         ConfigDefaultTTLSet,
-        bytearray([0x7F]),
+        bytes.fromhex('7F'),
         {
             "TTL": 0x7F
         },
@@ -412,7 +412,7 @@ valid = [
     ),
     pytest.param(
         ConfigDefaultTTLStatus,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         {
             "TTL": 0x00
         },
@@ -420,7 +420,7 @@ valid = [
     ),
     pytest.param(
         ConfigDefaultTTLStatus,
-        bytearray([0x0B]),
+        bytes.fromhex('0B'),
         {
             "TTL": 0x0B
         },
@@ -428,7 +428,7 @@ valid = [
     ),
     pytest.param(
         ConfigDefaultTTLStatus,
-        bytearray([0x7F]),
+        bytes.fromhex('7F'),
         {
             "TTL": 0x7F
         },
@@ -436,13 +436,13 @@ valid = [
     ),
     pytest.param(
         ConfigGATTProxyGet,
-        bytearray(),
+        bytes(),
         {},
         id="ConfigGATTProxyGet"
     ),
     pytest.param(
         ConfigGATTProxySet,
-        bytearray([0x00]),
+        bytes.fromhex('00'),
         {
             "GATT_proxy": GATTProxy.DISABLED
         },
@@ -450,7 +450,7 @@ valid = [
     ),
     pytest.param(
         ConfigGATTProxyStatus,
-        bytearray([0x01]),
+        bytes.fromhex('01'),
         {
             "GATT_proxy": GATTProxy.ENABLED
         },
@@ -458,13 +458,13 @@ valid = [
     ),
     pytest.param(
         ConfigRelayGet,
-        bytearray(),
+        bytes(),
         {},
         id="ConfigRelayGet"
     ),
     pytest.param(
         ConfigRelaySet,
-        bytearray([0x00, 0x00]),
+        bytes.fromhex('0000'),
         {
             "relay": Relay.DISABLED,
             "retransmit": {
@@ -476,7 +476,7 @@ valid = [
     ),
     pytest.param(
         ConfigRelayStatus,
-        bytearray([0x02, 0x00]),
+        bytes.fromhex('0200'),
         {
             "relay": Relay.NOT_SUPPORTED,
             "retransmit": {
@@ -488,7 +488,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationGet,
-        bytearray([0x01, 0x02, 0x03, 0x04]),
+        bytes.fromhex('01020304'),
         {
             "element_address": 0x0201,
             "model": {
@@ -499,7 +499,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationGet,
-        bytearray([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]),
+        bytes.fromhex('010203040506'),
         {
             "element_address": 0x0201,
             "model": {
@@ -511,7 +511,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationSet,
-        bytearray([0x01, 0x02, 0x01, 0x00, 0x1F, 0xFF, 0x7F, 0xC0, 0x07, 0x03, 0x04, 0x05, 0x06]),
+        bytes.fromhex('010201001FFF7FC00703040506'),
         {
             "element_address": 0x0201,
             "publish_address": 0x0001,
@@ -538,7 +538,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationStatus,
-        bytearray([0x01, 0x02, 0x01, 0x00, 0x1F, 0xFF, 0x7F, 0xC0, 0x07, 0x03, 0x04, 0x05, 0x06]),
+        bytes.fromhex('010201001FFF7FC00703040506'),
         {
             "element_address": 0x0201,
             "publish_address": 0x0001,
@@ -565,20 +565,20 @@ valid = [
     ),
     pytest.param(
         ConfigAppKeyAdd,
-        bytes([0x01, 0x23, 0x45, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F]),
+        bytes.fromhex('012345000102030405060708090A0B0C0D0E0F'),
         {
             "indexes":
                 {
                     "net_key_index": 0x301,
                     "app_key_index": 0x452
                 },
-            "app_key": bytes([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F]),
+            "app_key": bytes.fromhex('000102030405060708090A0B0C0D0E0F'),
         },
         id="ConfigAppKeyAdd"
     ),
     pytest.param(
         ConfigNodeIdentitySet,
-        bytearray([0xFF, 0x0F, 0x01]),
+        bytes.fromhex('FF0F01'),
         {
             "net_key_index": 0xFFF,
             "identity": NodeIdentity.RUNNING
@@ -587,7 +587,7 @@ valid = [
     ),
     pytest.param(
         ConfigNodeIdentityStatus,
-        bytearray([0x00, 0xFF, 0x0F, 0x01]),
+        bytes.fromhex('00FF0F01'),
         {
             "status": StatusCode.SUCCESS,
             "net_key_index": 0xFFF,
@@ -600,7 +600,7 @@ valid = [
 build_valid = [
     pytest.param(
         CompositionDataElement,
-        bytearray([0x00, 0x00, 0x01, 0x01, 0xAD, 0xDE, 0xEF, 0xBE, 0xAD, 0xDE]),
+        bytes.fromhex('00000101ADDEEFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
             "SIG_models": [{
@@ -615,7 +615,7 @@ build_valid = [
     ),
     pytest.param(
         CompositionDataElement,
-        bytearray([0x00, 0x00, 0x00, 0x01, 0xEF, 0xBE, 0xAD, 0xDE]),
+        bytes.fromhex('00000001EFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
             "SIG_models": [],
@@ -628,7 +628,7 @@ build_valid = [
     ),
     pytest.param(
         CompositionDataElement,
-        bytearray([0x00, 0x00, 0x01, 0x00, 0xAD, 0xDE]),
+        bytes.fromhex('00000100ADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
             "SIG_models": [{
