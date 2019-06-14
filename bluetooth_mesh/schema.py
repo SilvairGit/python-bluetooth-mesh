@@ -104,7 +104,6 @@ class GroupSchema(Schema):
 class NetworkSchema(Schema):
     name = fields.String()
     uuid = fields.UUID()
-    scenes = fields.Nested(SceneSchema, many=True)
     groups = fields.Nested(GroupSchema, many=True)
     appKeys = fields.Nested(AppKeySchema, many=True)
     netKeys = fields.Nested(NetKeySchema, many=True)

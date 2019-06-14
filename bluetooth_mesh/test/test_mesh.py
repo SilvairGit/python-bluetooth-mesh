@@ -19,11 +19,14 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
-from pytest import fixture, skip
+import uuid
+
+from pytest import fixture, skip, raises
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 from bluetooth_mesh.mesh import (SecureNetworkBeacon, AccessMessage, NetworkMessage,
-                                 SegmentAckMessage, ControlMessage, Nonce)
+                                 SegmentAckMessage, ControlMessage, Nonce,
+                                 UnprovisionedDeviceBeacon)
 
 @fixture
 def app_key():
@@ -69,7 +72,7 @@ def control_friend_offer_message():
     return ControlMessage(src=0x2345, dst=0x1201, ttl=0x00, opcode=0x04, payload=parameters)
 
 
-def test_beacon_received(net_key):
+def test_network_beacon_received(net_key):
     beacon, auth = SecureNetworkBeacon.unpack(bytes.fromhex('003ecaff672f673370123456788ea261582f364f6f'))
 
     assert beacon.verify(auth, net_key)
@@ -80,7 +83,7 @@ def test_beacon_received(net_key):
     assert beacon.iv_index == 0x12345678
 
 
-def test_beacon_received_iv_update(net_key):
+def test_network_beacon_received_iv_update(net_key):
     beacon, auth = SecureNetworkBeacon.unpack(bytes.fromhex('023ecaff672f67337012345679c2af80ad072a135c'))
 
     assert beacon.verify(auth, net_key)
@@ -91,11 +94,52 @@ def test_beacon_received_iv_update(net_key):
     assert beacon.iv_index == 0x12345679
 
 
-def test_beacon_created(net_key):
+def test_network_beacon_created(net_key):
     beacon = SecureNetworkBeacon(False, False, 0x12345678, network_id=net_key.network_id)
 
     assert beacon.pack(net_key) == (bytes.fromhex('003ecaff672f67337012345678'),
                                     bytes.fromhex('8ea261582f364f6f'))
+
+
+def test_unprovisioned_beacon_received():
+    beacon = UnprovisionedDeviceBeacon.unpack(bytes.fromhex('25bdf2eb03cc4383a65add3e8007fb554243'))
+
+    assert beacon.uuid == uuid.UUID('25bdf2eb-03cc-4383-a65a-dd3e8007fb55')
+    assert beacon.oob == 0x4243
+
+
+def test_unprovisioned_beacon_received_uri_hash():
+    beacon = UnprovisionedDeviceBeacon.unpack(bytes.fromhex('25bdf2eb03cc4383a65add3e8007fb55424301020304'))
+
+    assert beacon.uuid == uuid.UUID('25bdf2eb-03cc-4383-a65a-dd3e8007fb55')
+    assert beacon.oob == 0x4243
+    assert beacon.uri_hash == bytes.fromhex('01020304')
+
+
+def test_unprovisioned_beacon_received_uri_hash_too_short():
+    with raises(ValueError, match='expected 4 bytes'):
+        UnprovisionedDeviceBeacon.unpack(bytes.fromhex('25bdf2eb03cc4383a65add3e8007fb554243010203'))
+
+
+def test_unprovisioned_beacon_created():
+    beacon = UnprovisionedDeviceBeacon(uuid.UUID('25bdf2eb-03cc-4383-a65a-dd3e8007fb55'),
+                                       0x4243)
+
+    assert beacon.pack() == bytes.fromhex('25bdf2eb03cc4383a65add3e8007fb554243')
+
+
+def test_unprovisioned_beacon_created_uri_hash():
+    beacon = UnprovisionedDeviceBeacon(uuid.UUID('25bdf2eb-03cc-4383-a65a-dd3e8007fb55'),
+                                       0x4243,
+                                       bytes.fromhex('04030201'))
+
+    assert beacon.pack() == bytes.fromhex('25bdf2eb03cc4383a65add3e8007fb55424304030201')
+
+def test_unprovisioned_beacon_created_uri_hash_too_short():
+    with raises(ValueError, match='expected 4 bytes'):
+        beacon = UnprovisionedDeviceBeacon(uuid.UUID('25bdf2eb-03cc-4383-a65a-dd3e8007fb55'),
+                                           0x4243,
+                                           bytes.fromhex('040302'))
 
 
 def test_network_nonce(config_appkey_status_message):

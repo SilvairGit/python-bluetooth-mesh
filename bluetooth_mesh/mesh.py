@@ -21,17 +21,53 @@
 #
 import bitstring
 import enum
-import itertools
 import math
 import operator
 
-from cryptography.exceptions import InvalidTag
+from uuid import UUID
 from bluetooth_mesh.crypto import aes_cmac, aes_ccm, aes_ecb, ApplicationKey
 
 
 class BeaconType(enum.Enum):
     UNPROVISIONED_DEVICE = 0x00
     SECURE_NETWORK = 0x01
+
+
+class UnprovisionedDeviceBeacon:
+    BEACON_FORMAT = 'bytes:16, uint:16, bytes'
+
+    def __init__(self, uuid, oob, uri_hash=None):
+        self.uuid = uuid
+        self.oob = oob
+
+        if uri_hash and len(uri_hash) != 4:
+            raise ValueError('Wrong size of URI hash, expected 4 bytes')
+
+        self.uri_hash = uri_hash
+
+    def __str__(self):
+        return '<%s: uuid=%s, oob=%x, uri_hash=%s>' % (
+            type(self).__name__,
+            self.uuid,
+            self.oob,
+            self.uri_hash)
+
+    @classmethod
+    def unpack(cls, beacon):
+        uuid, oob, uri_hash = \
+            bitstring.BitString(beacon).unpack(cls.BEACON_FORMAT)
+
+        if uri_hash and len(uri_hash) != 4:
+            raise ValueError('Wrong size of URI hash, expected 4 bytes')
+
+        return cls(UUID(bytes=uuid), oob, uri_hash or None)
+
+    def pack(self):
+        beacon = bitstring.pack(self.BEACON_FORMAT,
+                                self.uuid.bytes,
+                                self.oob,
+                                self.uri_hash or b'').bytes
+        return beacon
 
 
 class SecureNetworkBeacon:
@@ -46,14 +82,11 @@ class SecureNetworkBeacon:
 
     def __str__(self):
         return '<%s: key_refresh=%s, iv_update=%s, ivindex=%d, network_id=%s>' % (
-                type(self).__name__,
-                self.key_refresh,
-                self.iv_update,
-                self.iv_index,
-                self.network_id.hex())
-
-    def pack(self):
-        return self.message + self.auth
+            type(self).__name__,
+            self.key_refresh,
+            self.iv_update,
+            self.iv_index,
+            self.network_id.hex())
 
     @classmethod
     def unpack(cls, message):
