@@ -42,20 +42,24 @@ setup(
         'bitstring>=3.1.5',
         'construct>=2.9.45',
         'cryptography>=2.3.1',
-        'docopt>=0.6.2',
-        'marshmallow>=3.0.0rc3',
-        'pillow>=5.4.1',
-        'prompt-toolkit>=2.0.8',
-        'pygobject>=3.30.4',
-        'pydbus>=0.6.0',
     ],
+    extras_require={
+        'demo': [
+            'docopt>=0.6.2',
+            'marshmallow>=3.0.0rc3',
+            'pillow>=5.4.1',
+            'pygobject>=3.30.4',
+            'pydbus>=0.6.0',
+            'prompt-toolkit>=2.0.8',
+        ],
+    },
     tests_require=[
         'pytest>4.1.0',
         'pytest-runner>=4.2',
     ],
     entry_points=dict(
         console_scripts=[
-            'gatt-client = bluetooth_mesh.cli.gatt_client:main',
+            'gatt-client = bluetooth_mesh.cli.gatt_client:main [demo]',
         ]
     ),
     classifiers=[
