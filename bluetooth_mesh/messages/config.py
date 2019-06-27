@@ -9,7 +9,7 @@ from construct import (
     this, len_, obj_,
 )
 
-from .util import EnumAdapter, Opcode, Reversed, RangeValidator
+from .util import EnumAdapter, LogAdapter, BitList, Opcode, Reversed, RangeValidator
 
 
 class SecureNetworkBeacon(enum.IntEnum):
@@ -790,11 +790,11 @@ ConfigHeartbeatHops = ExprValidator(Int8ul, lambda obj, ctx: obj <= 0x7F)
 ConfigHeartbeatPublicationGet = Struct()
 
 ConfigHeartbeatPublicationSet = Struct(
-    "destination" / Int16ul,  # TODO
-    "count_log" / Int8ul,  # TODO
-    "period_log" / Int8ul,  # TODO
+    "destination" / UnicastUnassignedGroupAddress,
+    "count" / LogAdapter(Int8ul, max_value=0x10, infinity=True),
+    "period" / LogAdapter(Int8ul, max_value=0x10),
     "TTL" / TTL,
-    "features" / Int16ul,  # TODO
+    "features" / BitList(2),
     "net_key_index" / Int12ul,
 )
 
@@ -806,17 +806,17 @@ ConfigHeartbeatPublicationStatus = Struct(
 ConfigHeartbeatSubscriptionGet = Struct()
 
 ConfigHeartbeatSubscriptionSet = Struct(
-    "source" / UnicastOrUnassignedAddress,
-    "destination" / Int16ul,  # TODO
-    "period_log" / Int8ul,  # TODO
+    "source" / UnicastUnassignedAddress,
+    "destination" / UnicastUnassignedGroupAddress,
+    "period_log" / LogAdapter(Int8ul, max_value=0x11),
 )
 
 ConfigHeartbeatSubscriptionStatus = Struct(
     "status" / StatusCodeAdapter,
     Embedded(ConfigHeartbeatSubscriptionSet),
-    "count_log" / Int8ul,  # TODO
-    "min_hops" / Int8ul,  # TODO
-    "max_hops" / Int8ul,  # TODO
+    "count" / LogAdapter(Int8ul, max_value=0x11, infinity=True),
+    "min_hops" / RangeValidator(Int8ul, max_value=0x7F),
+    "max_hops" / RangeValidator(Int8ul, max_value=0x7F),
 )
 
 ConfigLowPowerNodePollTimeoutGet = Struct(
