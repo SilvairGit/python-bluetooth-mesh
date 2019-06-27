@@ -595,6 +595,51 @@ valid = [
         },
         id="ConfigNodeIdentityStatus"
     ),
+    pytest.param(
+        ConfigHeartbeatPublicationGet,
+        bytes(),
+        {},
+        id="ConfigHeartbeatPublicationGet"
+    ),
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        bytes.fromhex('010203040506070809'),
+        {
+            "destination": 0x0201,
+            "count": 4,
+            "period": 8,
+            "TTL": 0x05,
+            "features": {5, 6, 13, 14, 15},
+            "net_key_index": 0x0908
+        },
+        id="ConfigHeartbeatPublicationSet"
+    ),
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        bytes.fromhex('0102ff060506070809'),
+        {
+            "destination": 0x0201,
+            "count": float('inf'),
+            "period": 32,
+            "TTL": 0x05,
+            "features": {5, 6, 13, 14, 15},
+            "net_key_index": 0x0908
+        },
+        id="ConfigHeartbeatPublicationSet - infinite count"
+    ),
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        bytes.fromhex('0102ff100506070809'),
+        {
+            "destination": 0x0201,
+            "count": float('inf'),
+            "period": 0x8000,
+            "TTL": 0x05,
+            "features": {5, 6, 13, 14, 15},
+            "net_key_index": 0x0908
+        },
+        id="ConfigHeartbeatPublicationSet - long period"
+    ),
 ]
 
 build_valid = [
@@ -641,9 +686,53 @@ build_valid = [
 ]
 
 parse_invalid = [
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        bytes.fromhex('010203048006070809'),
+        ValidationError,
+        id="ConfigHeartbeatPublicationSet - TTL too big",
+    ),
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        bytes.fromhex('010211040506070809'),
+        ValidationError,
+        id="ConfigHeartbeatPublicationSet - count too big",
+    ),
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        bytes.fromhex('010203110506070809'),
+        ValidationError,
+        id="ConfigHeartbeatPublicationSet - period too long",
+    ),
 ]
 
 build_invalid = [
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        {
+            "destination": 0x0201,
+            "count": 1,
+            "period": 0x8001,
+            "TTL": 0x05,
+            "features": {5, 6, 13, 14, 15},
+            "net_key_index": 0x0908
+        },
+        ValidationError,
+        id="ConfigHeartbeatPublicationSet - period too long",
+    ),
+    pytest.param(
+        ConfigHeartbeatPublicationSet,
+        {
+            "destination": 0x0201,
+            "count": 1,
+            "period": float('inf'),
+            "TTL": 0x05,
+            "features": {5, 6, 13, 14, 15},
+            "net_key_index": 0x0908
+        },
+        ValidationError,
+        id="ConfigHeartbeatPublicationSet - infinite period",
+    ),
 ]
 
 @pytest.mark.parametrize("message,encoded,decoded", valid + build_valid)
