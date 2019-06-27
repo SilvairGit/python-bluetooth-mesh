@@ -9,7 +9,7 @@ from construct import (
     this, len_, obj_,
 )
 
-from .util import EnumAdapter, Opcode, Reversed
+from .util import EnumAdapter, Opcode, Reversed, RangeValidator
 
 
 class SecureNetworkBeacon(enum.IntEnum):
@@ -359,7 +359,7 @@ NodeIdentityAdapter = EnumAdapter(Int8ul, NodeIdentity)
 
 FriendAdapter = EnumAdapter(Int8ul, Friend)
 
-TTL = ExprValidator(Int8ul, lambda obj, ctx: obj <= 0x7F)
+TTL = RangeValidator(Int8ul, max_value=0x7F)
 
 SIGModelId = Struct(
     "model_id" / Int16ul,
@@ -416,24 +416,31 @@ def get_address_type(address):
     return AddressType.UNICAST
 
 
-UnassignedAddress = ExprValidator(
+def AddressTypeValidator(subcons, *allowed_types):
+    return ExprValidator(
+        subcons,
+        lambda obj, ctx: get_address_type(obj) in allowed_types
+    )
+
+
+UnassignedAddress = AddressTypeValidator(
     Int16ul,
-    lambda obj, ctx: get_address_type(obj) == AddressType.UNASSIGNED
+    AddressType.UNASSIGNED
 )
 
-UnicastAddress = ExprValidator(
+UnicastAddress = AddressTypeValidator(
     Int16ul,
-    lambda obj, ctx: get_address_type(obj) == AddressType.UNICAST
+    AddressType.UNICAST
 )
 
-GroupAddress = ExprValidator(
-    Int16ul,
-    lambda obj, ctx: get_address_type(obj) == AddressType.GROUP
-)  # TODO Fixed Groups?
+# TODO Fixed Groups?
+GroupAddress = AddressTypeValidator(
+    Int16ul, AddressType.GROUP
+)
 
-VirtualLabel = ExprValidator(
+VirtualLabel = AddressTypeValidator(
     Int16ul,
-    lambda obj, ctx: get_address_type(obj) == AddressType.VIRTUAL
+    AddressType.VIRTUAL
 )
 
 NotVirtualLabel = ExprValidator(
@@ -449,17 +456,17 @@ SubscriptionAddress = ExprValidator(
                                                    AddressType.VIRTUAL]
 )
 
-UnicastOrUnassignedAddress = ExprValidator(
+UnicastUnassignedAddress = AddressTypeValidator(
     Int16ul,
-    lambda obj, ctx: get_address_type(obj) in [AddressType.UNICAST,
-                                               AddressType.UNASSIGNED]
+    AddressType.UNICAST,
+    AddressType.UNASSIGNED,
 )
 
-UnassignedOrUnicastOrGroupAddress = ExprValidator(
+UnicastUnassignedGroupAddress = AddressTypeValidator(
     Int16ul,
-    lambda obj, ctx: get_address_type(obj) in [AddressType.UNASSIGNED,
-                                               AddressType.UNICAST,
-                                               AddressType.GROUP]
+    AddressType.UNICAST,
+    AddressType.UNASSIGNED,
+    AddressType.GROUP,
 )
 
 Int12ul = ExprValidator(

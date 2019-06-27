@@ -41,6 +41,19 @@ def EnumAdapter(subcon, enum):
     return _EnumAdapter(subcon)
 
 
+def RangeValidator(subcon, *, min_value=None, max_value=None):
+    def validate_range(obj, ctx):
+        if min_value is not None and obj < min_value:
+            return False
+
+        if max_value is not None and obj > max_value:
+            return False
+
+        return True
+
+    return ExprValidator(subcon, validate_range)
+
+
 Opcode = Select(
     ExprValidator(
         Int8ub,
