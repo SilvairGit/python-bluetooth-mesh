@@ -6,12 +6,12 @@ from construct import (
 from .util import Opcode
 from .health import HealthMessage
 from .config import ConfigMessage
-from .generics import GenericOnOff
+from .generic import GenericMessage
 
 AccessMessage = Select(
     HealthMessage,
     ConfigMessage,
-    GenericOnOff,
+    GenericMessage,
     Struct(
         "opcode" / Opcode,
         "params" / GreedyBytes,
