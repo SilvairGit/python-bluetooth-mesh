@@ -1,6 +1,6 @@
 from construct import Select
 
-from .generic_onoff_message import GenericOnOffMessage
+from .onoff import GenericOnOffMessage
 
 GenericMessage = Select(
     GenericOnOffMessage
