@@ -1,6 +1,7 @@
 import pytest
 from construct import ValidationError
 
+from bluetooth_mesh.messages.generic.generic_onoff_message import *
 from bluetooth_mesh.messages.generics import *
 
 
@@ -60,7 +61,10 @@ valid = [
         GenericOpcode.ONOFF_SET,
         dict(onoff=0,
              tid=49,
-             transition_time=0,
+             transition_time=dict(
+                 steps=0,
+                 resolution=0
+             ),
              delay=0.3),
         id="ONOFF_SET_with_optional"),
     pytest.param(
@@ -70,15 +74,25 @@ valid = [
              target_onoff=None,
              remaining_time=None),
         id="ONOFF_STATUS"),
+    pytest.param(
+        b'\x82\x04\x00\x01\x05',
+        GenericOpcode.ONOFF_STATUS,
+        dict(present_onoff=0,
+             target_onoff=1,
+             remaining_time=dict(
+                 steps=1,
+                 resolution=1
+             )),
+        id="ONOFF_STATUS_with_optional"),
 ]
 
 
 @pytest.mark.parametrize("encoded,opcode,data", valid)
 def test_parse_valid(encoded, opcode, data):
-    assert GenericOnOff.parse(encoded).params == data
+    assert GenericOnOffMessage.parse(encoded).params == data
 
 
 @pytest.mark.parametrize("encoded,opcode,data", valid)
 def test_build_valid(encoded, opcode, data):
-    assert GenericOnOff.build(dict(opcode=opcode, params=data)) == \
+    assert GenericOnOffMessage.build(dict(opcode=opcode, params=data)) == \
         encoded
