@@ -377,15 +377,15 @@ ModelId = Select(
 
 
 class AddressType(enum.Enum):
-    UNASSIGNED = enum.auto()
-    UNICAST = enum.auto()
-    GROUP = enum.auto()
-    VIRTUAL = enum.auto()
-    RFU = enum.auto()
-    ALL_PROXIES = enum.auto()
-    ALL_FRIENDS = enum.auto()
-    ALL_RELAYS = enum.auto()
-    ALL_NODES = enum.auto()
+    UNASSIGNED = 0
+    UNICAST = 1
+    GROUP = 2
+    VIRTUAL = 3
+    RFU = 4
+    ALL_PROXIES = 5
+    ALL_FRIENDS = 6
+    ALL_RELAYS = 7
+    ALL_NODES = 8
 
 
 def get_address_type(address):
