@@ -10,7 +10,8 @@ from bluetooth_mesh.messages.generics import *
                           (0x01, 0b00, "04"),
                           (0x01, 0b01, "05"),
                           (0x3E, 0b00, "F8"),
-                          (0x3E, 0b11, "FB")
+                          (0x3E, 0b11, "FB"),
+                          (0x3F, 0b11, "FF")
                           ]
                          )
 def test_build_transition_time(steps, resolution, expected_tt):
@@ -18,28 +19,19 @@ def test_build_transition_time(steps, resolution, expected_tt):
     assert tt == bytes.fromhex(expected_tt)
 
 
-def test_build_invalid_value():
-    with pytest.raises(ValidationError):
-        TransitionTime.build(dict(steps=0x3F, resolution=0b00))
-
-
 @pytest.mark.parametrize("raw_bytes, expected_steps, expected_resolution",
                          [("00", 0x00, 0b00),
                           ("01", 0x00, 0b01),
                           ("04", 0x01, 0b00),
                           ("F8", 0x3E, 0b00),
-                          ("FB", 0x3E, 0b11)
+                          ("FB", 0x3E, 0b11),
+                          ("FF", 0x3F, 0b11)
                           ]
                          )
 def test_parse_transition_time(raw_bytes, expected_steps, expected_resolution):
     tt = TransitionTime.parse(bytes.fromhex(raw_bytes))
     assert tt.steps == expected_steps
     assert tt.resolution == expected_resolution
-
-
-def test_parse_invalid_value():
-    with pytest.raises(ValidationError):
-        TransitionTime.parse(bytes.fromhex("FC"))
 
 
 valid = [
@@ -52,10 +44,16 @@ valid = [
         b'\x82\x02\x01\x22',
         GenericOnOffOpcode.ONOFF_SET,
         dict(onoff=1,
-             tid=34,
-             transition_time=None,
-             delay=None),
+             tid=34),
         id="ONOFF_SET"),
+    pytest.param(
+        b'\x82\x02\x01\x22',
+        GenericOnOffOpcode.ONOFF_SET,
+        dict(onoff=1,
+             tid=34,
+             transition_time=6.3,
+             delay=0.3),
+        id="ONOFF_SET_invalid"),
     pytest.param(
         b'\x82\x02\x00\x31\xc8\x3c',
         GenericOnOffOpcode.ONOFF_SET,
@@ -86,6 +84,13 @@ valid = [
              target_onoff=1,
              remaining_time=10),
         id="ONOFF_STATUS_with_optional"),
+    pytest.param(
+        b'\x82\x04\x00\x01\xff',
+        GenericOnOffOpcode.ONOFF_STATUS,
+        dict(present_onoff=0,
+             target_onoff=1,
+             remaining_time=37800),
+        id="ONOFF_STATUS_max_time"),
 ]
 
 
