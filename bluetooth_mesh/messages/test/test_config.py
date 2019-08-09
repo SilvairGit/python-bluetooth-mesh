@@ -1,5 +1,6 @@
 import pytest
 import construct
+from copy import deepcopy
 
 from bluetooth_mesh.messages.config import *
 
@@ -269,8 +270,8 @@ valid = [
         NetAndAppKeyIndex,
         bytes.fromhex('012345'),
         {
-            "net_key_index": 0x301,
-            "app_key_index": 0x452
+            "net_key_index": 0x452,
+            "app_key_index": 0x301
         },
         id="NetAndAppKeyIndex"
     ),
@@ -278,8 +279,17 @@ valid = [
         NetAndAppKeyIndex,
         bytes.fromhex('abcdef'),
         {
-            "net_key_index": 0xdab,
-            "app_key_index": 0xefc
+            "net_key_index": 0xefc,
+            "app_key_index": 0xdab
+        },
+        id="NetAndAppKeyIndex"
+    ),
+    pytest.param(
+        NetAndAppKeyIndex,
+        bytes.fromhex('efcdab'),
+        {
+            "net_key_index": 0xabc,
+            "app_key_index": 0xdef
         },
         id="NetAndAppKeyIndex"
     ),
@@ -488,7 +498,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationGet,
-        bytes.fromhex('01020304'),
+        bytes.fromhex('0102 0304'),
         {
             "element_address": 0x0201,
             "model": {
@@ -511,14 +521,14 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationSet,
-        bytes.fromhex('010201001FFF7FC00703040506'),
+        bytes.fromhex('0102 0100 ABC8 7FC00703040506'),
         {
             "element_address": 0x0201,
             "publish_address": 0x0001,
             "embedded": {
                 "RFU": 0,
                 "credential_flag": PublishFriendshipCredentialsFlag.FRIENDSHIP_SECURITY,
-                "app_key_index": 0xFFF,
+                "app_key_index": 0xabc,
             },
             "TTL": 0x7F,
             "publish_period": {
@@ -537,50 +547,193 @@ valid = [
         id="ConfigModelPublicationSet"
     ),
     pytest.param(
-        ConfigModelPublicationStatus,
-        bytes.fromhex('010201001FFF7FC00703040506'),
+        ConfigModelPublicationSet,
+        bytes.fromhex('0201 0403 0050 0607110403'),
         {
-            "element_address": 0x0201,
-            "publish_address": 0x0001,
+            "element_address": 0x0102,
+            "publish_address": 0x0304,
             "embedded": {
                 "RFU": 0,
-                "credential_flag": PublishFriendshipCredentialsFlag.FRIENDSHIP_SECURITY,
-                "app_key_index": 0xFFF,
+                "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
+                "app_key_index": 5,
             },
-            "TTL": 0x7F,
+            "TTL": 6,
             "publish_period": {
-                "step_resolution": PublishPeriodStepResolution.RESOLUTION_10_MIN,
-                "number_of_steps": 0x00
+                "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
+                "number_of_steps": 7
             },
             "retransmit": {
-                "count": 0x07,
-                "interval_steps": 0x00
+                "count": 1,
+                "interval_steps": 2
             },
             "model": {
-                "model_id": 0x0605,
-                "vendor_id": 0x0403
+                "model_id": 0x0304
+            }
+        },
+        id="ConfigModelPublicationSet"
+    ),
+    pytest.param(
+        ConfigModelPublicationStatus,
+        bytes.fromhex('02 0201 0403 0050 06 07 11 0403 0605'),
+        {
+            "status": StatusCode.INVALID_MODEL,
+            "element_address": 0x0102,
+            "publish_address": 0x0304,
+            "embedded": {
+                "RFU": 0,
+                "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
+                "app_key_index": 5,
+            },
+            "TTL": 6,
+            "publish_period": {
+                "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
+                "number_of_steps": 7
+            },
+            "retransmit": {
+                "count": 1,
+                "interval_steps": 2
+            },
+            "model": {
+                "model_id": 0x0506,
+                "vendor_id": 0x0304
             }
         },
         id="ConfigModelPublicationStatus"
     ),
     pytest.param(
+        ConfigModelSubscriptionAdd,
+        bytes.fromhex('AA11 BBC2 CC33'),
+        {
+            "element_address": 0x11AA,
+            "address": 0xC2BB,
+            "model": {
+                "model_id": 0x33CC
+            }
+        },
+        id="ConfigModelSubscriptionAddSigId"
+    ),
+    pytest.param(
+        ConfigModelSubscriptionAdd,
+        bytes.fromhex('0201 FDFF 3F00 2A00'),
+        {
+            "element_address": 0x0102,
+            "address": 0xFFFD,
+            "model": {
+                "model_id": 0x002A,
+                "vendor_id": 0x003F
+            }
+        },
+        id="ConfigModelSubscriptionAddVendorId"
+    ),
+
+    pytest.param(
+        SingleKeyIndex,
+        bytes.fromhex('bc0a'),
+        {
+            "key_index": 0xabc,
+        },
+        id="SingleKeyIndex"
+    ),
+    pytest.param(
         ConfigAppKeyAdd,
-        bytes.fromhex('012345000102030405060708090A0B0C0D0E0F'),
+        bytes.fromhex('012345 000102030405060708090A0B0C0D0E0F'),
         {
             "indexes":
                 {
-                    "net_key_index": 0x301,
-                    "app_key_index": 0x452
+                    "net_key_index": 0x452,
+                    "app_key_index": 0x301
                 },
             "app_key": bytes.fromhex('000102030405060708090A0B0C0D0E0F'),
         },
         id="ConfigAppKeyAdd"
     ),
     pytest.param(
+        ConfigAppKeyAdd,
+        bytes.fromhex('236145 63964771734fbd76e3b40519d1d94a48'),
+        {
+            "indexes":
+                {
+                    "net_key_index": 0x456,
+                    "app_key_index": 0x123
+                },
+            "app_key": bytes.fromhex('63964771734fbd76e3b40519d1d94a48'),
+        },
+        id="ConfigAppKeyAdd"
+    ),
+    pytest.param(
+        ConfigAppKeyGet,
+        bytes.fromhex('0200'),
+        {
+            "net_key_index": {"key_index": 2},
+        },
+        id="ConfigAppKeyGet"
+    ),
+    pytest.param(
+        ConfigAppKeyStatus,
+        bytes.fromhex('00 332322'),
+        {
+            "status": StatusCode.SUCCESS,
+            "indexes":
+                {
+                    "net_key_index": 0x222,
+                    "app_key_index": 0x333
+                },
+        },
+        id="ConfigAppKeyStatus"
+    ),
+    pytest.param(
+        ConfigAppKeyList,
+        bytes.fromhex('000b00 010000 012100'),
+        {
+            "status": StatusCode.SUCCESS,
+            "net_key_index": {"key_index": 11},
+            "app_key_indexes": [0, 1, 2, 257]
+        },
+        id="ConfigAppKeyList_even"
+    ),
+    pytest.param(
+        ConfigAppKeyList,
+        bytes.fromhex('000b00 563412 8907'),
+        {
+            "status": StatusCode.SUCCESS,
+            "net_key_index": {"key_index": 11},
+            "app_key_indexes": [0x123, 0x456, 0x789]
+        },
+        id="ConfigAppKeyList_odd"
+    ),
+    pytest.param(
+        ConfigNetKeyList,
+        bytes.fromhex('42b000 '),
+        {
+            "net_key_indexes": [11, 66],
+        },
+        id="ConfigNetKeyList_even"
+    ),
+    pytest.param(
+        ConfigNetKeyAdd,
+        bytes.fromhex('4305 000102030405060708090A0B0C0D0E0F'),
+        {
+            "net_key_index": {
+                "key_index": 0x543
+            },
+            "net_key": bytes.fromhex('000102030405060708090A0B0C0D0E0F'),
+        },
+        id="ConfigNetKeyAdd"
+    ),
+    pytest.param(
+        ConfigNetKeyList,
+        bytes.fromhex('43d002 5800'),
+        {
+            "net_key_indexes": [45, 67, 88],
+
+        },
+        id="ConfigNetKeyList_odd"
+    ),
+    pytest.param(
         ConfigNodeIdentitySet,
         bytes.fromhex('FF0F01'),
         {
-            "net_key_index": 0xFFF,
+            "net_key_index": {"key_index": 0xFFF},
             "identity": NodeIdentity.RUNNING
         },
         id="ConfigNodeIdentitySet"
@@ -590,7 +743,7 @@ valid = [
         bytes.fromhex('00FF0F01'),
         {
             "status": StatusCode.SUCCESS,
-            "net_key_index": 0xFFF,
+            "net_key_index": {"key_index": 0xFFF},
             "identity": NodeIdentity.RUNNING
         },
         id="ConfigNodeIdentityStatus"
@@ -610,7 +763,7 @@ valid = [
             "period": 8,
             "TTL": 0x05,
             "features": {5, 6, 13, 14, 15},
-            "net_key_index": 0x0908
+            "net_key_index": {"key_index": 0x908}
         },
         id="ConfigHeartbeatPublicationSet"
     ),
@@ -623,7 +776,7 @@ valid = [
             "period": 32,
             "TTL": 0x05,
             "features": {5, 6, 13, 14, 15},
-            "net_key_index": 0x0908
+            "net_key_index": {"key_index": 0x908}
         },
         id="ConfigHeartbeatPublicationSet - infinite count"
     ),
@@ -636,7 +789,7 @@ valid = [
             "period": 0x8000,
             "TTL": 0x05,
             "features": {5, 6, 13, 14, 15},
-            "net_key_index": 0x0908
+            "net_key_index": {"key_index": 0x908}
         },
         id="ConfigHeartbeatPublicationSet - long period"
     ),
@@ -735,10 +888,12 @@ build_invalid = [
     ),
 ]
 
+
 @pytest.mark.parametrize("message,encoded,decoded", valid + build_valid)
 def test_build(message, encoded, decoded):
-    result = message.build(obj=decoded)
-    assert result == encoded
+    _decoded = deepcopy(decoded)
+    result = message.build(obj=_decoded)
+    assert result.hex() == encoded.hex()
 
 
 @pytest.mark.parametrize("message,encoded,decoded", valid)
