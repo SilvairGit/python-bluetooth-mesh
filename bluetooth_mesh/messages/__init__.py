@@ -8,12 +8,14 @@ from .health import HealthMessage
 from .config import ConfigMessage
 from .generic import GenericMessage
 
+Message = Struct(
+    "opcode" / Opcode,
+    "params" / GreedyBytes,
+)
+
 AccessMessage = Select(
-    HealthMessage,
-    ConfigMessage,
-    GenericMessage,
-    Struct(
-        "opcode" / Opcode,
-        "params" / GreedyBytes,
-    )
+    "HealthMessage" / HealthMessage,
+    "ConfigMessage" / ConfigMessage,
+    "GenericMessage" / GenericMessage,
+    "Message" / Message,
 )
