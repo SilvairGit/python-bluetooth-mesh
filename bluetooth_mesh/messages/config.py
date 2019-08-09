@@ -6,7 +6,7 @@ from construct import (
     GreedyBytes, GreedyRange,
     BitsInteger, Int24ul, Int16ul, Int8ul, Flag, Bytes,
     ExprValidator, ValidationError,
-    this, len_, obj_,
+    this, len_, obj_, Padding
 )
 
 from .util import EnumAdapter, LogAdapter, BitList, Opcode, Reversed, RangeValidator
@@ -500,8 +500,46 @@ Retransmit = BitStruct(
 
 NetAndAppKeyIndex = Reversed(
     BitStruct(
-        "app_key_index" / BitsInteger(12),
         "net_key_index" / BitsInteger(12),
+        "app_key_index" / BitsInteger(12),
+    )
+)
+
+SingleKeyIndex = Reversed(  # TODO: Fix nesting
+    BitStruct(
+        Padding(4),
+        "key_index" / BitsInteger(12),
+    )
+)
+
+
+class KeyIndexesAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        index_list = []
+        for cont in obj:
+            if "key_index" in cont:
+                index_list.append(cont['key_index'])
+            else:
+                index_list += [cont["app_key_index"], cont["net_key_index"]]
+        return sorted(index_list)
+
+    def _encode(self, obj, context, path):
+        obj.sort()
+        ret = []
+        while len(obj) >= 2:
+            tmp = dict(net_key_index=obj.pop(0), app_key_index=obj.pop(0))
+            ret.append(tmp)
+        if obj:
+            ret.append({"key_index": obj.pop()})
+        return ret
+
+
+KeyIndexes = KeyIndexesAdapter(
+    GreedyRange(
+        Select(
+            NetAndAppKeyIndex,
+            SingleKeyIndex
+        )
     )
 )
 
@@ -580,9 +618,9 @@ ConfigModelPublicationSet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / NotVirtualLabel,
     "embedded" / BitStruct(
-        "RFU" / BitsInteger(3),
-        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
         "app_key_index" / BitsInteger(12),
+        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
+        "RFU" / BitsInteger(3),
     ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
@@ -590,15 +628,18 @@ ConfigModelPublicationSet = Struct(
     "model" / ModelId,
 )
 
-ConfigModelPublicationStatus = ConfigModelPublicationSet
+ConfigModelPublicationStatus = Struct(
+    "status" / StatusCodeAdapter,
+    Embedded(ConfigModelPublicationSet)
+)
 
 ConfigModelPublicationVASet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / Bytes(16),
     "embedded" / BitStruct(
-        "RFU" / BitsInteger(3),
-        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
         "app_key_index" / BitsInteger(12),
+        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
+        "RFU" / BitsInteger(3),
     ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
@@ -661,26 +702,26 @@ ConfigVendorModelSubscriptionList = Struct(
 )
 
 ConfigNetKeyAdd = Struct(
-    "net_key_index" / Int12ul,
+    "net_key_index" / SingleKeyIndex,
     "net_key" / Bytes(16),
 )
 
 ConfigNetKeyUpdate = ConfigNetKeyAdd
 
 ConfigNetKeyDelete = Struct(
-    "net_key_index" / Int12ul,
+    "net_key_index" / SingleKeyIndex,
 )
 
 ConfigNetKeyStatus = Struct(
     "status" / StatusCodeAdapter,
-    "net_key_index" / Int12ul,
+    "net_key_index" / SingleKeyIndex,
 )
 
 ConfigNetKeyGet = Struct()
 
-# ConfigNetKeyList = Struct(
-#     "net key index" / GreedyRange(Int12ul),
-# )
+ConfigNetKeyList = Struct(
+    "net_key_indexes" / KeyIndexes
+)
 
 ConfigAppKeyAdd = Struct(
     "indexes" / NetAndAppKeyIndex,
@@ -699,21 +740,21 @@ ConfigAppKeyStatus = Struct(
 )
 
 ConfigAppKeyGet = Struct(
-    "indexes" / NetAndAppKeyIndex,
+    "net_key_index" / SingleKeyIndex,
 )
 
-# ConfigAppKeyList = Struct(
-#     "status" / StatusCodeAdapter,
-#     "net key index" / Int12ul,
-#     "app key indexes" / GreedyRange(Int24ul),
-# )
+ConfigAppKeyList = Struct(
+    "status" / StatusCodeAdapter,
+    "net_key_index" / SingleKeyIndex,
+    "app_key_indexes" / KeyIndexes,
+)
 
 ConfigNodeIdentityGet = Struct(
-    "net_key_index" / Int12ul,
+    "net_key_index" / SingleKeyIndex,
 )
 
 ConfigNodeIdentitySet = Struct(
-    "net_key_index" / Int12ul,
+    "net_key_index" / SingleKeyIndex,
     "identity" / NodeIdentityAdapter,
 )
 
@@ -724,7 +765,7 @@ ConfigNodeIdentityStatus = Struct(
 
 ConfigModelAppBind = Struct(
     "element_address" / UnicastAddress,
-    "app_key_index" / Int12ul,
+    "app_key_index" / SingleKeyIndex,
     "model" / ModelId,
 )
 
@@ -740,22 +781,22 @@ ConfigSIGModelAppGet = Struct(
     "model" / SIGModelId,
 )
 
-# ConfigSIGModelAppList = Struct(
-#     "status" / StatusCodeAdapter,
-#     Embedded(ConfigSIGModelAppGet),
-#     "app key indexes" / GreedyRange(Int24ul),
-# )
+ConfigSIGModelAppList = Struct(
+    "status" / StatusCodeAdapter,
+    Embedded(ConfigSIGModelAppGet),
+    "app key indexes" / KeyIndexes,
+)
 
 ConfigVendorModelAppGet = Struct(
     "element_address" / UnicastAddress,
     "model" / VendorModelId,
 )
 
-# ConfigVendorModelAppList = Struct(
-#     "status" / Int8ul, # TODO Enum
-#     Embedded(ConfigVendorModelAppGet),
-#     "app key indexes" / GreedyRange(Int24ul),
-# )
+ConfigVendorModelAppList = Struct(
+    "status" / StatusCodeAdapter,
+    Embedded(ConfigVendorModelAppGet),
+    "app key indexes" / KeyIndexes,
+)
 
 ConfigNodeReset = Struct()
 
@@ -770,7 +811,7 @@ ConfigFriendSet = Struct(
 ConfigFriendStatus = ConfigFriendSet
 
 ConfigKeyRefreshPhaseGet = Struct(
-    "net_key_index" / Int12ul,
+    "net_key_index" / SingleKeyIndex,
 )
 
 ConfigKeyRefreshPhaseSet = Struct(
@@ -795,7 +836,7 @@ ConfigHeartbeatPublicationSet = Struct(
     "period" / LogAdapter(Int8ul, max_value=0x10),
     "TTL" / TTL,
     "features" / BitList(2),
-    "net_key_index" / Int12ul,
+    "net_key_index" / SingleKeyIndex,
 )
 
 ConfigHeartbeatPublicationStatus = Struct(
@@ -919,7 +960,7 @@ ConfigMessage = Struct(
             ConfigOpcode.APPKEY_ADD: ConfigAppKeyAdd,
             ConfigOpcode.APPKEY_DELETE: ConfigAppKeyDelete,
             ConfigOpcode.APPKEY_GET: ConfigAppKeyGet,
-            ConfigOpcode.APPKEY_LIST: GreedyRange,  # TODO: ConfigAppKeyList,
+            ConfigOpcode.APPKEY_LIST: ConfigAppKeyList,
             ConfigOpcode.APPKEY_STATUS: ConfigAppKeyStatus,
             ConfigOpcode.APPKEY_UPDATE: ConfigAppKeyUpdate,
             ConfigOpcode.BEACON_GET: ConfigBeaconGet,
@@ -965,7 +1006,7 @@ ConfigMessage = Struct(
             ConfigOpcode.NETKEY_ADD: ConfigNetKeyAdd,
             ConfigOpcode.NETKEY_DELETE: ConfigNetKeyDelete,
             ConfigOpcode.NETKEY_GET: ConfigNetKeyGet,
-            ConfigOpcode.NETKEY_LIST: GreedyBytes,  # TODO: ConfigNetKeyList,
+            ConfigOpcode.NETKEY_LIST: ConfigNetKeyList,
             ConfigOpcode.NETKEY_STATUS: ConfigNetKeyStatus,
             ConfigOpcode.NETKEY_UPDATE: ConfigNetKeyUpdate,
             ConfigOpcode.NETWORK_TRANSMIT_GET: ConfigNetworkTransmitGet,
@@ -980,11 +1021,11 @@ ConfigMessage = Struct(
             ConfigOpcode.RELAY_SET: ConfigRelaySet,
             ConfigOpcode.RELAY_STATUS: ConfigRelayStatus,
             ConfigOpcode.SIG_MODEL_APP_GET: ConfigSIGModelAppGet,
-            ConfigOpcode.SIG_MODEL_APP_LIST: GreedyBytes,  # TODO: ConfigSIGModelAppList,
+            ConfigOpcode.SIG_MODEL_APP_LIST: ConfigSIGModelAppList,
             ConfigOpcode.SIG_MODEL_SUBSCRIPTION_GET: ConfigSIGModelSubscriptionGet,
             ConfigOpcode.SIG_MODEL_SUBSCRIPTION_LIST: ConfigSIGModelSubscriptionList,
             ConfigOpcode.VENDOR_MODEL_APP_GET: ConfigVendorModelAppGet,
-            ConfigOpcode.VENDOR_MODEL_APP_LIST: GreedyBytes,  # TODO: ConfigVendorModelAppList,
+            ConfigOpcode.VENDOR_MODEL_APP_LIST: ConfigVendorModelAppList,
             ConfigOpcode.VENDOR_MODEL_SUBSCRIPTION_GET: ConfigVendorModelSubscriptionGet,
             ConfigOpcode.VENDOR_MODEL_SUBSCRIPTION_LIST: ConfigVendorModelSubscriptionList,
         }
