@@ -270,8 +270,8 @@ valid = [
         NetAndAppKeyIndex,
         bytes.fromhex('012345'),
         {
-            "net_key_index": 0x452,
-            "app_key_index": 0x301
+            "net_key_index": 0x301,
+            "app_key_index": 0x452,
         },
         id="NetAndAppKeyIndex"
     ),
@@ -279,8 +279,8 @@ valid = [
         NetAndAppKeyIndex,
         bytes.fromhex('abcdef'),
         {
-            "net_key_index": 0xefc,
-            "app_key_index": 0xdab
+            "net_key_index": 0xdab,
+            "app_key_index": 0xefc
         },
         id="NetAndAppKeyIndex"
     ),
@@ -288,8 +288,8 @@ valid = [
         NetAndAppKeyIndex,
         bytes.fromhex('efcdab'),
         {
-            "net_key_index": 0xabc,
-            "app_key_index": 0xdef
+            "net_key_index": 0xdef,
+            "app_key_index": 0xabc
         },
         id="NetAndAppKeyIndex"
     ),
@@ -640,8 +640,8 @@ valid = [
         {
             "indexes":
                 {
-                    "net_key_index": 0x452,
-                    "app_key_index": 0x301
+                    "net_key_index": 0x301,
+                    "app_key_index": 0x452,
                 },
             "app_key": bytes.fromhex('000102030405060708090A0B0C0D0E0F'),
         },
@@ -653,8 +653,8 @@ valid = [
         {
             "indexes":
                 {
-                    "net_key_index": 0x456,
-                    "app_key_index": 0x123
+                    "net_key_index": 0x123,
+                    "app_key_index": 0x456,
                 },
             "app_key": bytes.fromhex('63964771734fbd76e3b40519d1d94a48'),
         },
@@ -675,8 +675,8 @@ valid = [
             "status": StatusCode.SUCCESS,
             "indexes":
                 {
-                    "net_key_index": 0x222,
-                    "app_key_index": 0x333
+                    "net_key_index": 0x333,
+                    "app_key_index": 0x222
                 },
         },
         id="ConfigAppKeyStatus"
