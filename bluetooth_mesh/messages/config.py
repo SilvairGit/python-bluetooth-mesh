@@ -617,11 +617,11 @@ ConfigModelPublicationGet = Struct(
 ConfigModelPublicationSet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / NotVirtualLabel,
-    "embedded" / BitStruct(  # TODO: Check if this field is correct (little endian)
-        "app_key_index" / BitsInteger(12),
-        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
+    "embedded" / Reversed(BitStruct(
         "RFU" / BitsInteger(3),
-    ),
+        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
+        "app_key_index" / BitsInteger(12)
+    )),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / Retransmit,
@@ -636,11 +636,11 @@ ConfigModelPublicationStatus = Struct(
 ConfigModelPublicationVASet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / Bytes(16),
-    "embedded" / BitStruct(   # TODO: Check if this field is correct (little endian)
-        "app_key_index" / BitsInteger(12),
-        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
+    "embedded" / Reversed(BitStruct(
         "RFU" / BitsInteger(3),
-    ),
+        "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
+        "app_key_index" / BitsInteger(12)
+    )),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / Retransmit,
