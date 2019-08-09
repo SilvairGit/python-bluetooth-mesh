@@ -64,7 +64,7 @@ valid = [
         GATTNamespaceDescriptorAdapter,
         bytes.fromhex('0000'),
         GATTNamespaceDescriptor.UNKNOWN,
-        id="GATTNamespaceDescriptorAdapter - TWO_HUNDRED_TWENTIETH"
+        id="GATTNamespaceDescriptorAdapter - UNKNOWN"
     ),
     pytest.param(
         TTL,
@@ -105,7 +105,7 @@ valid = [
         VendorModelId,
         bytes.fromhex('DEC0ADDE'),
         {
-            "model_id" : 0xDEAD,
+            "model_id": 0xDEAD,
             "vendor_id": 0xC0DE
         },
         id="VendorModelId"
@@ -195,7 +195,7 @@ valid = [
             "location": GATTNamespaceDescriptor.UNKNOWN,
             "SIG_number": 0x01,
             "vendor_number": 0x00,
-            "SIG_models": [{ "model_id": 0xDEAD }],
+            "SIG_models": [{"model_id": 0xDEAD}],
             "vendor_models": []
         },
         id="CompositionDataElement - No vendor"
