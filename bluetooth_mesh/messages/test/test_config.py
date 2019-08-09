@@ -521,7 +521,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationSet,
-        bytes.fromhex('0102 0100 ABC8 7FC00703040506'),
+        bytes.fromhex('0102 0100 BC1A 7FC00703040506'),
         {
             "element_address": 0x0201,
             "publish_address": 0x0001,
@@ -548,7 +548,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationSet,
-        bytes.fromhex('0201 0403 0050 0607110403'),
+        bytes.fromhex('0201 0403 0500 0607110403'),
         {
             "element_address": 0x0102,
             "publish_address": 0x0304,
@@ -574,7 +574,7 @@ valid = [
     ),
     pytest.param(
         ConfigModelPublicationStatus,
-        bytes.fromhex('02 0201 0403 0050 06 07 11 0403 0605'),
+        bytes.fromhex('02 0201 0403 0500 06 07 11 0403 0605'),
         {
             "status": StatusCode.INVALID_MODEL,
             "element_address": 0x0102,
