@@ -500,8 +500,8 @@ Retransmit = BitStruct(
 
 NetAndAppKeyIndex = Reversed(
     BitStruct(
-        "net_key_index" / BitsInteger(12),
         "app_key_index" / BitsInteger(12),
+        "net_key_index" / BitsInteger(12),
     )
 )
 
@@ -520,14 +520,14 @@ class KeyIndexesAdapter(Adapter):
             if "key_index" in cont:
                 index_list.append(cont['key_index'])
             else:
-                index_list += [cont["app_key_index"], cont["net_key_index"]]
+                index_list += [cont["net_key_index"], cont["app_key_index"]]
         return sorted(index_list)
 
     def _encode(self, obj, context, path):
         obj.sort()
         ret = []
         while len(obj) >= 2:
-            tmp = dict(net_key_index=obj.pop(0), app_key_index=obj.pop(0))
+            tmp = dict(app_key_index=obj.pop(0), net_key_index=obj.pop(0))
             ret.append(tmp)
         if obj:
             ret.append({"key_index": obj.pop()})
