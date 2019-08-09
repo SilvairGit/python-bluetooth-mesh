@@ -617,7 +617,7 @@ ConfigModelPublicationGet = Struct(
 ConfigModelPublicationSet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / NotVirtualLabel,
-    "embedded" / BitStruct(
+    "embedded" / BitStruct(  # TODO: Check if this field is correct (little endian)
         "app_key_index" / BitsInteger(12),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
         "RFU" / BitsInteger(3),
@@ -636,7 +636,7 @@ ConfigModelPublicationStatus = Struct(
 ConfigModelPublicationVASet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / Bytes(16),
-    "embedded" / BitStruct(
+    "embedded" / BitStruct(   # TODO: Check if this field is correct (little endian)
         "app_key_index" / BitsInteger(12),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
         "RFU" / BitsInteger(3),
