@@ -267,7 +267,7 @@ valid = [
         id="Retransmit - Max steps"
     ),
     pytest.param(
-        NetAndAppKeyIndex,
+        Struct(*NetAndAppKeyIndex),
         bytes.fromhex('012345'),
         {
             "net_key_index": 0x301,
@@ -276,7 +276,7 @@ valid = [
         id="NetAndAppKeyIndex"
     ),
     pytest.param(
-        NetAndAppKeyIndex,
+        Struct(*NetAndAppKeyIndex),
         bytes.fromhex('abcdef'),
         {
             "net_key_index": 0xdab,
@@ -285,7 +285,7 @@ valid = [
         id="NetAndAppKeyIndex"
     ),
     pytest.param(
-        NetAndAppKeyIndex,
+        Struct(*NetAndAppKeyIndex),
         bytes.fromhex('efcdab'),
         {
             "net_key_index": 0xdef,
@@ -627,7 +627,7 @@ valid = [
     ),
 
     pytest.param(
-        SingleKeyIndex,
+        Struct(*SingleKeyIndex('key_index')),
         bytes.fromhex('bc0a'),
         {
             "key_index": 0xabc,
@@ -638,11 +638,8 @@ valid = [
         ConfigAppKeyAdd,
         bytes.fromhex('012345 000102030405060708090A0B0C0D0E0F'),
         {
-            "indexes":
-                {
-                    "net_key_index": 0x301,
-                    "app_key_index": 0x452,
-                },
+            "net_key_index": 0x301,
+            "app_key_index": 0x452,
             "app_key": bytes.fromhex('000102030405060708090A0B0C0D0E0F'),
         },
         id="ConfigAppKeyAdd"
@@ -651,11 +648,8 @@ valid = [
         ConfigAppKeyAdd,
         bytes.fromhex('236145 63964771734fbd76e3b40519d1d94a48'),
         {
-            "indexes":
-                {
-                    "net_key_index": 0x123,
-                    "app_key_index": 0x456,
-                },
+            "net_key_index": 0x123,
+            "app_key_index": 0x456,
             "app_key": bytes.fromhex('63964771734fbd76e3b40519d1d94a48'),
         },
         id="ConfigAppKeyAdd"
@@ -664,7 +658,7 @@ valid = [
         ConfigAppKeyGet,
         bytes.fromhex('0200'),
         {
-            "net_key_index": {"key_index": 2},
+            "app_key_index": 2,
         },
         id="ConfigAppKeyGet"
     ),
@@ -673,11 +667,8 @@ valid = [
         bytes.fromhex('00 332322'),
         {
             "status": StatusCode.SUCCESS,
-            "indexes":
-                {
-                    "net_key_index": 0x333,
-                    "app_key_index": 0x222
-                },
+            "net_key_index": 0x333,
+            "app_key_index": 0x222
         },
         id="ConfigAppKeyStatus"
     ),
@@ -686,7 +677,7 @@ valid = [
         bytes.fromhex('000b00 010000 012100'),
         {
             "status": StatusCode.SUCCESS,
-            "net_key_index": {"key_index": 11},
+            "net_key_index": 11,
             "app_key_indexes": [0, 1, 2, 257]
         },
         id="ConfigAppKeyList_even"
@@ -696,7 +687,7 @@ valid = [
         bytes.fromhex('000b00 563412 8907'),
         {
             "status": StatusCode.SUCCESS,
-            "net_key_index": {"key_index": 11},
+            "net_key_index": 11,
             "app_key_indexes": [0x123, 0x456, 0x789]
         },
         id="ConfigAppKeyList_odd"
@@ -713,9 +704,7 @@ valid = [
         ConfigNetKeyAdd,
         bytes.fromhex('4305 000102030405060708090A0B0C0D0E0F'),
         {
-            "net_key_index": {
-                "key_index": 0x543
-            },
+            "net_key_index": 0x543,
             "net_key": bytes.fromhex('000102030405060708090A0B0C0D0E0F'),
         },
         id="ConfigNetKeyAdd"
@@ -733,7 +722,7 @@ valid = [
         ConfigNodeIdentitySet,
         bytes.fromhex('FF0F01'),
         {
-            "net_key_index": {"key_index": 0xFFF},
+            "net_key_index": 0xFFF,
             "identity": NodeIdentity.RUNNING
         },
         id="ConfigNodeIdentitySet"
@@ -743,7 +732,7 @@ valid = [
         bytes.fromhex('00FF0F01'),
         {
             "status": StatusCode.SUCCESS,
-            "net_key_index": {"key_index": 0xFFF},
+            "net_key_index": 0xFFF,
             "identity": NodeIdentity.RUNNING
         },
         id="ConfigNodeIdentityStatus"
@@ -763,7 +752,7 @@ valid = [
             "period": 8,
             "TTL": 0x05,
             "features": {5, 6, 13, 14, 15},
-            "net_key_index": {"key_index": 0x908}
+            "net_key_index": 0x908,
         },
         id="ConfigHeartbeatPublicationSet"
     ),
@@ -776,7 +765,7 @@ valid = [
             "period": 32,
             "TTL": 0x05,
             "features": {5, 6, 13, 14, 15},
-            "net_key_index": {"key_index": 0x908}
+            "net_key_index": 0x908,
         },
         id="ConfigHeartbeatPublicationSet - infinite count"
     ),
@@ -789,7 +778,7 @@ valid = [
             "period": 0x8000,
             "TTL": 0x05,
             "features": {5, 6, 13, 14, 15},
-            "net_key_index": {"key_index": 0x908}
+            "net_key_index": 0x908,
         },
         id="ConfigHeartbeatPublicationSet - long period"
     ),
@@ -920,10 +909,8 @@ def test_build_config_message():
     data = ConfigMessage.build(dict(
         opcode=ConfigOpcode.APPKEY_ADD,
         params=dict(
-            indexes=dict(
-                app_key_index=1,
-                net_key_index=1
-            ),
+            app_key_index=1,
+            net_key_index=1,
             app_key=key,
         )
     ))
@@ -939,10 +926,8 @@ def test_parse_config_message():
     assert msg == dict(
         opcode=ConfigOpcode.APPKEY_ADD,
         params=dict(
-            indexes=dict(
-                app_key_index=1,
-                net_key_index=1
-            ),
+            app_key_index=1,
+            net_key_index=1,
             app_key=key,
         )
     )

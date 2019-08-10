@@ -1,8 +1,8 @@
 import math
 from construct import (
-    Bit, Int8ub, Int16ub, Int24ub,
-    Adapter, Bitwise, Restreamed, Rebuild, Select, Switch,
-    ExprValidator, ValidationError, obj_
+    Bit, Int8ub, Int16ub, Int24ub, BitStruct,
+    Adapter, Bitwise, Restreamed, Rebuild, Select, Switch, Computed,
+    ExprValidator, ValidationError, obj_, this
 )
 
 
@@ -115,6 +115,23 @@ def RangeValidator(subcon, *, min_value=None, max_value=None):
         return True
 
     return ExprValidator(subcon, validate_range)
+
+
+def EmbeddedBitStruct(name, *args, reversed=False):
+    """
+    Emulates BitStruct embedding:
+        - for parsing, adds Computed accessor fields to the parent construct,
+        - for building, Rebuild the bit struct using keys passed to the parent
+
+    NOTE: This is a hack. Do not use unless you absolutely have to.
+    """
+    bit_struct = BitStruct(*args)
+
+    if reversed:
+        bit_struct = Reversed(bit_struct)
+
+    return (name / Rebuild(bit_struct, dict), ) + \
+        tuple(i.name / Computed(this[name][i.name]) for i in args if i.name is not None)
 
 
 Opcode = Select(

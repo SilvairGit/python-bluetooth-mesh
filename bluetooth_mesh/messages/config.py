@@ -9,7 +9,10 @@ from construct import (
     this, len_, obj_, Padding
 )
 
-from .util import EnumAdapter, LogAdapter, BitList, Opcode, Reversed, RangeValidator
+from .util import (
+    EnumAdapter, LogAdapter, BitList, Opcode, Reversed, RangeValidator,
+    EmbeddedBitStruct
+)
 
 
 class SecureNetworkBeacon(enum.IntEnum):
@@ -498,47 +501,76 @@ Retransmit = BitStruct(
     "count" / BitsInteger(3),
 )
 
-NetAndAppKeyIndex = Reversed(
-    BitStruct(
-        "app_key_index" / BitsInteger(12),
-        "net_key_index" / BitsInteger(12),
-    )
-)
 
-SingleKeyIndex = Reversed(  # TODO: Fix nesting
-    BitStruct(
-        Padding(4),
-        "key_index" / BitsInteger(12),
+def DoubleKeyIndex(first, second):
+    return EmbeddedBitStruct(
+        "_",
+        second / BitsInteger(12),
+        first / BitsInteger(12),
+        reversed=True
     )
-)
+
+
+def SingleKeyIndex(name):
+    return EmbeddedBitStruct(
+        "_",
+        Padding(4),
+        name / BitsInteger(12),
+        reversed=True
+    )
+
+NetAndAppKeyIndex = DoubleKeyIndex("net_key_index", "app_key_index")
+
+AppKeyIndex = SingleKeyIndex("app_key_index")
+
+NetKeyIndex = SingleKeyIndex("net_key_index")
 
 
 class KeyIndexesAdapter(Adapter):
     def _decode(self, obj, context, path):
-        index_list = []
-        for cont in obj:
-            if "key_index" in cont:
-                index_list.append(cont['key_index'])
+        """
+        Flatten a list dictionaries into list of items:
+            [{first=1, second=2}, {last=3}] -> [1, 2, 3]
+        """
+        ret = []
+        for item in obj:
+            if 'last' in item:
+                ret += [item['last']]
             else:
-                index_list += [cont["net_key_index"], cont["app_key_index"]]
-        return sorted(index_list)
+                ret += [item['first'], item['second']]
+        return sorted(ret)
 
     def _encode(self, obj, context, path):
-        obj.sort()
+        """
+        Expand a list into list of dictionaries:
+            [1, 2, 3] -> [{first=1, second=2}, {last=3}]
+        """
         ret = []
-        while len(obj) >= 2:
-            tmp = dict(app_key_index=obj.pop(0), net_key_index=obj.pop(0))
-            ret.append(tmp)
+        obj.sort()
+        while len(obj) > 1:
+            ret += [dict(first=obj.pop(0), second=obj.pop(0))]
+
         if obj:
-            ret.append({"key_index": obj.pop()})
+            ret += [dict(last=obj.pop())]
+
         return ret
 
 
 KeyIndexes = KeyIndexesAdapter(
     GreedyRange(
         Select(
-            NetAndAppKeyIndex,
-            SingleKeyIndex
+            Reversed(
+                BitStruct(
+                    "first" / BitsInteger(12),
+                    "second" / BitsInteger(12),
+                )
+            ),
+            Reversed(
+                BitStruct(
+                    Padding(4),
+                    "last" / BitsInteger(12),
+                )
+            )
         )
     )
 )
@@ -702,19 +734,19 @@ ConfigVendorModelSubscriptionList = Struct(
 )
 
 ConfigNetKeyAdd = Struct(
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
     "net_key" / Bytes(16),
 )
 
 ConfigNetKeyUpdate = ConfigNetKeyAdd
 
 ConfigNetKeyDelete = Struct(
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
 )
 
 ConfigNetKeyStatus = Struct(
     "status" / StatusCodeAdapter,
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
 )
 
 ConfigNetKeyGet = Struct()
@@ -724,37 +756,37 @@ ConfigNetKeyList = Struct(
 )
 
 ConfigAppKeyAdd = Struct(
-    "indexes" / NetAndAppKeyIndex,
+    *NetAndAppKeyIndex,
     "app_key" / Bytes(16),
 )
 
 ConfigAppKeyUpdate = ConfigAppKeyAdd
 
 ConfigAppKeyDelete = Struct(
-    "indexes" / NetAndAppKeyIndex,
+    *NetAndAppKeyIndex,
 )
 
 ConfigAppKeyStatus = Struct(
     "status" / StatusCodeAdapter,
-    "indexes" / NetAndAppKeyIndex,
+    *NetAndAppKeyIndex,
 )
 
 ConfigAppKeyGet = Struct(
-    "net_key_index" / SingleKeyIndex,
+    *AppKeyIndex
 )
 
 ConfigAppKeyList = Struct(
     "status" / StatusCodeAdapter,
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
     "app_key_indexes" / KeyIndexes,
 )
 
 ConfigNodeIdentityGet = Struct(
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
 )
 
 ConfigNodeIdentitySet = Struct(
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
     "identity" / NodeIdentityAdapter,
 )
 
@@ -765,7 +797,7 @@ ConfigNodeIdentityStatus = Struct(
 
 ConfigModelAppBind = Struct(
     "element_address" / UnicastAddress,
-    "app_key_index" / SingleKeyIndex,
+    *AppKeyIndex,
     "model" / ModelId,
 )
 
@@ -811,7 +843,7 @@ ConfigFriendSet = Struct(
 ConfigFriendStatus = ConfigFriendSet
 
 ConfigKeyRefreshPhaseGet = Struct(
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
 )
 
 ConfigKeyRefreshPhaseSet = Struct(
@@ -836,7 +868,7 @@ ConfigHeartbeatPublicationSet = Struct(
     "period" / LogAdapter(Int8ul, max_value=0x10),
     "TTL" / TTL,
     "features" / BitList(2),
-    "net_key_index" / SingleKeyIndex,
+    *NetKeyIndex,
 )
 
 ConfigHeartbeatPublicationStatus = Struct(
