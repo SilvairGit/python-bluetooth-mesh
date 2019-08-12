@@ -923,7 +923,6 @@ class ConfigOpcode(enum.IntEnum):
     BEACON_STATUS = 0x800B
     COMPOSITION_DATA_GET = 0x8008
     COMPOSITION_DATA_STATUS = 0x02
-    MODEL_PUBLICATION_SET = 0x03
     DEFAULT_TTL_GET = 0x800C
     DEFAULT_TTL_SET = 0x800D
     DEFAULT_TTL_STATUS = 0x800E
@@ -948,6 +947,7 @@ class ConfigOpcode(enum.IntEnum):
     MODEL_APP_STATUS = 0x803E
     MODEL_APP_UNBIND = 0x803F
     MODEL_PUBLICATION_GET = 0x8018
+    MODEL_PUBLICATION_SET = 0x03
     MODEL_PUBLICATION_STATUS = 0x8019
     MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET = 0x801A
     MODEL_SUBSCRIPTION_ADD = 0x801B
@@ -1026,7 +1026,7 @@ ConfigMessage = Struct(
             ConfigOpcode.MODEL_APP_UNBIND: ConfigModelAppUnbind,
             ConfigOpcode.MODEL_PUBLICATION_GET: ConfigModelPublicationGet,
             ConfigOpcode.MODEL_PUBLICATION_SET: ConfigModelPublicationSet,
-            ConfigOpcode.MODEL_PUBLICATION_STATUS: ConfigModelPublicationSet,
+            ConfigOpcode.MODEL_PUBLICATION_STATUS: ConfigModelPublicationStatus,
             ConfigOpcode.MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET: ConfigModelPublicationVASet,
             ConfigOpcode.MODEL_SUBSCRIPTION_ADD: ConfigModelSubscriptionAdd,
             ConfigOpcode.MODEL_SUBSCRIPTION_DELETE: ConfigModelSubscriptionDelete,
