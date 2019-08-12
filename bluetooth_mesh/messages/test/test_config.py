@@ -678,7 +678,7 @@ valid = [
         {
             "status": StatusCode.SUCCESS,
             "net_key_index": 11,
-            "app_key_indexes": [0, 1, 2, 257]
+            "app_key_indices": [0, 1, 2, 257]
         },
         id="ConfigAppKeyList_even"
     ),
@@ -688,7 +688,7 @@ valid = [
         {
             "status": StatusCode.SUCCESS,
             "net_key_index": 11,
-            "app_key_indexes": [0x123, 0x456, 0x789]
+            "app_key_indices": [0x123, 0x456, 0x789]
         },
         id="ConfigAppKeyList_odd"
     ),
@@ -696,7 +696,7 @@ valid = [
         ConfigNetKeyList,
         bytes.fromhex('42b000 '),
         {
-            "net_key_indexes": [11, 66],
+            "net_key_indices": [11, 66],
         },
         id="ConfigNetKeyList_even"
     ),
@@ -713,7 +713,7 @@ valid = [
         ConfigNetKeyList,
         bytes.fromhex('43d002 5800'),
         {
-            "net_key_indexes": [45, 67, 88],
+            "net_key_indices": [45, 67, 88],
 
         },
         id="ConfigNetKeyList_odd"

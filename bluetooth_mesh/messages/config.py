@@ -526,7 +526,7 @@ AppKeyIndex = SingleKeyIndex("app_key_index")
 NetKeyIndex = SingleKeyIndex("net_key_index")
 
 
-class KeyIndexesAdapter(Adapter):
+class KeyIndicesAdapter(Adapter):
     def _decode(self, obj, context, path):
         """
         Flatten a list dictionaries into list of items:
@@ -556,7 +556,7 @@ class KeyIndexesAdapter(Adapter):
         return ret
 
 
-KeyIndexes = KeyIndexesAdapter(
+KeyIndices = KeyIndicesAdapter(
     GreedyRange(
         Select(
             Reversed(
@@ -752,7 +752,7 @@ ConfigNetKeyStatus = Struct(
 ConfigNetKeyGet = Struct()
 
 ConfigNetKeyList = Struct(
-    "net_key_indexes" / KeyIndexes
+    "net_key_indices" / KeyIndices
 )
 
 ConfigAppKeyAdd = Struct(
@@ -778,7 +778,7 @@ ConfigAppKeyGet = Struct(
 ConfigAppKeyList = Struct(
     "status" / StatusCodeAdapter,
     *NetKeyIndex,
-    "app_key_indexes" / KeyIndexes,
+    "app_key_indices" / KeyIndices,
 )
 
 ConfigNodeIdentityGet = Struct(
@@ -816,7 +816,7 @@ ConfigSIGModelAppGet = Struct(
 ConfigSIGModelAppList = Struct(
     "status" / StatusCodeAdapter,
     Embedded(ConfigSIGModelAppGet),
-    "app key indexes" / KeyIndexes,
+    "app key indices" / KeyIndices,
 )
 
 ConfigVendorModelAppGet = Struct(
@@ -827,7 +827,7 @@ ConfigVendorModelAppGet = Struct(
 ConfigVendorModelAppList = Struct(
     "status" / StatusCodeAdapter,
     Embedded(ConfigVendorModelAppGet),
-    "app key indexes" / KeyIndexes,
+    "app key indices" / KeyIndices,
 )
 
 ConfigNodeReset = Struct()
