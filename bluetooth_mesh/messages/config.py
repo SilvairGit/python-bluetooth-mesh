@@ -574,6 +574,7 @@ KeyIndices = KeyIndicesAdapter(
         )
     )
 )
+KeyIndices.__construct_doc__ = GreedyRange(BitsInteger(12))
 
 
 class PublishPeriodStepResolution(enum.IntEnum):

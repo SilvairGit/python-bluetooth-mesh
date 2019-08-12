@@ -1,7 +1,7 @@
 import math
 from construct import (
-    Bit, Int8ub, Int16ub, Int24ub, BitStruct,
-    Adapter, Bitwise, Restreamed, Rebuild, Select, Switch, Computed,
+    Bit, Int8ub, Int16ub, Int24ub, Struct, BitStruct, Enum,
+    Adapter, Bitwise, Restreamed, Rebuild, Select, Switch, Computed, Embedded,
     ExprValidator, ValidationError, obj_, this
 )
 
@@ -49,6 +49,9 @@ def BitList(size):
 
 
 def EnumAdapter(subcon, enum):
+    class _Enum(Enum):
+        ENUM = enum
+
     class _EnumAdapter(Adapter):
         def _decode(self, obj, context, path):
             if obj not in enum._value2member_map_:
@@ -63,6 +66,7 @@ def EnumAdapter(subcon, enum):
                 return enum(obj)
             except ValueError:
                 raise ValidationError("object failed validation: %s" % (obj,))
+    _EnumAdapter.__construct_doc__ = _Enum(subcon, enum)
 
     return _EnumAdapter(subcon)
 
@@ -129,6 +133,8 @@ def EmbeddedBitStruct(name, *args, reversed=False):
 
     if reversed:
         bit_struct = Reversed(bit_struct)
+
+    bit_struct.__construct_doc__ = Embedded(Struct(*args))
 
     return (name / Rebuild(bit_struct, dict), ) + \
         tuple(i.name / Computed(this[name][i.name]) for i in args if i.name is not None)
