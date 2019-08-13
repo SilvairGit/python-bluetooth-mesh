@@ -6,7 +6,7 @@ from construct import (
     GreedyBytes, GreedyRange,
     BitsInteger, Int24ul, Int16ul, Int8ul, Flag, Bytes,
     ExprValidator, ValidationError,
-    this, len_, obj_, Padding, Computed
+    this, len_, obj_, Padding
 )
 
 from .util import (
@@ -518,6 +518,7 @@ def SingleKeyIndex(name):
         name / BitsInteger(12),
         reversed=True
     )
+
 
 NetAndAppKeyIndex = DoubleKeyIndex("net_key_index", "app_key_index")
 
