@@ -525,11 +525,9 @@ valid = [
         {
             "element_address": 0x0201,
             "publish_address": 0x0001,
-            "embedded": {
-                "RFU": 0,
-                "credential_flag": PublishFriendshipCredentialsFlag.FRIENDSHIP_SECURITY,
-                "app_key_index": 0xabc,
-            },
+            "RFU": 0,
+            "credential_flag": PublishFriendshipCredentialsFlag.FRIENDSHIP_SECURITY,
+            "app_key_index": 0xabc,
             "TTL": 0x7F,
             "publish_period": {
                 "step_resolution": PublishPeriodStepResolution.RESOLUTION_10_MIN,
@@ -552,11 +550,9 @@ valid = [
         {
             "element_address": 0x0102,
             "publish_address": 0x0304,
-            "embedded": {
-                "RFU": 0,
-                "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
-                "app_key_index": 5,
-            },
+            "RFU": 0,
+            "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
+            "app_key_index": 5,
             "TTL": 6,
             "publish_period": {
                 "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
@@ -579,11 +575,9 @@ valid = [
             "status": StatusCode.INVALID_MODEL,
             "element_address": 0x0102,
             "publish_address": 0x0304,
-            "embedded": {
-                "RFU": 0,
-                "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
-                "app_key_index": 5,
-            },
+            "RFU": 0,
+            "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
+            "app_key_index": 5,
             "TTL": 6,
             "publish_period": {
                 "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
@@ -658,7 +652,7 @@ valid = [
         ConfigAppKeyGet,
         bytes.fromhex('0200'),
         {
-            "app_key_index": 2,
+            "net_key_index": 2,
         },
         id="ConfigAppKeyGet"
     ),

@@ -6,7 +6,7 @@ from construct import (
     GreedyBytes, GreedyRange,
     BitsInteger, Int24ul, Int16ul, Int8ul, Flag, Bytes,
     ExprValidator, ValidationError,
-    this, len_, obj_, Padding
+    this, len_, obj_, Padding, Computed
 )
 
 from .util import (
@@ -650,11 +650,13 @@ ConfigModelPublicationGet = Struct(
 ConfigModelPublicationSet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / NotVirtualLabel,
-    "embedded" / Reversed(BitStruct(
+    *EmbeddedBitStruct(
+        "_",
         "RFU" / BitsInteger(3),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
-        "app_key_index" / BitsInteger(12)
-    )),
+        "app_key_index" / BitsInteger(12),
+        reversed=True
+    ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / Retransmit,
@@ -669,11 +671,13 @@ ConfigModelPublicationStatus = Struct(
 ConfigModelPublicationVASet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / Bytes(16),
-    "embedded" / Reversed(BitStruct(
+    *EmbeddedBitStruct(
+        "_",
         "RFU" / BitsInteger(3),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
-        "app_key_index" / BitsInteger(12)
-    )),
+        "app_key_index" / BitsInteger(12),
+        reversed=True
+    ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / Retransmit,
@@ -773,7 +777,7 @@ ConfigAppKeyStatus = Struct(
 )
 
 ConfigAppKeyGet = Struct(
-    *AppKeyIndex
+    *NetKeyIndex
 )
 
 ConfigAppKeyList = Struct(
