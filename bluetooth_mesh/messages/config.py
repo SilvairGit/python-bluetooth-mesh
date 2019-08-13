@@ -6,7 +6,7 @@ from construct import (
     GreedyBytes, GreedyRange,
     BitsInteger, Int24ul, Int16ul, Int8ul, Flag, Bytes,
     ExprValidator, ValidationError,
-    this, len_, obj_, Padding
+    this, len_, obj_, Padding, Computed
 )
 
 from .util import (
