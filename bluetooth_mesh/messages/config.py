@@ -519,6 +519,7 @@ def SingleKeyIndex(name):
         reversed=True
     )
 
+
 NetAndAppKeyIndex = DoubleKeyIndex("net_key_index", "app_key_index")
 
 AppKeyIndex = SingleKeyIndex("app_key_index")
@@ -650,11 +651,13 @@ ConfigModelPublicationGet = Struct(
 ConfigModelPublicationSet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / NotVirtualLabel,
-    "embedded" / Reversed(BitStruct(
+    *EmbeddedBitStruct(
+        "_",
         "RFU" / BitsInteger(3),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
-        "app_key_index" / BitsInteger(12)
-    )),
+        "app_key_index" / BitsInteger(12),
+        reversed=True
+    ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / Retransmit,
@@ -669,11 +672,13 @@ ConfigModelPublicationStatus = Struct(
 ConfigModelPublicationVASet = Struct(
     "element_address" / UnicastAddress,
     "publish_address" / Bytes(16),
-    "embedded" / Reversed(BitStruct(
+    *EmbeddedBitStruct(
+        "_",
         "RFU" / BitsInteger(3),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
-        "app_key_index" / BitsInteger(12)
-    )),
+        "app_key_index" / BitsInteger(12),
+        reversed=True
+    ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / Retransmit,
@@ -773,7 +778,7 @@ ConfigAppKeyStatus = Struct(
 )
 
 ConfigAppKeyGet = Struct(
-    *AppKeyIndex
+    *NetKeyIndex
 )
 
 ConfigAppKeyList = Struct(
