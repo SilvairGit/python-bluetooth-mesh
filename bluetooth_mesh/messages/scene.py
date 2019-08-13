@@ -95,6 +95,3 @@ SceneMessage = Struct(
         }
     )
 )
-
-if __name__ == '__main__':
-    print(SceneMessage.build(dict(opcode=SceneMessageOpcode.SCENE_RECALL, params=dict(scene_number=0, tid=1))).hex())
