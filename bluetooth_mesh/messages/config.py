@@ -346,6 +346,17 @@ class Friend(enum.IntEnum):
     NOT_SUPPORTED = 0x02
 
 
+class KeyRefreshPhase(enum.IntEnum):
+    NORMAL = 0x00
+    FIRST = 0x01
+    SECOND = 0x02
+
+
+class KeyRefreshTransition(enum.IntEnum):
+    SECOND = 0x02
+    THIRD = 0x03
+
+
 SecureNetworkBeaconAdapter = EnumAdapter(Int8ul, SecureNetworkBeacon)
 
 GATTProxyAdapter = EnumAdapter(Int8ul, GATTProxy)
@@ -854,12 +865,13 @@ ConfigKeyRefreshPhaseGet = Struct(
 
 ConfigKeyRefreshPhaseSet = Struct(
     Embedded(ConfigKeyRefreshPhaseGet),
-    "Transistion" / Int8ul,  # TODO Enum
+    "transition" / EnumAdapter(Int8ul, KeyRefreshTransition),
 )
 
 ConfigKeyRefreshPhaseStatus = Struct(
     "status" / StatusCodeAdapter,
-    Embedded(ConfigKeyRefreshPhaseSet),
+    *NetKeyIndex,
+    "phase" / EnumAdapter(Int8ul, KeyRefreshPhase),
 )
 
 ConfigHeartbeatPublicationFeatures = ExprValidator(Int16ul, lambda obj, ctx: obj <= 0x3)
