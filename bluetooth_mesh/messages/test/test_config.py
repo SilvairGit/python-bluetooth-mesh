@@ -776,6 +776,15 @@ valid = [
         },
         id="ConfigHeartbeatPublicationSet - long period"
     ),
+    pytest.param(
+        ConfigNetworkTransmitSet,
+        bytes.fromhex('f9'),
+        {
+            "count": 0x01,
+            "interval_steps": 0x1F
+        },
+        id="ConfigNetworkTransmitSet"
+    ),
 ]
 
 build_valid = [

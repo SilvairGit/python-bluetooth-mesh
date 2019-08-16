@@ -910,7 +910,10 @@ ConfigLowPowerNodePollTimeoutStatus = Struct(
 ConfigNetworkTransmitGet = Struct()
 
 ConfigNetworkTransmitSet = Struct(
-    "network" / Retransmit,  # TODO
+    *EmbeddedBitStruct(
+        "_",
+        *Retransmit.subcon.subcons
+    )
 )
 
 ConfigNetworkTransmitStatus = ConfigNetworkTransmitSet
