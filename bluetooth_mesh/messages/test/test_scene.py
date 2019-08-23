@@ -53,12 +53,12 @@ valid = [
         dict(scene_number=1, tid=30),
         id="SCENE_RECALL_UNACKNOWLEDGED_minimal"),
     pytest.param(
-        b'\x82\x42\x01\x00\x1e\xcb\x3c',
+        b'\x82\x42\x01\x00\x1e\xf2\x3c',
         SceneMessageOpcode.SCENE_RECALL,
         dict(scene_number=1, tid=30, transition_time=30000, delay=0.3),
         id="SCENE_RECALL_with_transition"),
     pytest.param(
-        b'\x82\x43\x01\x00\x1e\xcb\x3c',
+        b'\x82\x43\x01\x00\x1e\xf2\x3c',
         SceneMessageOpcode.SCENE_RECALL_UNACKNOWLEDGED,
         dict(scene_number=1, tid=30, transition_time=30000, delay=0.3),
         id="SCENE_RECALL_UNACKNOWLEDGED_with_transition"),
@@ -68,7 +68,7 @@ valid = [
         dict(status_code=0, current_scene=1),
         id="SCENE_STATUS_minimal"),
     pytest.param(
-        b'\x5e\x00\x01\x00\x02\x00\xcb',
+        b'\x5e\x00\x01\x00\x02\x00\xf2',
         SceneMessageOpcode.SCENE_STATUS,
         dict(status_code=0, current_scene=1, target_scene=2, remaining_time=30000),
         id="SCENE_STATUS_with_target_scene"),

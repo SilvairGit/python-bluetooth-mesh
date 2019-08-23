@@ -3,8 +3,8 @@ from construct import (
 )
 
 TransitionTime = BitStruct(
-    "steps" / BitsInteger(6),
-    "resolution" / BitsInteger(2)
+    "resolution" / BitsInteger(2),
+    "steps" / BitsInteger(6)
 )
 
 
