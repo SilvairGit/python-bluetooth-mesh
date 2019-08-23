@@ -1,7 +1,7 @@
-from construct import Int8ul, Int16ul, Int32ul, Select, Struct, Switch, this, Probe, Embedded
+from construct import Int8ul, Int16ul, Int32ul, Select, Struct, Switch, this, Embedded
 from enum import IntEnum
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode
-from bluetooth_mesh.messages.generics import Delay, TransitionTimeAdapter, TransitionTime
+from bluetooth_mesh.messages.generics import TransitionTimeAdapter, TransitionTime, OptionalSetParameters
 
 
 class GenericLevelOpcode(IntEnum):
@@ -23,10 +23,8 @@ GenericLevelSetMinimal = Struct(
 )
 
 GenericLevelSetOptional = Struct(
-    "level" / Int16ul,
-    "tid" / Int8ul,
-    "transition_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=False),
-    "delay" / Delay(Int8ul)
+    Embedded(GenericLevelSetMinimal),
+    Embedded(OptionalSetParameters)
 )
 
 GenericLevelSet = Select(
@@ -40,10 +38,8 @@ GenericDeltaSetMinimal = Struct(
 )
 
 GenericDeltaSetOptional = Struct(
-    "delta_level" / Int32ul,
-    "tid" / Int8ul,
-    "transition_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=False),
-    "delay" / Delay(Int8ul)
+    Embedded(GenericDeltaSetMinimal),
+    Embedded(OptionalSetParameters)
 )
 
 GenericDeltaSet = Select(
@@ -57,10 +53,8 @@ GenericMoveSetMinimal = Struct(
 )
 
 GenericMoveSetOptional = Struct(
-    "delta_level" / Int16ul,
-    "tid" / Int8ul,
-    "transition_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=False),
-    "delay" / Delay(Int8ul)
+    Embedded(GenericMoveSetMinimal),
+    Embedded(OptionalSetParameters)
 )
 
 GenericMoveSet = Select(
@@ -73,7 +67,7 @@ GenericLevelStatusMinimal = Struct(
 )
 
 GenericLevelStatusOptional = Struct(
-    "present_level" / Int16ul,
+    Embedded(GenericLevelStatusMinimal),
     "target_level" / Int16ul,
     "remaining_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=True)
 )

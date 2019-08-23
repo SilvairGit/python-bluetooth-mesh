@@ -1,5 +1,5 @@
 from construct import (
-    Adapter, BitsInteger, BitStruct, ExprValidator, Probe, this
+    Adapter, BitsInteger, BitStruct, Struct, Int8ul
 )
 
 TransitionTime = BitStruct(
@@ -39,3 +39,9 @@ class Delay(Adapter):
 
     def _encode(self, obj, context, path):
         return int(obj*200)
+
+
+OptionalSetParameters = Struct(
+    "transition_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=False),
+    "delay" / Delay(Int8ul)
+)
