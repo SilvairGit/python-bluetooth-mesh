@@ -1,8 +1,6 @@
 import pytest
-from construct import ValidationError
 
-from bluetooth_mesh.messages.generic.level import *
-from bluetooth_mesh.messages.generics import *
+from bluetooth_mesh.messages.generic.level import GenericLevelMessage, GenericLevelOpcode
 
 
 valid = [

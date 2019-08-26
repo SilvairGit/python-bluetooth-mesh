@@ -7,5 +7,7 @@ from .light.lightness import LightLightnessMessage
 
 GenericMessage = Select(
     GenericOnOffMessage,
-    GenericLevelMessage
+    GenericLevelMessage,
+    LightCTLMessage,
+    LightLightnessMessage
 )

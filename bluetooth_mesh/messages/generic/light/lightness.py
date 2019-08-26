@@ -2,6 +2,7 @@ from construct import Int8ul, Int16ul, Select, Struct, Switch, this, Embedded
 from enum import IntEnum
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 from bluetooth_mesh.messages.generics import OptionalSetParameters, TransitionTimeAdapter, TransitionTime
+from bluetooth_mesh.messages.config import StatusCodeAdapter
 
 
 class LightLightnessOpcode(IntEnum):
@@ -54,12 +55,12 @@ LightLightnessRange = Struct(
 )
 
 LightLightnessRangeStatus = Struct(
-    "status" / Int8ul,
+    "status" / StatusCodeAdapter,
     Embedded(LightLightnessRange)
 )
 
 LightLightnessSetMinimal = Struct(
-    "lightness" / Int8ul,
+    "lightness" / Int16ul,
     "tid" / Int8ul
 )
 
