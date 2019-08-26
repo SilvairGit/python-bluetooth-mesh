@@ -7,10 +7,10 @@ from bluetooth_mesh.messages.generics import *
 
 @pytest.mark.parametrize("steps, resolution, expected_tt",
                          [(0x00, 0b00, "00"),
-                          (0x01, 0b00, "04"),
-                          (0x01, 0b01, "05"),
-                          (0x3E, 0b00, "F8"),
-                          (0x3E, 0b11, "FB"),
+                          (0x01, 0b00, "01"),
+                          (0x01, 0b01, "41"),
+                          (0x3E, 0b00, "3E"),
+                          (0x3E, 0b11, "FE"),
                           (0x3F, 0b11, "FF")
                           ]
                          )
@@ -21,10 +21,10 @@ def test_build_transition_time(steps, resolution, expected_tt):
 
 @pytest.mark.parametrize("raw_bytes, expected_steps, expected_resolution",
                          [("00", 0x00, 0b00),
-                          ("01", 0x00, 0b01),
-                          ("04", 0x01, 0b00),
-                          ("F8", 0x3E, 0b00),
-                          ("FB", 0x3E, 0b11),
+                          ("01", 0x01, 0b00),
+                          ("40", 0x00, 0b01),
+                          ("3E", 0x3E, 0b00),
+                          ("FE", 0x3E, 0b11),
                           ("FF", 0x3F, 0b11)
                           ]
                          )
@@ -55,7 +55,7 @@ valid = [
              delay=0.3),
         id="ONOFF_SET_invalid"),
     pytest.param(
-        b'\x82\x02\x00\x31\xc8\x3c',
+        b'\x82\x02\x00\x31\x32\x3c',
         GenericOnOffOpcode.ONOFF_SET,
         dict(onoff=0,
              tid=49,
@@ -63,7 +63,7 @@ valid = [
              delay=0.3),
         id="ONOFF_SET_with_optional"),
     pytest.param(
-        b'\x82\x02\x00\x31\xcb\x3c',
+        b'\x82\x02\x00\x31\xf2\x3c',
         GenericOnOffOpcode.ONOFF_SET,
         dict(onoff=0,
              tid=49,
@@ -78,7 +78,7 @@ valid = [
              remaining_time=None),
         id="ONOFF_STATUS"),
     pytest.param(
-        b'\x82\x04\x00\x01\x29',
+        b'\x82\x04\x00\x01\x4a',
         GenericOnOffOpcode.ONOFF_STATUS,
         dict(present_onoff=0,
              target_onoff=1,
