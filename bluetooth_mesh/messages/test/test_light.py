@@ -1,7 +1,8 @@
 import pytest
 
 from bluetooth_mesh.messages.generic.light import (
-    LightLightnessMessage, LightCTLMessage, LightLightnessOpcode, LightCTLOpcode
+    LightLightnessMessage, LightCTLMessage, LightLightnessOpcode, LightCTLOpcode,
+    LightLightnessSetupMessage, LightCTLSetupMessage, LightLightnessSetupOpcode, LightCTLSetupOpcode,
 )
 from bluetooth_mesh.messages.config import StatusCode
 
@@ -115,24 +116,6 @@ valid_lightness = [
         dict(),
         id="LIGHTNESS_DEFAULT_GET"),
     pytest.param(
-        b'\x82\x59\xbb\xaa',
-        LightLightnessOpcode.LIGHTNESS_DEFAULT_SET,
-        dict(lightness=0xaabb),
-        id="LIGHTNESS_DEFAULT_SET"),
-    pytest.param(
-        b'\x82\x59\x01\x00',
-        LightLightnessOpcode.LIGHTNESS_DEFAULT_SET,
-        dict(lightness=1,
-             tid=34,
-             transition_time=6.3,
-             delay=0.3),
-        id="LIGHTNESS_DEFAULT_SET_invalid"),
-    pytest.param(
-        b'\x82\x5a\x00\x00',
-        LightLightnessOpcode.LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED,
-        dict(lightness=0),
-        id="LIGHTNESS_SET_UNACKNOWLEDGED"),
-    pytest.param(
         b'\x82\x56\x00\x00',
         LightLightnessOpcode.LIGHTNESS_DEFAULT_STATUS,
         dict(lightness=0),
@@ -144,24 +127,46 @@ valid_lightness = [
         dict(),
         id="LIGHTNESS_RANGE_GET"),
     pytest.param(
-        b'\x82\x5b\x11\x00\xff\xee',
-        LightLightnessOpcode.LIGHTNESS_RANGE_SET,
-        dict(range_min=0x0011,
-             range_max=0xeeff),
-        id="LIGHTNESS_RANGE_SET"),
-    pytest.param(
-        b'\x82\x5c\xcd\xab\x34\x12',
-        LightLightnessOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
-        dict(range_min=0xabcd,
-             range_max=0x1234),
-        id="LIGHTNESS_RANGE_SET_UNACKNOWLEDGED"),
-    pytest.param(
         b'\x82\x58\x00\x11\x11\x88\x88',
         LightLightnessOpcode.LIGHTNESS_RANGE_STATUS,
         dict(status=StatusCode.SUCCESS,
              range_min=0x1111,
              range_max=0x8888),
         id="LIGHTNESS_RANGE_STATUS"),
+]
+
+valid_lightness_setup = [
+    pytest.param(
+        b'\x82\x59\xbb\xaa',
+        LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET,
+        dict(lightness=0xaabb),
+        id="LIGHTNESS_DEFAULT_SET"),
+    pytest.param(
+        b'\x82\x59\x01\x00',
+        LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET,
+        dict(lightness=1,
+             tid=34,
+             transition_time=6.3,
+             delay=0.3),
+        id="LIGHTNESS_DEFAULT_SET_invalid"),
+    pytest.param(
+        b'\x82\x5a\x00\x00',
+        LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED,
+        dict(lightness=0),
+        id="LIGHTNESS_SET_UNACKNOWLEDGED"),
+
+    pytest.param(
+        b'\x82\x5b\x11\x00\xff\xee',
+        LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET,
+        dict(range_min=0x0011,
+             range_max=0xeeff),
+        id="LIGHTNESS_RANGE_SET"),
+    pytest.param(
+        b'\x82\x5c\xcd\xab\x34\x12',
+        LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
+        dict(range_min=0xabcd,
+             range_max=0x1234),
+        id="LIGHTNESS_RANGE_SET_UNACKNOWLEDGED"),
 ]
 
 
@@ -277,18 +282,6 @@ valid_ctl = [
         dict(),
         id="CTL_TEMPERATURE_RANGE_GET"),
     pytest.param(
-        b'\x82\x6b\xdd\xcc\xff\xee',
-        LightCTLOpcode.CTL_TEMPERATURE_RANGE_SET,
-        dict(range_min=0xccdd,
-             range_max=0xeeff),
-        id="CTL_TEMPERATURE_RANGE_SET"),
-    pytest.param(
-        b'\x82\x6c\x11\x11\x22\x22',
-        LightCTLOpcode.CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED,
-        dict(range_min=0x1111,
-             range_max=0x2222),
-        id="CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED"),
-    pytest.param(
         b'\x82\x63\x00\xdd\xcc\xff\xee',
         LightCTLOpcode.CTL_TEMPERATURE_RANGE_STATUS,
         dict(status=StatusCode.SUCCESS,
@@ -302,26 +295,42 @@ valid_ctl = [
         dict(),
         id="CTL_TEMPERATURE_DEFAULT_GET"),
     pytest.param(
-        b'\x82\x69\xdd\xcc\xff\xee\x11\x11',
-        LightCTLOpcode.CTL_TEMPERATURE_DEFAULT_SET,
-        dict(ctl_lightness=0xccdd,
-             ctl_temperature=0xeeff,
-             ctl_delta_uv=0x1111),
-        id="CTL_TEMPERATURE_DEFAULT_SET"),
-    pytest.param(
-        b'\x82\x6a\xdd\xcc\xff\xee\x11\x11',
-        LightCTLOpcode.CTL_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED,
-        dict(ctl_lightness=0xccdd,
-             ctl_temperature=0xeeff,
-             ctl_delta_uv=0x1111),
-        id="CTL_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED"),
-    pytest.param(
         b'\x82\x68\xdd\xcc\xff\xee\x11\x11',
         LightCTLOpcode.CTL_TEMPERATURE_DEFAULT_STATUS,
         dict(ctl_lightness=0xccdd,
              ctl_temperature=0xeeff,
              ctl_delta_uv=0x1111),
         id="CTL_TEMPERATURE_DEFAULT_STATUS"),
+]
+
+valid_ctl_setup = [
+    pytest.param(
+        b'\x82\x69\xdd\xcc\xff\xee\x11\x11',
+        LightCTLSetupOpcode.CTL_TEMPERATURE_DEFAULT_SET,
+        dict(ctl_lightness=0xccdd,
+             ctl_temperature=0xeeff,
+             ctl_delta_uv=0x1111),
+        id="CTL_TEMPERATURE_DEFAULT_SET"),
+    pytest.param(
+        b'\x82\x6a\xdd\xcc\xff\xee\x11\x11',
+        LightCTLSetupOpcode.CTL_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED,
+        dict(ctl_lightness=0xccdd,
+             ctl_temperature=0xeeff,
+             ctl_delta_uv=0x1111),
+        id="CTL_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED"),
+
+    pytest.param(
+        b'\x82\x6b\xdd\xcc\xff\xee',
+        LightCTLSetupOpcode.CTL_TEMPERATURE_RANGE_SET,
+        dict(range_min=0xccdd,
+             range_max=0xeeff),
+        id="CTL_TEMPERATURE_RANGE_SET"),
+    pytest.param(
+        b'\x82\x6c\x11\x11\x22\x22',
+        LightCTLSetupOpcode.CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED,
+        dict(range_min=0x1111,
+             range_max=0x2222),
+        id="CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED"),
 ]
 
 
@@ -336,6 +345,17 @@ def test_build_valid_lightness(encoded, opcode, data):
         encoded
 
 
+@pytest.mark.parametrize("encoded,opcode,data", valid_lightness_setup)
+def test_parse_valid_lightness_setup(encoded, opcode, data):
+    assert LightLightnessSetupMessage.parse(encoded).params == data
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_lightness_setup)
+def test_build_valid_lightness_setup(encoded, opcode, data):
+    assert LightLightnessSetupMessage.build(dict(opcode=opcode, params=data)) == \
+        encoded
+
+
 @pytest.mark.parametrize("encoded,opcode,data", valid_ctl)
 def test_parse_valid_ctl(encoded, opcode, data):
     assert LightCTLMessage.parse(encoded).params == data
@@ -344,4 +364,15 @@ def test_parse_valid_ctl(encoded, opcode, data):
 @pytest.mark.parametrize("encoded,opcode,data", valid_ctl)
 def test_build_valid_ctl(encoded, opcode, data):
     assert LightCTLMessage.build(dict(opcode=opcode, params=data)) == \
+        encoded
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_ctl_setup)
+def test_parse_valid_ctl_setup(encoded, opcode, data):
+    assert LightCTLSetupMessage.parse(encoded).params == data
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_ctl_setup)
+def test_build_valid_ctl_setup(encoded, opcode, data):
+    assert LightCTLSetupMessage.build(dict(opcode=opcode, params=data)) == \
         encoded

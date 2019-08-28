@@ -21,7 +21,8 @@ class LightLightnessOpcode(IntEnum):
     LIGHTNESS_RANGE_GET = 0x8257
     LIGHTNESS_RANGE_STATUS = 0x8258
 
-    # LightLightnessSetup
+
+class LightLightnessSetupOpcode(IntEnum):
     LIGHTNESS_DEFAULT_SET = 0x8259
     LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED = 0x825A
     LIGHTNESS_RANGE_SET = 0x825B
@@ -94,12 +95,20 @@ LightLightnessMessage = Struct(
             LightLightnessOpcode.LIGHTNESS_DEFAULT_STATUS: LightLightnessDefault,
             LightLightnessOpcode.LIGHTNESS_RANGE_GET: LightLightnessGet,
             LightLightnessOpcode.LIGHTNESS_RANGE_STATUS: LightLightnessRangeStatus,
+        },
+    )
+)
 
-            # LightLightnessSetup
-            LightLightnessOpcode.LIGHTNESS_DEFAULT_SET: LightLightnessDefault,
-            LightLightnessOpcode.LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED: LightLightnessDefault,
-            LightLightnessOpcode.LIGHTNESS_RANGE_SET: LightLightnessRange,
-            LightLightnessOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED: LightLightnessRange,
+
+LightLightnessSetupMessage = Struct(
+    "opcode" / EnumAdapter(Opcode, LightLightnessSetupOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET: LightLightnessDefault,
+            LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED: LightLightnessDefault,
+            LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET: LightLightnessRange,
+            LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED: LightLightnessRange,
         },
     )
 )
