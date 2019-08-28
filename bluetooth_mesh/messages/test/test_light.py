@@ -27,7 +27,7 @@ valid_lightness = [
              delay=0.3),
         id="LIGHTNESS_SET_invalid"),
     pytest.param(
-        b'\x82\x4c\x00\x00\x31\xc8\x3c',
+        b'\x82\x4c\x00\x00\x31\x32\x3c',
         LightLightnessOpcode.LIGHTNESS_SET,
         dict(lightness=0,
              tid=49,
@@ -35,7 +35,7 @@ valid_lightness = [
              delay=0.3),
         id="LIGHTNESS_SET_with_optional"),
     pytest.param(
-        b'\x82\x4d\x00\x00\x31\xc8\x3c',
+        b'\x82\x4d\x00\x00\x31\x32\x3c',
         LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
         dict(lightness=0,
              tid=49,
@@ -48,7 +48,7 @@ valid_lightness = [
         dict(present_lightness=0x44),
         id="LIGHTNESS_STATUS"),
     pytest.param(
-        b'\x82\x4e\x00\x00\x31\xc8\x3c',
+        b'\x82\x4e\x00\x00\x31\xc8\x0f',
         LightLightnessOpcode.LIGHTNESS_STATUS,
         dict(present_lightness=0,
              target_lightness=0xc831,
@@ -75,7 +75,7 @@ valid_lightness = [
              delay=0.3),
         id="LIGHTNESS_LINEAR_SET_invalid"),
     pytest.param(
-        b'\x82\x50\x00\x00\x31\xc8\x1a',
+        b'\x82\x50\x00\x00\x31\x32\x1a',
         LightLightnessOpcode.LIGHTNESS_LINEAR_SET,
         dict(lightness=0,
              tid=49,
@@ -83,7 +83,7 @@ valid_lightness = [
              delay=0.13),
         id="LIGHTNESS_LINEAR_SET_with_optional"),
     pytest.param(
-        b'\x82\x51\xff\x00\x31\xc8\x3c',
+        b'\x82\x51\xff\x00\x31\x32\x3c',
         LightLightnessOpcode.LIGHTNESS_LINEAR_SET_UNACKNOWLEDGED,
         dict(lightness=0xff,
              tid=49,
@@ -91,7 +91,7 @@ valid_lightness = [
              delay=0.3),
         id="LIGHTNESS_LINEAR_SET_UNACKNOWLEDGED"),
     pytest.param(
-        b'\x82\x52\x00\x00\xdd\xbb\x31',
+        b'\x82\x52\x00\x00\xdd\xbb\x4c',
         LightLightnessOpcode.LIGHTNESS_LINEAR_STATUS,
         dict(present_lightness=0,
              target_lightness=0xbbdd,
@@ -190,7 +190,7 @@ valid_ctl = [
              delay=0.3),
         id="CTL_SET_invalid"),
     pytest.param(
-        b'\x82\x5e\xbb\xaa\xdd\xcc\xff\xee\x22\xc8\x3c',
+        b'\x82\x5e\xbb\xaa\xdd\xcc\xff\xee\x22\x32\x3c',
         LightCTLOpcode.CTL_SET,
         dict(ctl_lightness=0xaabb,
              ctl_temperature=0xccdd,
@@ -200,7 +200,7 @@ valid_ctl = [
              delay=0.3),
         id="CTL_SET_with_optional"),
     pytest.param(
-        b'\x82\x5f\x11\x11\x22\x22\x33\x33\x22\xc8\x3c',
+        b'\x82\x5f\x11\x11\x22\x22\x33\x33\x22\x32\x3c',
         LightCTLOpcode.CTL_SET_UNACKNOWLEDGED,
         dict(ctl_lightness=0x1111,
              ctl_temperature=0x2222,
@@ -216,7 +216,7 @@ valid_ctl = [
              present_ctl_temperature=0x2222),
         id="CTL_STATUS"),
     pytest.param(
-        b'\x82\x60\x11\x11\x22\x22\x33\x33\x44\x44\x3c',
+        b'\x82\x60\x11\x11\x22\x22\x33\x33\x44\x44\x0f',
         LightCTLOpcode.CTL_STATUS,
         dict(present_ctl_lightness=0x1111,
              present_ctl_temperature=0x2222,
@@ -238,7 +238,7 @@ valid_ctl = [
              tid=10),
         id="CTL_TEMPERATURE_SET"),
     pytest.param(
-        b'\x82\x64\xdd\xcc\xff\xee\x22\xc8\x14',
+        b'\x82\x64\xdd\xcc\xff\xee\x22\x32\x14',
         LightCTLOpcode.CTL_TEMPERATURE_SET,
         dict(ctl_temperature=0xccdd,
              ctl_delta_uv=0xeeff,
@@ -247,7 +247,7 @@ valid_ctl = [
              delay=0.1),
         id="CTL_TEMPERATURE_SET_with_optional"),
     pytest.param(
-        b'\x82\x65\x22\x22\x33\x33\xff\xc8\x3c',
+        b'\x82\x65\x22\x22\x33\x33\xff\x32\x3c',
         LightCTLOpcode.CTL_TEMPERATURE_SET_UNACKNOWLEDGED,
         dict(ctl_temperature=0x2222,
              ctl_delta_uv=0x3333,
@@ -262,7 +262,7 @@ valid_ctl = [
              present_ctl_delta_uv=0xffff),
         id="CTL_TEMPERATURE_STATUS"),
     pytest.param(
-        b'\x82\x66\x11\x11\x22\x22\x33\x33\x44\x44\x3c',
+        b'\x82\x66\x11\x11\x22\x22\x33\x33\x44\x44\x0f',
         LightCTLOpcode.CTL_TEMPERATURE_STATUS,
         dict(present_ctl_temperature=0x1111,
              present_ctl_delta_uv=0x2222,
