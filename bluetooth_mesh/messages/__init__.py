@@ -8,6 +8,7 @@ from .health import HealthMessage
 from .config import ConfigMessage
 from .generic import GenericMessage
 from .scene import SceneMessage
+from .sensor import SensorMessage
 
 Message = Struct(
     "opcode" / Opcode,
@@ -20,4 +21,5 @@ AccessMessage = Select(
     "GenericMessage" / GenericMessage,
     "SceneMessage" / SceneMessage,
     "Message" / Message,
+    "SensorMessage" / SensorMessage,
 )
