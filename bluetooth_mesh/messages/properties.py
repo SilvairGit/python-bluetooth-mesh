@@ -1,7 +1,7 @@
 from math import pow, log
 from construct import (
-    Int8ul, Int16ul, Int24ul, Struct,
-    Switch, this, Adapter, Probe, Flag, Array, Byte
+    Int8sl, Int8ul, Int16ul, Int16sl, Int24ul, Int32ul, Struct, Embedded,
+    Switch, this, Adapter, Probe, Flag, Array, Byte, BytesInteger
 )
 from enum import IntEnum
 
@@ -121,14 +121,6 @@ class PropertyID(IntEnum):
     TOTAL_LUMINOUS_ENERGY = 0x0070
 
 
-class ElectricCurrentValidator(Adapter):
-    def _decode(self, obj, content, path):
-        return obj/100
-
-    def _encode(self, obj, content, path):
-        return int(obj*100)
-
-
 class VoltageValidator(Adapter):
     def _decode(self, obj, content, path):
         return None if obj == 0xffff else obj/64
@@ -137,20 +129,12 @@ class VoltageValidator(Adapter):
         return 0xffff if obj is None else int(obj*64)
 
 
-class Percentage8Validator(Adapter):
+class LuminousEnergyValidator(Adapter):
     def _decode(self, obj, content, path):
-        return None if obj == 0xff else obj/2
+        return None if obj == 0xffffff else obj*1000
 
     def _encode(self, obj, content, path):
-        return 0xff if obj is None else int(obj*2)
-
-
-class TimeMiliseconds24Validator(Adapter):
-    def _decode(self, obj, content, path):
-        return None if obj == 0xffffff else round(obj/1000, 3)
-
-    def _encode(self, obj, content, path):
-        return 0xffffff if obj is None else int(obj*1000)
+        return 0xffffff if obj is None else int(obj/1000)
 
 
 class TimeExponential8Validator(Adapter):
@@ -161,24 +145,23 @@ class TimeExponential8Validator(Adapter):
         return round(log(obj, 1.1))+64 if obj else 0
 
 
-class IlluminanceValidator(Adapter):
-    def _decode(self, obj, content, path):
-        return None if obj == 0xffffff else round(obj/100, 2)
-
-    def _encode(self, obj, content, path):
-        return 0xffffff if obj is None else int(obj*100)
-
-
 class DefaultCountValidator(Adapter):
+    def __init__(self, subcon, rounding=None, resolution=None):
+        super().__init__(subcon)
+        self.rounding = rounding
+        self.resolution = pow(10, self.rounding) if (resolution is None and self.rounding) else resolution
+
     def _decode(self, obj, content, path):
-        return None if obj == (256**self.subcon.length)-1 else obj
+        ret = None if obj == (256**self.subcon.length)-1 else obj
+        return round(ret/self.resolution, self.rounding) if self.rounding else ret
 
     def _encode(self, obj, content, path):
-        return (256**self.subcon.length)-1 if obj is None else obj
+        ret = (256**self.subcon.length)-1 if obj is None else obj
+        return int(ret*self.resolution) if self.rounding else ret
 
 
 ElectricCurrent = Struct(
-    "current" / ElectricCurrentValidator(Int16ul),
+    "current" / DefaultCountValidator(Int16ul, rounding=2)
 )
 
 Voltage = Struct(
@@ -190,11 +173,11 @@ Presence = Struct(
 )
 
 Percentage8 = Struct(
-    "percentage" / Percentage8Validator(Int8ul)
+    "percentage" / DefaultCountValidator(Int8ul, rounding=1, resolution=2)
 )
 
 TimeMiliseconds24 = Struct(
-    "seconds" / TimeMiliseconds24Validator(Int24ul)
+    "seconds" / DefaultCountValidator(Int24ul, rounding=3)
 )
 
 TimeHour24 = Struct(
@@ -210,13 +193,18 @@ TimeExponential8 = Struct(
 )
 
 AverageCurrent = Struct(
-    "electric_current_value" / ElectricCurrentValidator(Int16ul),
+    "electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+    "sensing_duration" / TimeExponential8,
+)
+
+AverageVoltage = Struct(
+    "voltage_value" / VoltageValidator(Int16ul),
     "sensing_duration" / TimeExponential8,
     Probe(this)
 )
 
 Illuminance = Struct(
-    "illuminance" / IlluminanceValidator(Int24ul)
+    "illuminance" / DefaultCountValidator(Int24ul, rounding=2)
 )
 
 Count16 = Struct(
@@ -242,6 +230,98 @@ PerceivedLightness = Struct(
     "perceived_lightness" / Int16ul
 )
 
+Coefficient = Struct(
+    "coefficient" / DefaultCountValidator(Int32ul)
+)
+
+Power = Struct(
+    "power" / DefaultCountValidator(Int24ul, rounding=1)
+)
+
+PowerSpecification = Struct(
+    "minimum_power_value" / DefaultCountValidator(Int24ul, rounding=1),
+    "typical_power_value" / DefaultCountValidator(Int24ul, rounding=1),
+    "maximum_power_value" / DefaultCountValidator(Int24ul, rounding=1)
+)
+
+Temperature = Struct(
+    "temperature" / DefaultCountValidator(Int16sl, rounding=2)
+)
+
+Temperature8 = Struct(
+    "temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=2)
+)
+
+TemperatureRange = Struct(
+    "minimum_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
+    "maximum_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
+)
+
+Temperature8Statistics = Struct(
+    "average_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
+    "standard_deviation_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
+    Embedded(TemperatureRange),
+    "sensing_duration" / TimeExponential8,
+)
+
+VoltageRange = Struct(
+    "minimum_voltage_value" / VoltageValidator(Int16ul),
+    "maximum_voltage_value" / VoltageValidator(Int16ul),
+)
+
+VoltageStatistics = Struct(
+    "average_voltage_value" / VoltageValidator(Int16ul),
+    "standard_deviation_voltage_value" / VoltageValidator(Int16ul),
+    Embedded(VoltageRange),
+    "sensing_duration" / TimeExponential8,
+)
+
+ElectricCurrentRange = Struct(
+    "minimum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+    "maximum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+)
+
+ElectricCurrentSpecification = Struct(
+    "minimum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+    "typical_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+    "maximum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+)
+
+ElectricCurrentStatistics = Struct(
+    "average_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+    "standard_deviation_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+    Embedded(ElectricCurrentRange),
+    "sensing_duration" / TimeExponential8,
+)
+
+LuminousFlux = Struct(
+    "luminous_flux" / DefaultCountValidator(Int16ul)
+)
+
+LuminousEnergy = Struct(
+    "luminous_energy" / LuminousEnergyValidator(Int24ul)
+)
+
+LuminousExposure = Struct(
+    "luminous_exposure" / LuminousEnergyValidator(Int24ul)
+)
+
+LuminousIntensity = Struct(
+    "luminous_intensity" / DefaultCountValidator(Int16ul)
+)
+
+Temperature = Struct(
+    "temperature" / DefaultCountValidator(Int16sl, rounding=2)
+)
+
+GlobalTradeItemNumber = Struct(
+    "global_trade_item_number" / BytesInteger(6, swapped=True)
+)
+
+ChromaticityTolerance = Struct(
+    "chromaticity_tolerance" / DefaultCountValidator(Int8sl, rounding=4, resolution=10000)
+)
+
 
 def FixedString(size):
     return Array(size, Byte)
@@ -252,11 +332,11 @@ PropertyValue = Switch(
     {
         # PropertyID.AVERAGE_AMBIENT_TEMPERATURE_IN_A_PERIOD_OF_DAY = 0x0001
         PropertyID.AVERAGE_INPUT_CURRENT: AverageCurrent,
-        # PropertyID.AVERAGE_INPUT_VOLTAGE = 0x0003
+        PropertyID.AVERAGE_INPUT_VOLTAGE: AverageVoltage,
         PropertyID.AVERAGE_OUTPUT_CURRENT: AverageCurrent,
-        # PropertyID.AVERAGE_OUTPUT_VOLTAGE = 0x0005
-        # PropertyID.CENTER_BEAM_INTENSITY_AT_FULL_POWER = 0x0006
-        # PropertyID.CHROMATICITY_TOLERANCE = 0x0007
+        PropertyID.AVERAGE_OUTPUT_VOLTAGE: AverageVoltage,
+        PropertyID.CENTER_BEAM_INTENSITY_AT_FULL_POWER: LuminousIntensity,
+        PropertyID.CHROMATICITY_TOLERANCE: ChromaticityTolerance,
         # PropertyID.COLOR_RENDERING_INDEX_R9 = 0x0008
         # PropertyID.COLOR_RENDERING_INDEX_RA = 0x0009
         # PropertyID.DEVICE_APPEARANCE = 0x000A
@@ -264,26 +344,26 @@ PropertyValue = Switch(
         # PropertyID.DEVICE_DATE_OF_MANUFACTURE = 0x000C
         PropertyID.DEVICE_ENERGY_USE_SINCE_TURN_ON: Energy,
         PropertyID.DEVICE_FIRMWARE_REVISION: FixedString(8),
-        # PropertyID.DEVICE_GLOBAL_TRADE_ITEM_NUMBER = 0x000F
+        PropertyID.DEVICE_GLOBAL_TRADE_ITEM_NUMBER: GlobalTradeItemNumber,
         PropertyID.DEVICE_HARDWARE_REVISION: FixedString(16),
         PropertyID.DEVICE_MANUFACTURER_NAME: FixedString(36),
         PropertyID.DEVICE_MODEL_NUMBER: FixedString(24),
-        # PropertyID.DEVICE_OPERATING_TEMPERATURE_RANGE_SPECIFICATION = 0x0013
+        PropertyID.DEVICE_OPERATING_TEMPERATURE_RANGE_SPECIFICATION: TemperatureRange,
         # PropertyID.DEVICE_OPERATING_TEMPERATURE_STATISTICAL_VALUES = 0x0014
         PropertyID.DEVICE_OVER_TEMPERATURE_EVENT_STATISTICS: EventStatistics,
-        # PropertyID.DEVICE_POWER_RANGE_SPECIFICATION = 0x0016
+        PropertyID.DEVICE_POWER_RANGE_SPECIFICATION: PowerSpecification,
         PropertyID.DEVICE_RUNTIME_SINCE_TURN_ON: TimeHour24,
         PropertyID.DEVICE_RUNTIME_WARRANTY: TimeHour24,
         PropertyID.DEVICE_SERIAL_NUMBER: FixedString(16),
         PropertyID.DEVICE_SOFTWARE_REVISION: FixedString(8),
         PropertyID.DEVICE_UNDER_TEMPERATURE_EVENT_STATISTICS: EventStatistics,
-        # PropertyID.INDOOR_AMBIENT_TEMPERATURE_STATISTICAL_VALUES = 0x001C
+        PropertyID.INDOOR_AMBIENT_TEMPERATURE_STATISTICAL_VALUES: Temperature8Statistics,
         # PropertyID.INITIAL_CIE_1931_CHROMATICITY_COORDINATES = 0x001D
         # PropertyID.INITIAL_CORRELATED_COLOR_TEMPERATURE = 0x001E
-        # PropertyID.INITIAL_LUMINOUS_FLUX = 0x001F
+        PropertyID.INITIAL_LUMINOUS_FLUX: LuminousFlux,
         # PropertyID.INITIAL_PLANCKIAN_DISTANCE = 0x0020
-        # PropertyID.INPUT_CURRENT_RANGE_SPECIFICATION = 0x0021
-        # PropertyID.INPUT_CURRENT_STATISTICS = 0x0022
+        PropertyID.INPUT_CURRENT_RANGE_SPECIFICATION: ElectricCurrentSpecification,
+        PropertyID.INPUT_CURRENT_STATISTICS: ElectricCurrentStatistics,
         PropertyID.INPUT_OVER_CURRENT_EVENT_STATISTICS: EventStatistics,
         PropertyID.INPUT_OVER_RIPPLE_VOLTAGE_EVENT_STATISTICS: EventStatistics,
         PropertyID.INPUT_OVER_VOLTAGE_EVENT_STATISTICS: EventStatistics,
@@ -291,7 +371,7 @@ PropertyValue = Switch(
         PropertyID.INPUT_UNDER_VOLTAGE_EVENT_STATISTICS: EventStatistics,
         # PropertyID.INPUT_VOLTAGE_RANGE_SPECIFICATION = 0x0028
         PropertyID.INPUT_VOLTAGE_RIPPLE_SPECIFICATION: Percentage8,
-        # PropertyID.INPUT_VOLTAGE_STATISTICS = 0x002A
+        PropertyID.INPUT_VOLTAGE_STATISTICS: VoltageStatistics,
         PropertyID.LIGHT_CONTROL_AMBIENT_LUXLEVEL_ON: Illuminance,
         PropertyID.LIGHT_CONTROL_AMBIENT_LUXLEVEL_PROLONG: Illuminance,
         PropertyID.LIGHT_CONTROL_AMBIENT_LUXLEVEL_STANDBY: Illuminance,
@@ -299,10 +379,10 @@ PropertyValue = Switch(
         PropertyID.LIGHT_CONTROL_LIGHTNESS_PROLONG: PerceivedLightness,
         PropertyID.LIGHT_CONTROL_LIGHTNESS_STANDBY: PerceivedLightness,
         PropertyID.LIGHT_CONTROL_REGULATOR_ACCURACY: Percentage8,
-        # PropertyID.LIGHT_CONTROL_REGULATOR_KID = 0x0032
-        # PropertyID.LIGHT_CONTROL_REGULATOR_KIU = 0x0033
-        # PropertyID.LIGHT_CONTROL_REGULATOR_KPD = 0x0034
-        # PropertyID.LIGHT_CONTROL_REGULATOR_KPU = 0x0035
+        PropertyID.LIGHT_CONTROL_REGULATOR_KID: Coefficient,
+        PropertyID.LIGHT_CONTROL_REGULATOR_KIU: Coefficient,
+        PropertyID.LIGHT_CONTROL_REGULATOR_KPD: Coefficient,
+        PropertyID.LIGHT_CONTROL_REGULATOR_KPU: Coefficient,
         PropertyID.LIGHT_CONTROL_TIME_FADE: TimeMiliseconds24,
         PropertyID.LIGHT_CONTROL_TIME_FADE_ON: TimeMiliseconds24,
         PropertyID.LIGHT_CONTROL_TIME_FADE_STANDBY_AUTO: TimeMiliseconds24,
@@ -312,35 +392,35 @@ PropertyValue = Switch(
         PropertyID.LIGHT_CONTROL_TIME_RUN_ON: TimeMiliseconds24,
         PropertyID.LUMEN_MAINTENANCE_FACTOR: Percentage8,
         # PropertyID.LUMINOUS_EFFICACY = 0x003E
-        # PropertyID.LUMINOUS_ENERGY_SINCE_TURN_ON = 0x003F
-        # PropertyID.LUMINOUS_EXPOSURE = 0x0040
+        PropertyID.LUMINOUS_ENERGY_SINCE_TURN_ON: LuminousEnergy,
+        PropertyID.LUMINOUS_EXPOSURE: LuminousExposure,
         # PropertyID.LUMINOUS_FLUX_RANGE = 0x0041
         PropertyID.MOTION_SENSED: Percentage8,
         PropertyID.MOTION_THRESHOLD: Percentage8,
         PropertyID.OPEN_CIRCUIT_EVENT_STATISTICS: EventStatistics,
-        # PropertyID.OUTDOOR_STATISTICAL_VALUES = 0x0045
-        # PropertyID.OUTPUT_CURRENT_RANGE = 0x0046
-        # PropertyID.OUTPUT_CURRENT_STATISTICS = 0x0047
+        PropertyID.OUTDOOR_STATISTICAL_VALUES: Temperature8Statistics,
+        PropertyID.OUTPUT_CURRENT_RANGE: ElectricCurrentRange,
+        PropertyID.OUTPUT_CURRENT_STATISTICS: ElectricCurrentStatistics,
         PropertyID.OUTPUT_RIPPLE_VOLTAGE_SPECIFICATION: Percentage8,
-        # PropertyID.OUTPUT_VOLTAGE_RANGE = 0x0049
-        # PropertyID.OUTPUT_VOLTAGE_STATISTICS = 0x004A
+        PropertyID.OUTPUT_VOLTAGE_RANGE: VoltageRange,
+        PropertyID.OUTPUT_VOLTAGE_STATISTICS: VoltageStatistics,
         PropertyID.OVER_OUTPUT_RIPPLE_VOLTAGE_EVENT_STATISTICS: EventStatistics,
         PropertyID.PEOPLE_COUNT: Count16,
         PropertyID.PRESENCE_DETECTED: Presence,
         PropertyID.PRESENT_AMBIENT_LIGHT_LEVEL: Illuminance,
-        # PropertyID.PRESENT_AMBIENT_TEMPERATURE = 0x004F
+        PropertyID.PRESENT_AMBIENT_TEMPERATURE: Temperature8,
         # PropertyID.PRESENT_CIE_1931_CHROMATICITY_COORDINATES = 0x0050
         # PropertyID.PRESENT_CORRELATED_COLOR_TEMPERATURE = 0x0051
-        # PropertyID.PRESENT_DEVICE_INPUT_POWER = 0x0052 # TODO
+        PropertyID.PRESENT_DEVICE_INPUT_POWER: Power,
         PropertyID.PRESENT_DEVICE_OPERATING_EFFICIENCY: Percentage8,
-        # PropertyID.PRESENT_DEVICE_OPERATING_TEMPERATURE = 0x0054
+        PropertyID.PRESENT_DEVICE_OPERATING_TEMPERATURE: Temperature,
         PropertyID.PRESENT_ILLUMINANCE: Illuminance,
-        # PropertyID.PRESENT_INDOOR_AMBIENT_TEMPERATURE = 0x0056
+        PropertyID.PRESENT_INDOOR_AMBIENT_TEMPERATURE: Temperature8,
         PropertyID.PRESENT_INPUT_CURRENT: ElectricCurrent,
         PropertyID.PRESENT_INPUT_RIPPLE_VOLTAGE: Percentage8,
         PropertyID.PRESENT_INPUT_VOLTAGE: Voltage,
-        # PropertyID.PRESENT_LUMINOUS_FLUX = 0x005A
-        # PropertyID.PRESENT_OUTDOOR_AMBIENT_TEMPERATURE = 0x005B
+        PropertyID.PRESENT_LUMINOUS_FLUX: LuminousFlux,
+        PropertyID.PRESENT_OUTDOOR_AMBIENT_TEMPERATURE: Temperature8,
         PropertyID.PRESENT_OUTPUT_CURRENT: ElectricCurrent,
         PropertyID.PRESENT_OUTPUT_VOLTAGE: Voltage,
         # PropertyID.PRESENT_PLANCKIAN_DISTANCE = 0x005E
@@ -348,7 +428,7 @@ PropertyValue = Switch(
         # PropertyID.RELATIVE_DEVICE_ENERGY_USE_IN_A_PERIOD_OF_DAY = 0x0060
         # PropertyID.RELATIVE_DEVICE_RUNTIME_IN_A_GENERIC_LEVEL_RANGE = 0x0061
         # PropertyID.RELATIVE_EXPOSURE_TIME_IN_AN_ILLUMINANCE_RANGE = 0x0062
-        # PropertyID.RELATIVE_RUNTIME_IN_A_CORRELATED_COLOR_TEMPERATURE_RANGE = 0x0063
+        PropertyID.RELATIVE_RUNTIME_IN_A_CORRELATED_COLOR_TEMPERATURE_RANGE: LuminousEnergy,
         # PropertyID.RELATIVE_RUNTIME_IN_A_DEVICE_OPERATING_TEMPERATURE_RANGE = 0x0064
         # PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_CURRENT_RANGE = 0x0065
         # PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_VOLTAGE_RANGE = 0x0066
@@ -361,6 +441,6 @@ PropertyValue = Switch(
         PropertyID.TOTAL_DEVICE_POWER_ON_TIME: TimeHour24,
         PropertyID.TOTAL_DEVICE_RUNTIME: TimeHour24,
         PropertyID.TOTAL_LIGHT_EXPOSURE_TIME: TimeHour24,
-        # PropertyID.TOTAL_LUMINOUS_ENERGY = 0x0070
+        PropertyID.TOTAL_LUMINOUS_ENERGY: LuminousEnergy,
     }
 )
