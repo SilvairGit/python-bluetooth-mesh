@@ -1,7 +1,7 @@
 from math import pow, log
 from construct import (
     Int8sl, Int8ul, Int16ul, Int16sl, Int24ul, Int32ul, Struct, Embedded,
-    Switch, this, Adapter, Probe, Flag, Array, Byte, BytesInteger, BitsInteger
+    Switch, this, Adapter, Probe, Flag, Array, Byte, BytesInteger, BitsInteger, PaddedString
 )
 from datetime import datetime, timedelta
 from bluetooth_mesh.messages.config import EmbeddedBitStruct
@@ -438,7 +438,7 @@ RelativeRuntimeInAGenericLevelRange = Struct(
 
 
 def FixedString(size):
-    return Array(size, Byte)
+    return PaddedString(size, "utf8")
 
 
 PropertyValue = Switch(

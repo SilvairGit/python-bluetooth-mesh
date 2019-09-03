@@ -282,14 +282,21 @@ valid_properties = [
         b'\x59\x0e\x00\x0e\x00abcdefgh',
         dict(sensor_property_id=PropertyID.DEVICE_FIRMWARE_REVISION,
              sensor_setting_property_id=PropertyID.DEVICE_FIRMWARE_REVISION,
-             sensor_setting_raw=list(b'abcdefgh'),
+             sensor_setting_raw='abcdefgh',
              ),
         id="FixedString8"),
+    pytest.param(
+        b'\x59\x0e\x00\x0e\x00abcdef\x00\x00',
+        dict(sensor_property_id=PropertyID.DEVICE_FIRMWARE_REVISION,
+             sensor_setting_property_id=PropertyID.DEVICE_FIRMWARE_REVISION,
+             sensor_setting_raw='abcdef',
+             ),
+        id="FixedString8_padded"),
     pytest.param(
         b'\x59\x11\x00\x11\x00abcdefghabcdefghabcdefghabcdefghabcd',
         dict(sensor_property_id=PropertyID.DEVICE_MANUFACTURER_NAME,
              sensor_setting_property_id=PropertyID.DEVICE_MANUFACTURER_NAME,
-             sensor_setting_raw=list(b'abcdefghabcdefghabcdefghabcdefghabcd'),
+             sensor_setting_raw='abcdefghabcdefghabcdefghabcdefghabcd',
              ),
         id="FixedString36"),
     pytest.param(
