@@ -1,8 +1,10 @@
 from math import pow, log
 from construct import (
     Int8sl, Int8ul, Int16ul, Int16sl, Int24ul, Int32ul, Struct, Embedded,
-    Switch, this, Adapter, Probe, Flag, Array, Byte, BytesInteger
+    Switch, this, Adapter, Probe, Flag, Array, Byte, BytesInteger, BitsInteger
 )
+from datetime import datetime, timedelta
+from bluetooth_mesh.messages.config import EmbeddedBitStruct
 from enum import IntEnum
 
 
@@ -121,63 +123,46 @@ class PropertyID(IntEnum):
     TOTAL_LUMINOUS_ENERGY = 0x0070
 
 
-class VoltageValidator(Adapter):
-    def _decode(self, obj, content, path):
-        return None if obj == 0xffff else obj/64
-
-    def _encode(self, obj, content, path):
-        return 0xffff if obj is None else int(obj*64)
-
-
-class LuminousEnergyValidator(Adapter):
-    def _decode(self, obj, content, path):
-        return None if obj == 0xffffff else obj*1000
-
-    def _encode(self, obj, content, path):
-        return 0xffffff if obj is None else int(obj/1000)
-
-
 class TimeExponential8Validator(Adapter):
     def _decode(self, obj, content, path):
-        return round(pow(1.1, obj-64), 4) if obj else 0
+        return round(pow(1.1, obj - 64), 4) if obj else 0
 
     def _encode(self, obj, content, path):
-        return round(log(obj, 1.1))+64 if obj else 0
+        return round(log(obj, 1.1)) + 64 if obj else 0
+
+
+class DateValidator(Adapter):
+    EPOCH = datetime(1970, 1, 1)
+
+    def _decode(self, obj, content, path):
+        return None if obj == 0x0 else self.EPOCH + timedelta(days=obj)
+
+    def _encode(self, obj, content, path):
+        return 0x0 if obj is None else (obj - self.EPOCH).days
 
 
 class DefaultCountValidator(Adapter):
-    def __init__(self, subcon, rounding=None, resolution=None):
+    def __init__(self, subcon, rounding=None, resolution=1.0):
         super().__init__(subcon)
         self.rounding = rounding
-        self.resolution = pow(10, self.rounding) if (resolution is None and self.rounding) else resolution
+        self.resolution = resolution
 
     def _decode(self, obj, content, path):
-        ret = None if obj == (256**self.subcon.length)-1 else obj
-        return round(ret/self.resolution, self.rounding) if self.rounding else ret
+        if obj == (256 ** self.subcon.length) - 1:
+            return None
+        else:
+            return round(obj * self.resolution, self.rounding) if self.rounding else obj * self.resolution
 
     def _encode(self, obj, content, path):
-        ret = (256**self.subcon.length)-1 if obj is None else obj
-        return int(ret*self.resolution) if self.rounding else ret
+        if obj is None:
+            return (256 ** self.subcon.length) - 1
+        else:
+            return round(obj / self.resolution)
 
 
-ElectricCurrent = Struct(
-    "current" / DefaultCountValidator(Int16ul, rounding=2)
-)
-
-Voltage = Struct(
-    "voltage" / VoltageValidator(Int16ul),
-)
-
-Presence = Struct(
-    "presence_detected" / Flag
-)
-
-Percentage8 = Struct(
-    "percentage" / DefaultCountValidator(Int8ul, rounding=1, resolution=2)
-)
-
+# time
 TimeMiliseconds24 = Struct(
-    "seconds" / DefaultCountValidator(Int24ul, rounding=3)
+    "seconds" / DefaultCountValidator(Int24ul, rounding=3, resolution=0.001)
 )
 
 TimeHour24 = Struct(
@@ -192,19 +177,192 @@ TimeExponential8 = Struct(
     "seconds" / TimeExponential8Validator(Int8ul)
 )
 
+TimeDecihour8 = Struct(
+    "hour" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.1)
+)
+
+DateUTC = Struct(
+    "date" / DateValidator(Int24ul)
+)
+
+
+# electric current
+ElectricCurrent = Struct(
+    "current" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01)
+)
+
 AverageCurrent = Struct(
-    "electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
+    "electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
     "sensing_duration" / TimeExponential8,
 )
 
+ElectricCurrentRange = Struct(
+    "minimum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+    "maximum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+)
+
+ElectricCurrentSpecification = Struct(
+    "minimum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+    "typical_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+    "maximum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+)
+
+ElectricCurrentStatistics = Struct(
+    "average_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+    "standard_deviation_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+    Embedded(ElectricCurrentRange),
+    "sensing_duration" / TimeExponential8,
+)
+
+RelativeValueInACurrentRange = Struct(
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
+    "minimum_current" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01),
+    "maximum_current" / DefaultCountValidator(Int16ul, rounding=2, resolution=0.01)
+)
+
+
+# voltage
+Voltage = Struct(
+    "voltage" / DefaultCountValidator(Int16ul, resolution=1/64),
+)
+
 AverageVoltage = Struct(
-    "voltage_value" / VoltageValidator(Int16ul),
+    "voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
     "sensing_duration" / TimeExponential8,
     Probe(this)
 )
 
+VoltageRange = Struct(
+    "minimum_voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
+    "typical_voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
+    "maximum_voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
+)
+
+VoltageStatistics = Struct(
+    "average_voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
+    "standard_deviation_voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
+    "minimum_voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
+    "maximum_voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
+    "sensing_duration" / TimeExponential8,
+)
+
+RelativeValueInAVoltageRange = Struct(
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
+    "minimum_voltage" / DefaultCountValidator(Int16ul, resolution=1/64),
+    "maximum_voltage" / DefaultCountValidator(Int16ul, resolution=1/64),
+)
+
+
+# energy
+Energy = Struct(
+    "energy" / DefaultCountValidator(Int24ul)
+)
+
+EnergyInAPeriodOfDay = Struct(
+    "energy_value" / DefaultCountValidator(Int24ul),
+    "start_time" / TimeDecihour8,
+    "end_time" / TimeDecihour8,
+)
+
+
+# power
+Power = Struct(
+    "power" / DefaultCountValidator(Int24ul, rounding=1, resolution=0.1)
+)
+
+PowerSpecification = Struct(
+    "minimum_power_value" / DefaultCountValidator(Int24ul, rounding=1, resolution=0.1),
+    "typical_power_value" / DefaultCountValidator(Int24ul, rounding=1, resolution=0.1),
+    "maximum_power_value" / DefaultCountValidator(Int24ul, rounding=1, resolution=0.1)
+)
+
+
+# temperature
+Temperature = Struct(
+    "temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01)
+)
+
+Temperature8 = Struct(
+    "temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=0.5)
+)
+
+TemperatureRange = Struct(
+    "minimum_temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=0.5),
+    "maximum_temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=0.5),
+)
+
+Temperature8Statistics = Struct(
+    "average_temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=0.5),
+    "standard_deviation_temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=0.5),
+    Embedded(TemperatureRange),
+    "sensing_duration" / TimeExponential8,
+)
+
+Temperature8InAPeriodOfDay = Struct(
+    "temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=0.5),
+    "start_time" / TimeDecihour8,
+    "end_time" / TimeDecihour8,
+)
+
+TemperatureStatistics = Struct(
+    "average_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01),
+    "standard_deviation_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01),
+    "minimum_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01),
+    "maximum_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01),
+    "sensing_duration" / TimeExponential8,
+)
+
+RelativeValueInATemperatureRange = Struct(
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
+    "minimum_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01),
+    "maximum_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01)
+)
+
+
+# luminosity
+LuminousFlux = Struct(
+    "luminous_flux" / DefaultCountValidator(Int16ul)
+)
+
+LuminousFluxRange = Struct(
+    "minimum_luminous_flux" / DefaultCountValidator(Int16ul),
+    "maximum_luminous_flux" / DefaultCountValidator(Int16ul)
+)
+
+LuminousEnergy = Struct(
+    "luminous_energy" / DefaultCountValidator(Int24ul, rounding=1, resolution=1000),
+)
+
+LuminousExposure = Struct(
+    "luminous_exposure" / DefaultCountValidator(Int24ul, rounding=1, resolution=1000),
+)
+
+LuminousIntensity = Struct(
+    "luminous_intensity" / DefaultCountValidator(Int16ul)
+)
+
+LuminousEfficacy = Struct(
+    "luminous_efficacy" / DefaultCountValidator(Int16ul, rounding=1, resolution=0.1)
+)
+
 Illuminance = Struct(
-    "illuminance" / DefaultCountValidator(Int24ul, rounding=2)
+    "illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01)
+)
+
+RelativeValueInAnIlluminanceRange = Struct(
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
+    "minimum_illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01),
+    "maximum_illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01)
+)
+
+PerceivedLightness = Struct(
+    "perceived_lightness" / Int16ul
+)
+
+
+# counters
+Percentage8 = Struct(
+    "percentage" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5)
 )
 
 Count16 = Struct(
@@ -215,6 +373,56 @@ Count24 = Struct(
     "count" / DefaultCountValidator(Int24ul)
 )
 
+Coefficient = Struct(
+    "coefficient" / DefaultCountValidator(Int32ul)
+)
+
+
+# chromaticity
+ChromaticityTolerance = Struct(
+    "chromaticity_tolerance" / DefaultCountValidator(Int8sl, rounding=4, resolution=0.0001)
+)
+
+ChromaticDistanceFromPlanckian = Struct(
+    "distance_from_planckian" / DefaultCountValidator(Int16sl, rounding=5, resolution=0.00001)
+)
+
+CorrelatedColorTemperature = Struct(
+    "correlated_color_temperature" / DefaultCountValidator(Int16ul, rounding=1, resolution=1)
+)
+
+ChromaticityCoordinates = Struct(
+    "chromaticity_x_coordinate" / DefaultCountValidator(Int16ul, resolution=1/0xffff),
+    "chromaticity_y_coordinate" / DefaultCountValidator(Int16ul, resolution=1/0xffff)
+)
+
+ColorRenderingIndex = Struct(
+    "color_rendering_index" / DefaultCountValidator(Int8sl)
+)
+
+
+# misc
+GlobalTradeItemNumber = Struct(
+    "global_trade_item_number" / BytesInteger(6, swapped=True)
+)
+
+Appearance = Struct(  # TODO: check if correct
+    *EmbeddedBitStruct(
+        "_",
+        "category" / BitsInteger(10),
+        "sub_category" / BitsInteger(6),
+        reversed=True
+    )
+)
+
+CountryCode = Struct(
+    "country_code" / DefaultCountValidator(Int16ul)
+)
+
+Presence = Struct(
+    "presence_detected" / Flag
+)
+
 EventStatistics = Struct(
     "number_of_events" / Count16,
     "average_event_duration" / TimeSecond16,
@@ -222,104 +430,10 @@ EventStatistics = Struct(
     "sensing_duration" / TimeExponential8,
 )
 
-Energy = Struct(
-    "kilowatt_hour" / DefaultCountValidator(Int24ul)
-)
-
-PerceivedLightness = Struct(
-    "perceived_lightness" / Int16ul
-)
-
-Coefficient = Struct(
-    "coefficient" / DefaultCountValidator(Int32ul)
-)
-
-Power = Struct(
-    "power" / DefaultCountValidator(Int24ul, rounding=1)
-)
-
-PowerSpecification = Struct(
-    "minimum_power_value" / DefaultCountValidator(Int24ul, rounding=1),
-    "typical_power_value" / DefaultCountValidator(Int24ul, rounding=1),
-    "maximum_power_value" / DefaultCountValidator(Int24ul, rounding=1)
-)
-
-Temperature = Struct(
-    "temperature" / DefaultCountValidator(Int16sl, rounding=2)
-)
-
-Temperature8 = Struct(
-    "temperature" / DefaultCountValidator(Int8sl, rounding=1, resolution=2)
-)
-
-TemperatureRange = Struct(
-    "minimum_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
-    "maximum_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
-)
-
-Temperature8Statistics = Struct(
-    "average_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
-    "standard_deviation_value" / DefaultCountValidator(Int8sl, rounding=1, resolution=2),
-    Embedded(TemperatureRange),
-    "sensing_duration" / TimeExponential8,
-)
-
-VoltageRange = Struct(
-    "minimum_voltage_value" / VoltageValidator(Int16ul),
-    "maximum_voltage_value" / VoltageValidator(Int16ul),
-)
-
-VoltageStatistics = Struct(
-    "average_voltage_value" / VoltageValidator(Int16ul),
-    "standard_deviation_voltage_value" / VoltageValidator(Int16ul),
-    Embedded(VoltageRange),
-    "sensing_duration" / TimeExponential8,
-)
-
-ElectricCurrentRange = Struct(
-    "minimum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
-    "maximum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
-)
-
-ElectricCurrentSpecification = Struct(
-    "minimum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
-    "typical_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
-    "maximum_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
-)
-
-ElectricCurrentStatistics = Struct(
-    "average_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
-    "standard_deviation_electric_current_value" / DefaultCountValidator(Int16ul, rounding=2),
-    Embedded(ElectricCurrentRange),
-    "sensing_duration" / TimeExponential8,
-)
-
-LuminousFlux = Struct(
-    "luminous_flux" / DefaultCountValidator(Int16ul)
-)
-
-LuminousEnergy = Struct(
-    "luminous_energy" / LuminousEnergyValidator(Int24ul)
-)
-
-LuminousExposure = Struct(
-    "luminous_exposure" / LuminousEnergyValidator(Int24ul)
-)
-
-LuminousIntensity = Struct(
-    "luminous_intensity" / DefaultCountValidator(Int16ul)
-)
-
-Temperature = Struct(
-    "temperature" / DefaultCountValidator(Int16sl, rounding=2)
-)
-
-GlobalTradeItemNumber = Struct(
-    "global_trade_item_number" / BytesInteger(6, swapped=True)
-)
-
-ChromaticityTolerance = Struct(
-    "chromaticity_tolerance" / DefaultCountValidator(Int8sl, rounding=4, resolution=10000)
+RelativeRuntimeInAGenericLevelRange = Struct(
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
+    "minimum_generic_level" / DefaultCountValidator(Int16ul),
+    "maximum_generic_level" / DefaultCountValidator(Int16ul),
 )
 
 
@@ -330,18 +444,18 @@ def FixedString(size):
 PropertyValue = Switch(
     this.sensor_setting_property_id,
     {
-        # PropertyID.AVERAGE_AMBIENT_TEMPERATURE_IN_A_PERIOD_OF_DAY = 0x0001
+        PropertyID.AVERAGE_AMBIENT_TEMPERATURE_IN_A_PERIOD_OF_DAY: Temperature8InAPeriodOfDay,
         PropertyID.AVERAGE_INPUT_CURRENT: AverageCurrent,
         PropertyID.AVERAGE_INPUT_VOLTAGE: AverageVoltage,
         PropertyID.AVERAGE_OUTPUT_CURRENT: AverageCurrent,
         PropertyID.AVERAGE_OUTPUT_VOLTAGE: AverageVoltage,
         PropertyID.CENTER_BEAM_INTENSITY_AT_FULL_POWER: LuminousIntensity,
         PropertyID.CHROMATICITY_TOLERANCE: ChromaticityTolerance,
-        # PropertyID.COLOR_RENDERING_INDEX_R9 = 0x0008
-        # PropertyID.COLOR_RENDERING_INDEX_RA = 0x0009
-        # PropertyID.DEVICE_APPEARANCE = 0x000A
-        # PropertyID.DEVICE_COUNTRY_OF_ORIGIN = 0x000B
-        # PropertyID.DEVICE_DATE_OF_MANUFACTURE = 0x000C
+        PropertyID.COLOR_RENDERING_INDEX_R9: ColorRenderingIndex,
+        PropertyID.COLOR_RENDERING_INDEX_RA: ColorRenderingIndex,
+        PropertyID.DEVICE_APPEARANCE: Appearance,
+        PropertyID.DEVICE_COUNTRY_OF_ORIGIN: CountryCode,
+        PropertyID.DEVICE_DATE_OF_MANUFACTURE: DateUTC,
         PropertyID.DEVICE_ENERGY_USE_SINCE_TURN_ON: Energy,
         PropertyID.DEVICE_FIRMWARE_REVISION: FixedString(8),
         PropertyID.DEVICE_GLOBAL_TRADE_ITEM_NUMBER: GlobalTradeItemNumber,
@@ -349,7 +463,7 @@ PropertyValue = Switch(
         PropertyID.DEVICE_MANUFACTURER_NAME: FixedString(36),
         PropertyID.DEVICE_MODEL_NUMBER: FixedString(24),
         PropertyID.DEVICE_OPERATING_TEMPERATURE_RANGE_SPECIFICATION: TemperatureRange,
-        # PropertyID.DEVICE_OPERATING_TEMPERATURE_STATISTICAL_VALUES = 0x0014
+        PropertyID.DEVICE_OPERATING_TEMPERATURE_STATISTICAL_VALUES: TemperatureStatistics,
         PropertyID.DEVICE_OVER_TEMPERATURE_EVENT_STATISTICS: EventStatistics,
         PropertyID.DEVICE_POWER_RANGE_SPECIFICATION: PowerSpecification,
         PropertyID.DEVICE_RUNTIME_SINCE_TURN_ON: TimeHour24,
@@ -358,10 +472,10 @@ PropertyValue = Switch(
         PropertyID.DEVICE_SOFTWARE_REVISION: FixedString(8),
         PropertyID.DEVICE_UNDER_TEMPERATURE_EVENT_STATISTICS: EventStatistics,
         PropertyID.INDOOR_AMBIENT_TEMPERATURE_STATISTICAL_VALUES: Temperature8Statistics,
-        # PropertyID.INITIAL_CIE_1931_CHROMATICITY_COORDINATES = 0x001D
-        # PropertyID.INITIAL_CORRELATED_COLOR_TEMPERATURE = 0x001E
+        PropertyID.INITIAL_CIE_1931_CHROMATICITY_COORDINATES: ChromaticityCoordinates,
+        PropertyID.INITIAL_CORRELATED_COLOR_TEMPERATURE: CorrelatedColorTemperature,
         PropertyID.INITIAL_LUMINOUS_FLUX: LuminousFlux,
-        # PropertyID.INITIAL_PLANCKIAN_DISTANCE = 0x0020
+        PropertyID.INITIAL_PLANCKIAN_DISTANCE: ChromaticDistanceFromPlanckian,
         PropertyID.INPUT_CURRENT_RANGE_SPECIFICATION: ElectricCurrentSpecification,
         PropertyID.INPUT_CURRENT_STATISTICS: ElectricCurrentStatistics,
         PropertyID.INPUT_OVER_CURRENT_EVENT_STATISTICS: EventStatistics,
@@ -369,7 +483,7 @@ PropertyValue = Switch(
         PropertyID.INPUT_OVER_VOLTAGE_EVENT_STATISTICS: EventStatistics,
         PropertyID.INPUT_UNDER_CURRENT_EVENT_STATISTICS: EventStatistics,
         PropertyID.INPUT_UNDER_VOLTAGE_EVENT_STATISTICS: EventStatistics,
-        # PropertyID.INPUT_VOLTAGE_RANGE_SPECIFICATION = 0x0028
+        PropertyID.INPUT_VOLTAGE_RANGE_SPECIFICATION: VoltageRange,
         PropertyID.INPUT_VOLTAGE_RIPPLE_SPECIFICATION: Percentage8,
         PropertyID.INPUT_VOLTAGE_STATISTICS: VoltageStatistics,
         PropertyID.LIGHT_CONTROL_AMBIENT_LUXLEVEL_ON: Illuminance,
@@ -391,10 +505,10 @@ PropertyValue = Switch(
         PropertyID.LIGHT_CONTROL_TIME_PROLONG: TimeMiliseconds24,
         PropertyID.LIGHT_CONTROL_TIME_RUN_ON: TimeMiliseconds24,
         PropertyID.LUMEN_MAINTENANCE_FACTOR: Percentage8,
-        # PropertyID.LUMINOUS_EFFICACY = 0x003E
+        PropertyID.LUMINOUS_EFFICACY: LuminousEfficacy,
         PropertyID.LUMINOUS_ENERGY_SINCE_TURN_ON: LuminousEnergy,
         PropertyID.LUMINOUS_EXPOSURE: LuminousExposure,
-        # PropertyID.LUMINOUS_FLUX_RANGE = 0x0041
+        PropertyID.LUMINOUS_FLUX_RANGE: LuminousFluxRange,
         PropertyID.MOTION_SENSED: Percentage8,
         PropertyID.MOTION_THRESHOLD: Percentage8,
         PropertyID.OPEN_CIRCUIT_EVENT_STATISTICS: EventStatistics,
@@ -409,8 +523,8 @@ PropertyValue = Switch(
         PropertyID.PRESENCE_DETECTED: Presence,
         PropertyID.PRESENT_AMBIENT_LIGHT_LEVEL: Illuminance,
         PropertyID.PRESENT_AMBIENT_TEMPERATURE: Temperature8,
-        # PropertyID.PRESENT_CIE_1931_CHROMATICITY_COORDINATES = 0x0050
-        # PropertyID.PRESENT_CORRELATED_COLOR_TEMPERATURE = 0x0051
+        PropertyID.PRESENT_CIE_1931_CHROMATICITY_COORDINATES: ChromaticityCoordinates,
+        PropertyID.PRESENT_CORRELATED_COLOR_TEMPERATURE: CorrelatedColorTemperature,
         PropertyID.PRESENT_DEVICE_INPUT_POWER: Power,
         PropertyID.PRESENT_DEVICE_OPERATING_EFFICIENCY: Percentage8,
         PropertyID.PRESENT_DEVICE_OPERATING_TEMPERATURE: Temperature,
@@ -423,15 +537,15 @@ PropertyValue = Switch(
         PropertyID.PRESENT_OUTDOOR_AMBIENT_TEMPERATURE: Temperature8,
         PropertyID.PRESENT_OUTPUT_CURRENT: ElectricCurrent,
         PropertyID.PRESENT_OUTPUT_VOLTAGE: Voltage,
-        # PropertyID.PRESENT_PLANCKIAN_DISTANCE = 0x005E
+        PropertyID.PRESENT_PLANCKIAN_DISTANCE: ChromaticDistanceFromPlanckian,
         PropertyID.PRESENT_RELATIVE_OUTPUT_RIPPLE_VOLTAGE: Percentage8,
-        # PropertyID.RELATIVE_DEVICE_ENERGY_USE_IN_A_PERIOD_OF_DAY = 0x0060
-        # PropertyID.RELATIVE_DEVICE_RUNTIME_IN_A_GENERIC_LEVEL_RANGE = 0x0061
-        # PropertyID.RELATIVE_EXPOSURE_TIME_IN_AN_ILLUMINANCE_RANGE = 0x0062
+        PropertyID.RELATIVE_DEVICE_ENERGY_USE_IN_A_PERIOD_OF_DAY: EnergyInAPeriodOfDay,
+        PropertyID.RELATIVE_DEVICE_RUNTIME_IN_A_GENERIC_LEVEL_RANGE: RelativeRuntimeInAGenericLevelRange,
+        PropertyID.RELATIVE_EXPOSURE_TIME_IN_AN_ILLUMINANCE_RANGE: RelativeValueInAnIlluminanceRange,
         PropertyID.RELATIVE_RUNTIME_IN_A_CORRELATED_COLOR_TEMPERATURE_RANGE: LuminousEnergy,
-        # PropertyID.RELATIVE_RUNTIME_IN_A_DEVICE_OPERATING_TEMPERATURE_RANGE = 0x0064
-        # PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_CURRENT_RANGE = 0x0065
-        # PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_VOLTAGE_RANGE = 0x0066
+        PropertyID.RELATIVE_RUNTIME_IN_A_DEVICE_OPERATING_TEMPERATURE_RANGE: RelativeValueInATemperatureRange,
+        PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_CURRENT_RANGE: RelativeValueInACurrentRange,
+        PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_VOLTAGE_RANGE: RelativeValueInAVoltageRange,
         PropertyID.SHORT_CIRCUIT_EVENT_STATISTICS: EventStatistics,
         PropertyID.TIME_SINCE_MOTION_SENSED: TimeSecond16,
         PropertyID.TIME_SINCE_PRESENCE_DETECTED: TimeSecond16,
@@ -442,5 +556,6 @@ PropertyValue = Switch(
         PropertyID.TOTAL_DEVICE_RUNTIME: TimeHour24,
         PropertyID.TOTAL_LIGHT_EXPOSURE_TIME: TimeHour24,
         PropertyID.TOTAL_LUMINOUS_ENERGY: LuminousEnergy,
-    }
+    },
+    default=Array(this.length, Byte)
 )

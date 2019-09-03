@@ -1,9 +1,10 @@
 import pytest
 
 from bluetooth_mesh.messages.sensor import (
-    SensorMessage, SensorOpcode, PropertyID
+    SensorMessage, SensorOpcode, SensorSetupMessage, SensorSetupOpcode, SensorSampling, SensorSettingAccess
 )
-from bluetooth_mesh.messages.config import StatusCode
+from bluetooth_mesh.messages.properties import PropertyID
+from datetime import datetime
 
 
 valid = [
@@ -29,12 +30,12 @@ valid = [
         id="SENSOR_GET_with_optional"),
 
     pytest.param(
-        b'\x51\x0c\x00\x00\x00\x00\x0a\x0b\x0c',
+        b'\x51\x0c\x00\x00\x00\x00\x04\x0b\x0c',
         SensorOpcode.SENSOR_DESCRIPTOR_STATUS,
         [dict(sensor_property_id=PropertyID.DEVICE_DATE_OF_MANUFACTURE,
               sensor_positive_tolerance=0x00,
               sensor_negative_tolerance=0x00,
-              sensor_sampling_funcion=0x0a,
+              sensor_sampling_funcion=SensorSampling.MAXIMUM,
               sensor_measurement_period=0x0b,
               sensor_update_interval=0x0c)],
         id="SENSOR_DESCRIPTOR_STATUS"),
@@ -44,43 +45,117 @@ valid = [
         [dict(sensor_property_id=PropertyID.DEVICE_SERIAL_NUMBER)],
         id="SENSOR_DESCRIPTOR_STATUS_not_existing"),
     pytest.param(
-        b'\x51\x0c\x00\x00\x00\x00\x0a\x0b\x0c\x1f\x00\xef\xcd\xab\x1a\x1b\x1c',
+        b'\x51\x0c\x00\x00\x00\x00\x02\x0b\x0c\x1f\x00\xef\xcd\xab\x07\x1b\x1c',
         SensorOpcode.SENSOR_DESCRIPTOR_STATUS,
         [dict(sensor_property_id=PropertyID.DEVICE_DATE_OF_MANUFACTURE,
               sensor_positive_tolerance=0x00,
               sensor_negative_tolerance=0x00,
-              sensor_sampling_funcion=0x0a,
+              sensor_sampling_funcion=SensorSampling.ARITHMETIC_MEAN,
               sensor_measurement_period=0x0b,
               sensor_update_interval=0x0c),
          dict(sensor_property_id=PropertyID.INITIAL_LUMINOUS_FLUX,
               sensor_positive_tolerance=0xabc,
               sensor_negative_tolerance=0xdef,
-              sensor_sampling_funcion=0x1a,
+              sensor_sampling_funcion=SensorSampling.COUNT,
               sensor_measurement_period=0x1b,
               sensor_update_interval=0x1c)],
         id="SENSOR_DESCRIPTOR_STATUS_multiple"),
 
     pytest.param(
+        b'\x52\xe2\x0a\xc8\x00',
+        SensorOpcode.SENSOR_STATUS,
+        [dict(sensor_setting_property_id=PropertyID.PRESENT_INPUT_CURRENT,
+              length=2,
+              format=0,
+              sensor_setting_raw=dict(
+                  current=2.0))],
+        id="SENSOR_STATUS_PRESENT_INPUT_CURRENT"),
+    pytest.param(
+        b'\x52\x22\x0b\x20\x03',
+        SensorOpcode.SENSOR_STATUS,
+        [dict(sensor_setting_property_id=PropertyID.PRESENT_INPUT_VOLTAGE,
+              length=2,
+              format=0,
+              sensor_setting_raw=dict(
+                  voltage=12.5))],
+        id="SENSOR_STATUS_PRESENT_INPUT_VOLTAGE"),
+    pytest.param(
+        b'\x52\x44\x0d\xa2\x44\xff',
+        SensorOpcode.SENSOR_STATUS,
+        [dict(sensor_setting_property_id=PropertyID.TOTAL_DEVICE_ENERGY_USE,
+              length=3,
+              format=0,
+              sensor_setting_raw=dict(
+                  energy=0xff44a2))],
+        id="SENSOR_STATUS_TOTAL_DEVICE_ENERGY_USE"),
+    pytest.param(
+        b'\x52\x09\x90\x40\xa2\x44\xff\x00\x00',
+        SensorOpcode.SENSOR_STATUS,
+        [dict(sensor_setting_property_id=0x4090,
+              length=5,
+              format=1,
+              sensor_setting_raw=list(b'\xa2\x44\xff\x00\x00'))],
+        id="SENSOR_STATUS_VENDOR_PROPERTY"),
+    pytest.param(
+        b'\x52\x44\x0d\xa2\x44\xff\x22\x0b\x20\x03',
+        SensorOpcode.SENSOR_STATUS,
+        [dict(sensor_setting_property_id=PropertyID.TOTAL_DEVICE_ENERGY_USE,
+              length=3,
+              format=0,
+              sensor_setting_raw=dict(
+                  energy=0xff44a2)),
+         dict(sensor_setting_property_id=PropertyID.PRESENT_INPUT_VOLTAGE,
+              length=2,
+              format=0,
+              sensor_setting_raw=dict(
+                  voltage=12.5))
+         ],
+        id="SENSOR_STATUS_2_SHORT_PROP"),
+]
+
+valid_setup = [
+    pytest.param(
         b'\x58\x30\x00\x01\x00\x04\x00\x09\x00',
-        SensorOpcode.SENSOR_SETTINGS_STATUS,
+        SensorSetupOpcode.SENSOR_SETTINGS_STATUS,
         dict(sensor_property_id=PropertyID.LIGHT_CONTROL_LIGHTNESS_STANDBY,
-             sensor_setting_property_ids=[1, 4, 9]),
+             sensor_setting_property_ids=[PropertyID.AVERAGE_AMBIENT_TEMPERATURE_IN_A_PERIOD_OF_DAY,
+                                          PropertyID.AVERAGE_OUTPUT_CURRENT,
+                                          PropertyID.COLOR_RENDERING_INDEX_RA]),
         id="SENSOR_SETTINGS_STATUS"),
     pytest.param(
         b'\x58\x30\x00',
-        SensorOpcode.SENSOR_SETTINGS_STATUS,
+        SensorSetupOpcode.SENSOR_SETTINGS_STATUS,
         dict(sensor_property_id=PropertyID.LIGHT_CONTROL_LIGHTNESS_STANDBY,
              sensor_setting_property_ids=[]),
         id="SENSOR_SETTING_SET_empty"),
-
     pytest.param(
         b'\x59\x57\x00\x57\x00\xc8\x00',
-        SensorOpcode.SENSOR_SETTING_SET,
+        SensorSetupOpcode.SENSOR_SETTING_SET,
         dict(sensor_property_id=PropertyID.PRESENT_INPUT_CURRENT,
              sensor_setting_property_id=PropertyID.PRESENT_INPUT_CURRENT,
              sensor_setting_raw=dict(
                  current=2.0)),
         id="SENSOR_SETTING_SET"),
+    pytest.param(
+        b'\x5b\x57\x00\x57\x00\x01\xc8\x00',
+        SensorSetupOpcode.SENSOR_SETTING_STATUS,
+        dict(sensor_property_id=PropertyID.PRESENT_INPUT_CURRENT,
+             sensor_setting_property_id=PropertyID.PRESENT_INPUT_CURRENT,
+             sensor_setting_access=SensorSettingAccess.READ_ONLY,
+             sensor_setting_raw=dict(
+                 current=2.0)),
+        id="SENSOR_SETTING_STATUS"),
+    pytest.param(
+        b'\x5b\x57\x00\x02\x00\x01\xc8\x00\x39',
+        SensorSetupOpcode.SENSOR_SETTING_STATUS,
+        dict(sensor_property_id=PropertyID.PRESENT_INPUT_CURRENT,
+             sensor_setting_property_id=PropertyID.AVERAGE_INPUT_CURRENT,
+             sensor_setting_access=SensorSettingAccess.READ_ONLY,
+             sensor_setting_raw=dict(
+                 electric_current_value=2.0,
+                 sensing_duration=dict(seconds=0.5132))),
+        id="SENSOR_SETTING_STATUS"),
+
 ]
 
 valid_properties = [
@@ -222,7 +297,7 @@ valid_properties = [
         dict(sensor_property_id=PropertyID.TOTAL_DEVICE_ENERGY_USE,
              sensor_setting_property_id=PropertyID.TOTAL_DEVICE_ENERGY_USE,
              sensor_setting_raw=dict(
-                 kilowatt_hour=0xff44a2
+                 energy=0xff44a2
              )),
         id="Energy"),
     pytest.param(
@@ -266,7 +341,7 @@ valid_properties = [
              sensor_setting_raw=dict(
                  temperature=15.5,
              )),
-        id="Temperature8_above_0"),
+        id="Temperature8_positive"),
     pytest.param(
         b'\x59\x4f\x00\x4f\x00\xe1',
         dict(sensor_property_id=PropertyID.PRESENT_AMBIENT_TEMPERATURE,
@@ -274,7 +349,7 @@ valid_properties = [
              sensor_setting_raw=dict(
                  temperature=-15.5,
              )),
-        id="Temperature8_below_0"),
+        id="Temperature8_negative"),
     pytest.param(
         b'\x59\x54\x00\x54\x00\xe6\x20',
         dict(sensor_property_id=PropertyID.PRESENT_DEVICE_OPERATING_TEMPERATURE,
@@ -282,28 +357,60 @@ valid_properties = [
              sensor_setting_raw=dict(
                  temperature=84.22,
              )),
-        id="Temperature_above_0"),
+        id="Temperature_positive"),
     pytest.param(
         b'\x59\x45\x00\x45\x00\x31\x02\xdc\x6e\x71',
         dict(sensor_property_id=PropertyID.OUTDOOR_STATISTICAL_VALUES,
              sensor_setting_property_id=PropertyID.OUTDOOR_STATISTICAL_VALUES,
              sensor_setting_raw=dict(
-                 average_value=24.5,
-                 standard_deviation_value=1,
-                 minimum_value=-18,
-                 maximum_value=55,
+                 average_temperature=24.5,
+                 standard_deviation_temperature=1,
+                 minimum_temperature=-18,
+                 maximum_temperature=55,
                  sensing_duration=dict(seconds=106.719),
              )),
         id="Temperature8Statistics"),
+    pytest.param(
+        b'\x59\x14\x00\x14\x00\x92\x09\x64\x00\xf8\xf8\x20\x4e\x71',
+        dict(sensor_property_id=PropertyID.DEVICE_OPERATING_TEMPERATURE_STATISTICAL_VALUES,
+             sensor_setting_property_id=PropertyID.DEVICE_OPERATING_TEMPERATURE_STATISTICAL_VALUES,
+             sensor_setting_raw=dict(
+                 average_temperature=24.5,
+                 standard_deviation_temperature=1,
+                 minimum_temperature=-18,
+                 maximum_temperature=200,
+                 sensing_duration=dict(seconds=106.719),
+             )),
+        id="TemperatureStatistics"),
     pytest.param(
         b'\x59\x13\x00\x13\x00\xdc\x6e',
         dict(sensor_property_id=PropertyID.DEVICE_OPERATING_TEMPERATURE_RANGE_SPECIFICATION,
              sensor_setting_property_id=PropertyID.DEVICE_OPERATING_TEMPERATURE_RANGE_SPECIFICATION,
              sensor_setting_raw=dict(
-                 minimum_value=-18,
-                 maximum_value=55,
+                 minimum_temperature=-18,
+                 maximum_temperature=55,
              )),
         id="TemperatureRange"),
+    pytest.param(
+        b'\x59\x01\x00\x01\x00\x18\x6d\xa2',
+        dict(sensor_property_id=PropertyID.AVERAGE_AMBIENT_TEMPERATURE_IN_A_PERIOD_OF_DAY,
+             sensor_setting_property_id=PropertyID.AVERAGE_AMBIENT_TEMPERATURE_IN_A_PERIOD_OF_DAY,
+             sensor_setting_raw=dict(
+                 temperature=12,
+                 start_time=dict(hour=10.9),
+                 end_time=dict(hour=16.2),
+             )),
+        id="Temperature8InAPeriodOfDay"),
+    pytest.param(
+        b'\x59\x60\x00\x60\x00\xa2\x44\xff\x6d\xa2',
+        dict(sensor_property_id=PropertyID.RELATIVE_DEVICE_ENERGY_USE_IN_A_PERIOD_OF_DAY,
+             sensor_setting_property_id=PropertyID.RELATIVE_DEVICE_ENERGY_USE_IN_A_PERIOD_OF_DAY,
+             sensor_setting_raw=dict(
+                 energy_value=0xff44a2,
+                 start_time=dict(hour=10.9),
+                 end_time=dict(hour=16.2),
+             )),
+        id="EnergyInAPeriodOfDay"),
     pytest.param(
         b'\x59\x2a\x00\x2a\x00\x69\x01\x40\x00\x00\x00\xf0\xff\x54',
         dict(sensor_property_id=PropertyID.INPUT_VOLTAGE_STATISTICS,
@@ -317,11 +424,12 @@ valid_properties = [
              )),
         id="VoltageStatistics"),
     pytest.param(
-        b'\x59\x49\x00\x49\x00\x00\x00\xf0\xff',
+        b'\x59\x49\x00\x49\x00\x00\x00\x00\x06\xf0\xff',
         dict(sensor_property_id=PropertyID.OUTPUT_VOLTAGE_RANGE,
              sensor_setting_property_id=PropertyID.OUTPUT_VOLTAGE_RANGE,
              sensor_setting_raw=dict(
                  minimum_voltage_value=0,
+                 typical_voltage_value=24,
                  maximum_voltage_value=1023.75,
              )),
         id="VoltageRange"),
@@ -381,6 +489,31 @@ valid_properties = [
              )),
         id="LuminousExposure"),
     pytest.param(
+        b'\x59\x1f\x00\x1f\x00\xd0\x07',
+        dict(sensor_property_id=PropertyID.INITIAL_LUMINOUS_FLUX,
+             sensor_setting_property_id=PropertyID.INITIAL_LUMINOUS_FLUX,
+             sensor_setting_raw=dict(
+                 luminous_flux=2000,
+             )),
+        id="LuminousFlux"),
+    pytest.param(
+        b'\x59\x41\x00\x41\x00\xe8\x03\xd0\x07',
+        dict(sensor_property_id=PropertyID.LUMINOUS_FLUX_RANGE,
+             sensor_setting_property_id=PropertyID.LUMINOUS_FLUX_RANGE,
+             sensor_setting_raw=dict(
+                 minimum_luminous_flux=1000,
+                 maximum_luminous_flux=2000,
+             )),
+        id="LuminousFluxRange"),
+    pytest.param(
+        b'\x59\x3e\x00\x3e\x00\xd4\x07',
+        dict(sensor_property_id=PropertyID.LUMINOUS_EFFICACY,
+             sensor_setting_property_id=PropertyID.LUMINOUS_EFFICACY,
+             sensor_setting_raw=dict(
+                 luminous_efficacy=200.4,
+             )),
+        id="LuminousEfficacy"),
+    pytest.param(
         b'\x59\x0f\x00\x0f\x00\xff\xee\xdd\xcc\xbb\xaa',
         dict(sensor_property_id=PropertyID.DEVICE_GLOBAL_TRADE_ITEM_NUMBER,
              sensor_setting_property_id=PropertyID.DEVICE_GLOBAL_TRADE_ITEM_NUMBER,
@@ -396,7 +529,122 @@ valid_properties = [
                  chromaticity_tolerance=0.01,
              )),
         id="ChromaticityTolerance"),
-
+    pytest.param(
+        b'\x59\x5e\x00\x5e\x00\x92\x27',
+        dict(sensor_property_id=PropertyID.PRESENT_PLANCKIAN_DISTANCE,
+             sensor_setting_property_id=PropertyID.PRESENT_PLANCKIAN_DISTANCE,
+             sensor_setting_raw=dict(
+                 distance_from_planckian=0.1013,
+             )),
+        id="ChromaticDistanceFromPlanckian"),
+    pytest.param(
+        b'\x59\x51\x00\x51\x00\xb8\x0b',
+        dict(sensor_property_id=PropertyID.PRESENT_CORRELATED_COLOR_TEMPERATURE,
+             sensor_setting_property_id=PropertyID.PRESENT_CORRELATED_COLOR_TEMPERATURE,
+             sensor_setting_raw=dict(
+                 correlated_color_temperature=3000,
+             )),
+        id="CorrelatedColorTemperature"),
+    pytest.param(
+        b'\x59\x0a\x00\x0a\x00\x04\xf0',
+        dict(sensor_property_id=PropertyID.DEVICE_APPEARANCE,
+             sensor_setting_property_id=PropertyID.DEVICE_APPEARANCE,
+             sensor_setting_raw=dict(
+                 category=960,
+                 sub_category=4
+             )),
+        id="Appearance"),
+    pytest.param(
+        b'\x59\x0b\x00\x0b\x00\x2a\x00',
+        dict(sensor_property_id=PropertyID.DEVICE_COUNTRY_OF_ORIGIN,
+             sensor_setting_property_id=PropertyID.DEVICE_COUNTRY_OF_ORIGIN,
+             sensor_setting_raw=dict(
+                 country_code=42,
+             )),
+        id="CountryCode"),
+    pytest.param(
+        b'\x59\x0c\x00\x0c\x00\xde\x46\x00',
+        dict(sensor_property_id=PropertyID.DEVICE_DATE_OF_MANUFACTURE,
+             sensor_setting_property_id=PropertyID.DEVICE_DATE_OF_MANUFACTURE,
+             sensor_setting_raw=dict(
+                 date=datetime(2019, 9, 3),
+             )),
+        id="DateUTC"),
+    pytest.param(
+        b'\x59\x50\x00\x50\x00\xee\x00\xcd\xab',
+        dict(sensor_property_id=PropertyID.PRESENT_CIE_1931_CHROMATICITY_COORDINATES,
+             sensor_setting_property_id=PropertyID.PRESENT_CIE_1931_CHROMATICITY_COORDINATES,
+             sensor_setting_raw=dict(
+                 chromaticity_x_coordinate=0xee/0xffff,
+                 chromaticity_y_coordinate=0xabcd/0xffff,
+             )),
+        id="ChromaticityCoordinates"),
+    pytest.param(
+        b'\x59\x08\x00\x08\x00\x64',
+        dict(sensor_property_id=PropertyID.COLOR_RENDERING_INDEX_R9,
+             sensor_setting_property_id=PropertyID.COLOR_RENDERING_INDEX_R9,
+             sensor_setting_raw=dict(
+                 color_rendering_index=100,
+             )),
+        id="ColorRenderingIndex_positive"),
+    pytest.param(
+        b'\x59\x08\x00\x08\x00\x9c',
+        dict(sensor_property_id=PropertyID.COLOR_RENDERING_INDEX_R9,
+             sensor_setting_property_id=PropertyID.COLOR_RENDERING_INDEX_R9,
+             sensor_setting_raw=dict(
+                 color_rendering_index=-100,
+             )),
+        id="ColorRenderingIndex_negative"),
+    pytest.param(
+        b'\x59\x61\x00\x61\x00\x88\xaa\x00\xbb\xbb',
+        dict(sensor_property_id=PropertyID.RELATIVE_DEVICE_RUNTIME_IN_A_GENERIC_LEVEL_RANGE,
+             sensor_setting_property_id=PropertyID.RELATIVE_DEVICE_RUNTIME_IN_A_GENERIC_LEVEL_RANGE,
+             sensor_setting_raw=dict(
+                 relative_value=0x44,
+                 minimum_generic_level=0xaa,
+                 maximum_generic_level=0xbbbb,
+             )),
+        id="RelativeRuntimeInAGenericLevelRange"),
+    pytest.param(
+        b'\x59\x62\x00\x62\x00\x88\x1a\x27\x00\x1a\x27\x00',
+        dict(sensor_property_id=PropertyID.RELATIVE_EXPOSURE_TIME_IN_AN_ILLUMINANCE_RANGE,
+             sensor_setting_property_id=PropertyID.RELATIVE_EXPOSURE_TIME_IN_AN_ILLUMINANCE_RANGE,
+             sensor_setting_raw=dict(
+                 relative_value=0x44,
+                 minimum_illuminance=100.1,
+                 maximum_illuminance=100.1,
+             )),
+        id="RelativeValueInAnIlluminanceRange"),
+    pytest.param(
+        b'\x59\x64\x00\x64\x00\x88\xff\xff\xe6\x20',
+        dict(sensor_property_id=PropertyID.RELATIVE_RUNTIME_IN_A_DEVICE_OPERATING_TEMPERATURE_RANGE,
+             sensor_setting_property_id=PropertyID.RELATIVE_RUNTIME_IN_A_DEVICE_OPERATING_TEMPERATURE_RANGE,
+             sensor_setting_raw=dict(
+                 relative_value=0x44,
+                 minimum_temperature=-0.01,
+                 maximum_temperature=84.22,
+             )),
+        id="RelativeValueInATemperatureRange"),
+    pytest.param(
+        b'\x59\x65\x00\x65\x00\x88\x00\x00\xcd\xab',
+        dict(sensor_property_id=PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_CURRENT_RANGE,
+             sensor_setting_property_id=PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_CURRENT_RANGE,
+             sensor_setting_raw=dict(
+                 relative_value=0x44,
+                 minimum_current=0,
+                 maximum_current=439.81,
+             )),
+        id="RelativeValueInACurrentRange"),
+    pytest.param(
+        b'\x59\x66\x00\x66\x00\x88\x20\x03\x20\x03',
+        dict(sensor_property_id=PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_VOLTAGE_RANGE,
+             sensor_setting_property_id=PropertyID.RELATIVE_RUNTIME_IN_AN_INPUT_VOLTAGE_RANGE,
+             sensor_setting_raw=dict(
+                 relative_value=0x44,
+                 minimum_voltage=12.5,
+                 maximum_voltage=12.5
+             )),
+        id="RelativeValueInAVoltageRange"),
 ]
 
 
@@ -411,12 +659,23 @@ def test_build_valid(encoded, opcode, data):
         encoded
 
 
+@pytest.mark.parametrize("encoded,opcode,data", valid_setup)
+def test_parse_valid_setup(encoded, opcode, data):
+    assert SensorSetupMessage.parse(encoded).params == data
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_setup)
+def test_build_valid_setup(encoded, opcode, data):
+    assert SensorSetupMessage.build(dict(opcode=opcode, params=data)) == \
+        encoded
+
+
 @pytest.mark.parametrize("encoded,data", valid_properties)
 def test_parse_valid_property(encoded, data):
-    assert SensorMessage.parse(encoded).params == data
+    assert SensorSetupMessage.parse(encoded).params == data
 
 
 @pytest.mark.parametrize("encoded,data", valid_properties)
 def test_build_valid_property(encoded, data):
-    assert SensorMessage.build(dict(opcode=SensorOpcode.SENSOR_SETTING_SET, params=data)) == \
+    assert SensorSetupMessage.build(dict(opcode=SensorSetupOpcode.SENSOR_SETTING_SET, params=data)) == \
         encoded
