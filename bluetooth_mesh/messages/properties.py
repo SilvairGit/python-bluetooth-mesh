@@ -5,6 +5,7 @@ from construct import (
 )
 from datetime import datetime, timedelta
 from bluetooth_mesh.messages.config import EmbeddedBitStruct
+from bluetooth_mesh.messages.util import DefaultCountValidator
 from enum import IntEnum
 
 
@@ -139,25 +140,6 @@ class DateValidator(Adapter):
 
     def _encode(self, obj, content, path):
         return 0x0 if obj is None else (obj - self.EPOCH).days
-
-
-class DefaultCountValidator(Adapter):
-    def __init__(self, subcon, rounding=None, resolution=1.0):
-        super().__init__(subcon)
-        self.rounding = rounding
-        self.resolution = resolution
-
-    def _decode(self, obj, content, path):
-        if obj == (256 ** self.subcon.length) - 1:
-            return None
-        else:
-            return round(obj * self.resolution, self.rounding) if self.rounding else obj * self.resolution
-
-    def _encode(self, obj, content, path):
-        if obj is None:
-            return (256 ** self.subcon.length) - 1
-        else:
-            return round(obj / self.resolution)
 
 
 # time

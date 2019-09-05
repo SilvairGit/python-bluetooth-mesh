@@ -154,3 +154,22 @@ Opcode = Select(
         (obj_ >> 22 == 3)
     ),
 )
+
+
+class DefaultCountValidator(Adapter):
+    def __init__(self, subcon, rounding=None, resolution=1.0):
+        super().__init__(subcon)
+        self.rounding = rounding
+        self.resolution = resolution
+
+    def _decode(self, obj, content, path):
+        if obj == (256 ** self.subcon.length) - 1:
+            return None
+        else:
+            return round(obj * self.resolution, self.rounding) if self.rounding else obj * self.resolution
+
+    def _encode(self, obj, content, path):
+        if obj is None:
+            return (256 ** self.subcon.length) - 1
+        else:
+            return round(obj / self.resolution)
