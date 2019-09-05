@@ -37,10 +37,14 @@ class GenericBatteryFlagsServiceability(IntEnum):
 
 
 BatteryFlags = BitStruct(
-    "battery_serviceability_flags" / BitsInteger(2),
-    "battery_charging_flags" / BitsInteger(2),
-    "battery_indicator_flags" / BitsInteger(2),
-    "battery_presence_flags" / BitsInteger(2),
+    "battery_serviceability_flags" / EnumAdapter(BitsInteger(2),
+                                                 GenericBatteryFlagsServiceability),
+    "battery_charging_flags" / EnumAdapter(BitsInteger(2),
+                                           GenericBatteryFlagsCharging),
+    "battery_indicator_flags" / EnumAdapter(BitsInteger(2),
+                                            GenericBatteryFlagsIndicator),
+    "battery_presence_flags" / EnumAdapter(BitsInteger(2),
+                                           GenericBatteryFlagsPresence),
 )
 
 GenericBatteryGet = Struct()
