@@ -20,7 +20,7 @@ AccessMessage = Select(
     "ConfigMessage" / ConfigMessage,
     "GenericMessage" / GenericMessage,
     "SceneMessage" / SceneMessage,
-    "Message" / Message,
     "SensorMessage" / SensorMessage,
     "SensorSetupMessage" / SensorSetupMessage,
+    "Message" / Message,
 )
