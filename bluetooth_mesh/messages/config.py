@@ -470,6 +470,12 @@ SubscriptionAddress = ExprValidator(
                                                    AddressType.VIRTUAL]
 )
 
+StatusSubscriptionAddress = ExprValidator(
+    Int16ul,
+    lambda obj, ctx: get_address_type(obj) not in [AddressType.UNICAST,
+                                                   AddressType.ALL_NODES]
+)
+
 UnicastUnassignedAddress = AddressTypeValidator(
     Int16ul,
     AddressType.UNICAST,
@@ -717,7 +723,7 @@ ConfigModelSubscriptionVAOverwrite = ConfigModelSubscriptionVAAdd
 ConfigModelSubscriptionStatus = Struct(
     "status" / StatusCodeAdapter,
     "element_address" / UnicastAddress,
-    "address" / SubscriptionAddress,
+    "address" / StatusSubscriptionAddress,
     "model" / ModelId,
 )
 

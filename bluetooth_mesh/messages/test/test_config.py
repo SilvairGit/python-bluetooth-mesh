@@ -619,7 +619,32 @@ valid = [
         },
         id="ConfigModelSubscriptionAddVendorId"
     ),
-
+    pytest.param(
+        ConfigModelSubscriptionStatus,
+        bytes.fromhex('00 AA11 0000 CC33'),
+        {
+            "status": StatusCode.SUCCESS,
+            "element_address": 0x11AA,
+            "address": 0,
+            "model": {
+                "model_id": 0x33CC
+            }
+        },
+        id="ConfigModelSubscriptionStatus[UNASSIGNED]"
+    ),
+    pytest.param(
+        ConfigModelSubscriptionStatus,
+        bytes.fromhex('00 AA11 0080 CC33'),
+        {
+            "status": StatusCode.SUCCESS,
+            "element_address": 0x11AA,
+            "address": 0x8000,
+            "model": {
+                "model_id": 0x33CC
+            }
+        },
+        id="ConfigModelSubscriptionStatus[VIRTUAL]"
+    ),
     pytest.param(
         Struct(*SingleKeyIndex('key_index')),
         bytes.fromhex('bc0a'),
