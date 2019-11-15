@@ -464,8 +464,7 @@ NotVirtualLabel = ExprValidator(
 
 SubscriptionAddress = ExprValidator(
     Int16ul,
-    lambda obj, ctx: get_address_type(obj) not in [AddressType.UNASSIGNED,
-                                                   AddressType.UNICAST,
+    lambda obj, ctx: get_address_type(obj) not in [AddressType.UNICAST,
                                                    AddressType.ALL_NODES,
                                                    AddressType.VIRTUAL]
 )
