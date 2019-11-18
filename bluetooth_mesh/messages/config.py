@@ -464,6 +464,14 @@ NotVirtualLabel = ExprValidator(
 
 SubscriptionAddress = ExprValidator(
     Int16ul,
+    lambda obj, ctx: get_address_type(obj) not in [AddressType.UNASSIGNED,
+                                                   AddressType.UNICAST,
+                                                   AddressType.ALL_NODES,
+                                                   AddressType.VIRTUAL]
+)
+
+SubscriptionAddressStatus = ExprValidator(
+    Int16ul,
     lambda obj, ctx: get_address_type(obj) not in [AddressType.UNICAST,
                                                    AddressType.ALL_NODES,
                                                    AddressType.VIRTUAL]
@@ -716,7 +724,7 @@ ConfigModelSubscriptionVAOverwrite = ConfigModelSubscriptionVAAdd
 ConfigModelSubscriptionStatus = Struct(
     "status" / StatusCodeAdapter,
     "element_address" / UnicastAddress,
-    "address" / SubscriptionAddress,
+    "address" / SubscriptionAddressStatus,
     "model" / ModelId,
 )
 
