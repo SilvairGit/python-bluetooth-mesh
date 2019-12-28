@@ -24,10 +24,14 @@ def Reversed(subcon):
 
 
 class BitListAdapter(Adapter):
+    def __init__(self, subcon, reversed):
+        super().__init__(subcon)
+        self.reversed = reversed
+
     def _decode(self, obj, content, path):
         bits = set()
 
-        for bit, feature in enumerate(obj):
+        for bit, feature in enumerate(reversed(obj) if self.reversed else obj):
             if not feature:
                 continue
 
@@ -41,11 +45,11 @@ class BitListAdapter(Adapter):
         for bit in range(self.sizeof() * 8):
             bits.append(bit in obj)
 
-        return bits
+        return list(reversed(bits)) if self.reversed else bits
 
 
-def BitList(size):
-    return BitListAdapter(Bitwise(Bit[size * 8]))
+def BitList(size, *, reversed=False):
+    return BitListAdapter(Bitwise(Bit[size * 8]), reversed)
 
 
 def EnumAdapter(subcon, enum):
