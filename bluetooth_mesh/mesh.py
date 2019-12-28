@@ -25,7 +25,7 @@ import math
 import operator
 
 from uuid import UUID
-from bluetooth_mesh.crypto import aes_cmac, aes_ccm, aes_ecb, ApplicationKey
+from bluetooth_mesh.crypto import aes_cmac, aes_ccm_encrypt, aes_ecb, ApplicationKey
 
 
 class BeaconType(enum.Enum):
@@ -190,8 +190,8 @@ class AccessMessage(Segment):
         akf = isinstance(application_key, ApplicationKey)
         nonce = (self.nonce.application if akf else self.nonce.device)(seq, iv_index, szmic)
 
-        upper_transport_pdu = aes_ccm(application_key.bytes, nonce,
-                                      self.payload, b'', 8 if szmic else 4)
+        upper_transport_pdu = aes_ccm_encrypt(application_key.bytes, nonce,
+                                              self.payload, b'', 8 if szmic else 4)
 
         yield from super().segments(application_key, seq, iv_index, payload=upper_transport_pdu)
 
@@ -236,8 +236,8 @@ class NetworkMessage:
 
         for seq, pdu in enumerate(self.message.segments(application_key, transport_seq, iv_index),
                                   start=seq):
-            network_pdu = aes_ccm(encryption_key,
-                                  self.message.nonce.network(seq, iv_index),
+            network_pdu = aes_ccm_encrypt(encryption_key,
+                                          self.message.nonce.network(seq, iv_index),
                                   bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes,
                                   b'', 8 if self.message.ctl else 4)
 

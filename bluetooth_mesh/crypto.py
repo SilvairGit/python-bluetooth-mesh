@@ -33,9 +33,14 @@ def aes_cmac(k, m):
     return c.finalize()
 
 
-def aes_ccm(k, n, m, a=b'', tag_length=4):
+def aes_ccm_encrypt(k, n, m, a=b'', tag_length=4):
     c = aead.AESCCM(k, tag_length)
     return c.encrypt(n, m, a)
+
+
+def aes_ccm_decrypt(k, n, m, a=b'', tag_length=4):
+    c = aead.AESCCM(k, tag_length)
+    return c.decrypt(n, m, a)
 
 
 def aes_ecb(k, m):
