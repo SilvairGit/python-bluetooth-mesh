@@ -27,7 +27,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='bluetooth-mesh',
-    version='0.1.23',
+    version='0.1.24',
     author='Michał Lowas-Rzechonek',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
@@ -40,7 +40,7 @@ setup(
     python_requires='>=3.5.0',
     install_requires=[
         'bitstring>=3.1.5',
-        'construct>=2.9.45',
+        'construct>=2.9.45,<2.10.0',
         'cryptography>=2.3.1',
     ],
     extras_require={
