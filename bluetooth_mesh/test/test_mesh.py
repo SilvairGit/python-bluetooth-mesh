@@ -209,9 +209,9 @@ def test_application_pack_to_network_pdu(health_current_status_message: AccessMe
     assert network_pdu.hex() == '6848cba437860e5673728a627fb938535508e21a6baf57'
 
 
-def test_application_unpack_to_network_pdu(health_current_status_message: AccessMessage,
-                                           app_key: ApplicationKey,
-                                           net_key: NetworkKey):
+def test_application_unpack_from_network_pdu(health_current_status_message: AccessMessage,
+                                             app_key: ApplicationKey,
+                                             net_key: NetworkKey):
     _, _, unpacked_network_message = NetworkMessage.unpack(app_key, net_key, 0x12345678, bytes.fromhex(
         '6848cba437860e5673728a627fb938535508e21a6baf57'))
 
@@ -247,8 +247,8 @@ def test_control_pack_to_network_pdu(control_friend_offer_message, app_key, net_
     assert network_pdu.hex() == '68d4c826296d7979d7dbc0c9b4d43eebec129d20a620d01e'
 
 
-def test_control_unpack_to_network_pdu(control_friend_offer_message: ControlMessage,
-                                       net_key: NetworkKey):
+def test_control_unpack_from_network_pdu(control_friend_offer_message: ControlMessage,
+                                         net_key: NetworkKey):
     _, _, unpacked_network_message = NetworkMessage.unpack(app_key, net_key, 0x12345678, bytes.fromhex(
         '68d4c826296d7979d7dbc0c9b4d43eebec129d20a620d01e'))
 

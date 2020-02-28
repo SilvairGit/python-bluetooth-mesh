@@ -240,8 +240,25 @@ class NetworkMessage:
     def __init__(self, message: Segment):
         self.message = message
 
-    def _unpack_transport_pdu(self):
-        pass
+    @staticmethod
+    def _unpack_transport_pdu(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu):
+        seg = bitstring.BitString(transport_pdu).unpack('uint:1')
+
+        if seg == 1:
+            raise NotImplementedError
+
+        if ctl == 1:
+            _, opcode = bitstring.BitString(transport_pdu).unpack('uint:1, uint:7')
+            return NetworkMessage(ControlMessage(src, dst, ttl, opcode, transport_pdu[1:]))
+        else:
+            _, akf, aid = bitstring.BitString(transport_pdu).unpack('uint:1, uint:1, uint:6')
+            if app_key.aid != aid:
+                raise KeyNotFoundException()
+
+            transport_nonce = Nonce(src, dst, ttl, ctl)
+            nonce = (transport_nonce.application if akf else transport_nonce.device)(seq, iv_index)
+            decrypted_access = aes_ccm_decrypt(app_key.bytes, nonce, transport_pdu[1:])
+            return NetworkMessage(AccessMessage(src, dst, ttl, decrypted_access))
 
     def pack(self, application_key, network_key, seq, iv_index, *, transport_seq=None):
         nid, encryption_key, privacy_key = network_key.encryption_keys
@@ -296,23 +313,6 @@ class NetworkMessage:
                                         tag_length=net_mic_len)
 
         dst, transport_pdu = bitstring.BitString(decrypted_net).unpack('uintbe:16, bytes')
-        seg = bitstring.BitString(transport_pdu).unpack('uint:1')
-
-        if seg == 1:
-            raise NotImplementedError
-
-        if ctl == 1:
-            _, opcode = bitstring.BitString(transport_pdu).unpack('uint:1, uint:7')
-            net_message = NetworkMessage(ControlMessage(src, dst, ttl, opcode, transport_pdu[1:]))
-
-        else:
-            _, akf, aid = bitstring.BitString(transport_pdu).unpack('uint:1, uint:1, uint:6')
-            if app_key.aid != aid:
-                raise KeyNotFoundException()
-
-            transport_nonce = Nonce(src, dst, ttl, ctl)
-            nonce = (transport_nonce.application if akf else transport_nonce.device)(seq, iv_index)
-            decrypted_access = aes_ccm_decrypt(app_key.bytes, nonce, transport_pdu[1:])
-            net_message = NetworkMessage(AccessMessage(src, dst, ttl, decrypted_access))
+        net_message = cls._unpack_transport_pdu(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu)
 
         return iv_index, seq, net_message
