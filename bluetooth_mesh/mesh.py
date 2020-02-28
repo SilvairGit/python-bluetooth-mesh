@@ -25,7 +25,12 @@ import math
 import operator
 
 from uuid import UUID
-from bluetooth_mesh.crypto import aes_cmac, aes_ccm_encrypt, aes_ecb, ApplicationKey
+
+from bluetooth_mesh.crypto import aes_cmac, aes_ccm_encrypt, aes_ecb, ApplicationKey, aes_ccm_decrypt, NetworkKey
+
+
+class KeyNotFoundException(Exception):
+    pass
 
 
 class BeaconType(enum.Enum):
@@ -147,6 +152,15 @@ class Segment:
         self.payload = payload
         self.nonce = Nonce(self.src, self.dst, self.ttl, self.ctl)
 
+    def __eq__(self, other):
+        if not isinstance(other, Segment):
+            raise NotImplementedError
+        return self.src == other.src and \
+               self.dst == other.dst and \
+               self.ttl == other.ttl and \
+               self.ctl == other.ctl and \
+               self.payload == other.payload
+
     def get_opcode(self, application_key):
         raise NotImplementedError
 
@@ -223,8 +237,11 @@ class SegmentAckMessage(ControlMessage):
 
 
 class NetworkMessage:
-    def __init__(self, message):
+    def __init__(self, message: Segment):
         self.message = message
+
+    def _unpack_transport_pdu(self):
+        pass
 
     def pack(self, application_key, network_key, seq, iv_index, *, transport_seq=None):
         nid, encryption_key, privacy_key = network_key.encryption_keys
@@ -238,8 +255,8 @@ class NetworkMessage:
                                   start=seq):
             network_pdu = aes_ccm_encrypt(encryption_key,
                                           self.message.nonce.network(seq, iv_index),
-                                  bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes,
-                                  b'', 8 if self.message.ctl else 4)
+                                          bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes,
+                                          b'', 8 if self.message.ctl else 4)
 
             network_header = bitstring.pack('uint:1, uint:7, uintbe:24, uintbe:16',
                                             self.message.ctl, self.message.ttl, seq,
@@ -254,3 +271,48 @@ class NetworkMessage:
 
             yield seq, bitstring.pack('uint:1, uint:7, bits, bytes',
                                       iv_index & 1, nid, obfuscated_header, network_pdu).bytes
+
+    @classmethod
+    def unpack(cls, app_key: ApplicationKey, net_key: NetworkKey, local_iv_index: int, network_pdu: bytes):
+        nid, encryption_key, privacy_key = net_key.encryption_keys
+        last_iv, nid, obfuscated_header, encoded_data_mic = bitstring.BitString(network_pdu).unpack(
+            'uint:1, uint:7, bytes:6, bytes')
+
+        if nid != nid:
+            raise KeyNotFoundException()
+
+        iv_index = local_iv_index if (local_iv_index & 0x01) == last_iv else local_iv_index - 1
+        privacy_random = bitstring.pack('pad:40, uintbe:32, bytes:7',
+                                        iv_index, encoded_data_mic[:7]).bytes
+
+        pecb = aes_ecb(privacy_key, privacy_random)[:6]
+        deobfuscated = bytes(map(operator.xor, obfuscated_header, pecb))
+        ctl, ttl, seq, src = bitstring.BitString(deobfuscated).unpack('uint:1, uint:7, uintbe:24, uintbe:16')
+        net_mic_len = 4 if ctl == 0 else 8
+        net_nonce = Nonce(src, 0, ttl, ctl)
+        decrypted_net = aes_ccm_decrypt(encryption_key,
+                                        net_nonce.network(seq, iv_index),
+                                        encoded_data_mic,
+                                        tag_length=net_mic_len)
+
+        dst, transport_pdu = bitstring.BitString(decrypted_net).unpack('uintbe:16, bytes')
+        seg = bitstring.BitString(transport_pdu).unpack('uint:1')
+
+        if seg == 1:
+            raise NotImplementedError
+
+        if ctl == 1:
+            _, opcode = bitstring.BitString(transport_pdu).unpack('uint:1, uint:7')
+            net_message = NetworkMessage(ControlMessage(src, dst, ttl, opcode, transport_pdu[1:]))
+
+        else:
+            _, akf, aid = bitstring.BitString(transport_pdu).unpack('uint:1, uint:1, uint:6')
+            if app_key.aid != aid:
+                raise KeyNotFoundException()
+
+            transport_nonce = Nonce(src, dst, ttl, ctl)
+            nonce = (transport_nonce.application if akf else transport_nonce.device)(seq, iv_index)
+            decrypted_access = aes_ccm_decrypt(app_key.bytes, nonce, transport_pdu[1:])
+            net_message = NetworkMessage(AccessMessage(src, dst, ttl, decrypted_access))
+
+        return iv_index, seq, net_message
