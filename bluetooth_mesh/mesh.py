@@ -150,7 +150,7 @@ class Segment:
     def get_opcode(self, application_key):
         raise NotImplementedError
 
-    def segments(self, application_key, seq, iv_index, payload):
+    def segments(self, application_key, seq, iv_index, payload, szmic):
         opcode = self.get_opcode(application_key)
         seq_zero = seq & 0x1fff
         seg = len(payload) > self.MAX_TRANSPORT_PDU
@@ -162,8 +162,8 @@ class Segment:
             seg_n = len(segments) - 1
 
             for seg_o, segment in enumerate(segments):
-                yield bitstring.pack('uint:1, bits:7, pad:1, uint:13, uint:5, uint:5, bytes',
-                                     seg, opcode, seq_zero, seg_o, seg_n, segment).bytes
+                yield bitstring.pack('uint:1, bits:7, uint:1, uint:13, uint:5, uint:5, bytes',
+                                     seg, opcode, szmic, seq_zero, seg_o, seg_n, segment).bytes
         else:
             yield bitstring.pack('uint:1, bits:7, bytes',
                                  seg, opcode, payload).bytes
@@ -193,7 +193,7 @@ class AccessMessage(Segment):
         upper_transport_pdu = aes_ccm_encrypt(application_key.bytes, nonce,
                                               self.payload, b'', 8 if szmic else 4)
 
-        yield from super().segments(application_key, seq, iv_index, payload=upper_transport_pdu)
+        yield from super().segments(application_key, seq, iv_index, payload=upper_transport_pdu, szmic=szmic)
 
 
 class ControlMessage(Segment):
@@ -206,7 +206,7 @@ class ControlMessage(Segment):
         return bitstring.pack('uint:7', self.opcode)
 
     def segments(self, application_key, seq, iv_index, szmic=False):
-        yield from super().segments(application_key, seq, iv_index, payload=self.payload)
+        yield from super().segments(application_key, seq, iv_index, payload=self.payload, szmic=False)
 
 
 class SegmentAckMessage(ControlMessage):

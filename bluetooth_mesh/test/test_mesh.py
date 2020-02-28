@@ -185,6 +185,18 @@ def test_application_pdu_segmented(config_appkey_add_message, dev_key):
     assert segments[1] == bytes.fromhex('8026ac21cfdc18c52fdef772e0e17308')
 
 
+def test_application_pdu_segmented_long_mic(dev_key):
+    bogus_long_message = AccessMessage(src=0x0003, dst=0x1201, ttl=0x04, payload=bytes(range(21)))
+
+    segments = list(bogus_long_message.segments(dev_key, seq=0x3129ab,
+                                                iv_index=0x12345678))
+
+    assert len(segments) == 3
+    assert segments[0] == bytes.fromhex('80a6ac023008177a35ada597ba2ad9a4')
+    assert segments[1] == bytes.fromhex('80a6ac227785110a8afb1ae2fcd561fd')
+    assert segments[2] == bytes.fromhex('80a6ac424e48e5be9e')
+
+
 def test_application_network_pdu(health_current_status_message, app_key, net_key):
     network_message = NetworkMessage(health_current_status_message)
 
