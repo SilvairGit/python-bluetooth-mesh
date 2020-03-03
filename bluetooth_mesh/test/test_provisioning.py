@@ -9,9 +9,14 @@ from bluetooth_mesh.provisioning import (
     ProvisioningAuthenticationMethod,
     ProvisioningPDU,
     ProvisioningPDUType,
-    provisioning_confirmation,
-
+    GenericProvisioningPDUType,
+    ProvisioningBearerControl,
+    BearerOpcode,
+    LinkCloseReason,
+    ProvisioningEncryption
 )
+
+from bluetooth_mesh.mesh import GenericProvisioningPDU
 
 valid = [
     pytest.param(
@@ -165,10 +170,201 @@ def test_confirmation():
     auth = None
 
     salt, confirmation = \
-        provisioning_confirmation(
+        ProvisioningEncryption.confirmation_encrypt(
             ecdh_secret,
             invite + capabilities + start + provisioner_key + device_key,
             random,
             auth)
 
     assert confirmation == bytes.fromhex('b38a114dfdca1fe153bd2c1e0dc46ac2')
+
+
+bearer_ctrl = [
+    pytest.param(
+        bytes.fromhex('03 70cf7c9732a345b691494810d2e9cbf4'),
+        dict(
+            opcode=BearerOpcode.LINK_OPEN,
+            parameters=dict(
+                device_uuid=bytes.fromhex("70cf7c9732a345b691494810d2e9cbf4")
+            ),
+            type=GenericProvisioningPDUType.CONTROL
+        ),
+        id="link open"
+    ),
+    pytest.param(
+        bytes.fromhex('07'),
+        dict(
+            opcode=BearerOpcode.LINK_ACK,
+            parameters=dict(),
+            type=GenericProvisioningPDUType.CONTROL
+        ),
+        id="link ack"
+    ),
+    pytest.param(
+        bytes.fromhex('0b00'),
+        dict(
+            opcode=BearerOpcode.LINK_CLOSE,
+            parameters=dict(
+                reason=LinkCloseReason.SUCCESS
+            ),
+            type=GenericProvisioningPDUType.CONTROL
+        ),
+        id="link close"
+    ),
+]
+
+
+@pytest.mark.parametrize("encoded,decoded", bearer_ctrl)
+def test_build_provisioning(encoded, decoded):
+    result = ProvisioningBearerControl.build(obj=decoded)
+    assert result == encoded
+
+
+@pytest.mark.parametrize("encoded,decoded", bearer_ctrl)
+def test_parse_provisioning(encoded, decoded):
+    result = ProvisioningBearerControl.parse(data=encoded)
+    assert result == decoded
+
+
+valid = [
+    pytest.param(
+        [bytes.fromhex('03 70cf7c9732a345b691494810d2e9cbf4')],
+        dict(
+            type=BearerOpcode.LINK_OPEN,
+            parameters=dict(
+                device_uuid=bytes.fromhex("70cf7c9732a345b691494810d2e9cbf4")
+            ),
+        ),
+        id="link open"
+    ),
+    pytest.param(
+        [bytes.fromhex('00 0002 14 0010')],
+        dict(
+            type=ProvisioningPDUType.INVITE,
+            parameters=dict(
+                attention=16
+            )
+        ),
+        id="invite"
+    ),
+    pytest.param(
+        [bytes.fromhex('00 0006 64 020000000000')],
+        dict(
+            type=ProvisioningPDUType.START,
+            parameters=dict(
+                algorithm=ProvisioningAlgorithm.FIPS_P256_EC,
+                public_key=False,
+                authentication_method=ProvisioningAuthenticationMethod.NONE,
+                authentication_action=0,
+                authentication_size=0,
+            )
+        ),
+        id="start"
+    ),
+    pytest.param(
+        [bytes.fromhex('0400228b 07d0bd7f4a89a2ff6222af59a90a60ad58acfe31'),
+         bytes.fromhex('06 23356f5cec2973e0ec50783b10c7')],
+        dict(
+            type=ProvisioningPDUType.DATA,
+            parameters=dict(
+                encrypted_provisioning_data=bytes.fromhex('d0bd7f4a89a2ff6222af59a90a60ad58acfe3123356f5cec29'),
+                provisioning_data_mic=bytes.fromhex('73e0ec50783b10c7'),
+            )
+        ),
+        id="data",
+    ),
+    pytest.param(
+        [bytes.fromhex('0800411003f465e43ff23d3f1b9dc7dfc04da8758184dbc9'),
+         bytes.fromhex('0666204796eccf0d6cf5e16500cc0201d048bcbbd899eeef'),
+         bytes.fromhex('0ac424164e33c201c2b010ca6b4d43a8a155cad8ecb279')],
+        dict(
+            type=ProvisioningPDUType.PUBLIC_KEY,
+            parameters=dict(
+                key=ecdsa.VerifyingKey.from_string(
+                    bytes.fromhex('f465e43ff23d3f1b9dc7dfc04da8758184dbc966204796eccf0d6cf5e16500cc'
+                                  '0201d048bcbbd899eeefc424164e33c201c2b010ca6b4d43a8a155cad8ecb279'),
+                    curve=ecdsa.NIST256p,
+                )
+            )
+        ),
+        id="public key",
+    ),
+    pytest.param(
+        [bytes.fromhex('000011d3068b19ac31d58b124c946209b5db1021b9')],
+        dict(
+            type=ProvisioningPDUType.RANDOM,
+            parameters=dict(
+                random=bytes.fromhex('8b19ac31d58b124c946209b5db1021b9')
+            )
+        ),
+        id="random",
+    )
+]
+
+
+@pytest.mark.parametrize("encoded,decoded", valid)
+def test_build_generic(encoded, decoded):
+    result = GenericProvisioningPDU.pack(payload=decoded)
+    assert result == encoded
+
+
+@pytest.mark.parametrize("encoded,decoded", valid)
+def test_parse_generic(encoded, decoded):
+    result = GenericProvisioningPDU.unpack(segments=encoded)
+    assert result == decoded
+
+
+prov_params = [
+    pytest.param(
+        dict(
+            secret=bytes.fromhex('ab85843a2f6d883f62e5684b38e307335fe6e1945ecd19604105c6f23221eb69'),
+
+            confirmation_salt=bytes.fromhex('5faabe187337c71cc6c973369dcaa79a'),
+            random_provisioner=bytes.fromhex('8b19ac31d58b124c946209b5db1021b9'),
+            random_device=bytes.fromhex('55a2a2bca04cd32ff6f346bd0a0c1a3a'),
+
+            net_key=bytes.fromhex('efb2255e6422d330088e09bb015ed707'),
+            net_key_index=b"\x05\x67",
+            flags=b"\x00",
+            ivindex=b"\x01\x02\x03\x04",
+            address=b"\x0b\x0c",
+
+            prov_data=bytes.fromhex('efb2255e6422d330088e09bb015ed707056700010203040b0c'),
+            enc_provisioning_data=bytes.fromhex('d0bd7f4a89a2ff6222af59a90a60ad58acfe3123356f5cec29'),
+            mic=bytes.fromhex('73e0ec50783b10c7'),
+            salt=bytes.fromhex('a21c7d45f201cf9489a2fb57145015b4')
+        ),
+        id=""
+    )
+]
+
+
+@pytest.mark.parametrize("params", prov_params)
+def test_encrypt_provisioning_data(params):
+
+    prov_data = params['net_key'] + params['net_key_index'] + params['flags'] + params['ivindex'] + params['address']
+
+    assert prov_data == params['prov_data']
+
+    enc_provisioning_data = ProvisioningEncryption.data_encrypt(
+        secret=params['secret'],
+        inputs=params['confirmation_salt'] + params['random_provisioner'] + params['random_device'],
+        data=prov_data
+
+    )
+
+    assert enc_provisioning_data == params['enc_provisioning_data'] + params['mic']
+
+
+@pytest.mark.parametrize("params", prov_params)
+def test_decrypt_provisioning_data(params):
+    enc_provisioning_data = params['enc_provisioning_data'] + params['mic']
+
+    salt, provisioning_data = ProvisioningEncryption.data_decrypt(
+        secret=params['secret'],
+        inputs=params['confirmation_salt'] + params['random_provisioner'] + params['random_device'],
+        data=enc_provisioning_data
+    )
+
+    assert provisioning_data == params['prov_data']
+    assert salt == params['salt']

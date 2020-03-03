@@ -1,14 +1,19 @@
 import enum
 import struct
 
-from construct import (Adapter, BitsInteger, Bytes, BytesInteger, Const,
+from construct import (Adapter, BitsInteger, BitStruct, Bytes, Bytewise, Const,
                        ExprAdapter, GreedyBytes, Int8ub, Int16ub, Int32ub, Padding, Struct,
-                       Switch, obj_, this)
+                       Switch, this, Select)
 
 import ecdsa
-from bluetooth_mesh.messages.util import (BitList, EmbeddedBitStruct,
-                                          EnumAdapter, Reversed)
-from bluetooth_mesh.crypto import s1, k1, aes_cmac, aes_ccm_decrypt
+from bluetooth_mesh.messages.util import BitList, EmbeddedBitStruct, EnumAdapter
+from bluetooth_mesh.crypto import s1, k1, aes_cmac, aes_ccm_decrypt, aes_ccm_encrypt
+
+
+class BearerOpcode(enum.IntEnum):
+    LINK_OPEN = 0x00
+    LINK_ACK = 0x01
+    LINK_CLOSE = 0x02
 
 
 class ProvisioningPDUType(enum.IntEnum):
@@ -22,6 +27,13 @@ class ProvisioningPDUType(enum.IntEnum):
     DATA = 0x07
     COMPLETE = 0x08
     FAILED = 0x09
+
+
+class GenericProvisioningPDUType(enum.IntEnum):
+    START = 0x00
+    ACK = 0x01
+    CONTINUATION = 0x02
+    CONTROL = 0x03
 
 
 class ProvisioningAlgorithm(enum.IntEnum):
@@ -68,6 +80,12 @@ class ProvisioningErrorCode(enum.IntEnum):
     DECRYPTION_FAILED = 6
     UNEXPECTED_ERROR = 7
     CANNOT_ASSIGN_ADDRESS = 8
+
+
+class LinkCloseReason(enum.IntEnum):
+    SUCCESS = 0x00
+    TIMEOUT = 0x01
+    FAIL = 0x02
 
 
 class ProvisioningPublicKeyAdapter(Adapter):
@@ -184,24 +202,92 @@ ProvisioningPDU = Struct(
         default=GreedyBytes,
     ),
 )
+
+
+LinkOpen = Struct(
+    "device_uuid" / Bytes(16)
+)
+
+LinkClose = Struct(
+    "reason" / EnumAdapter(Int8ub, LinkCloseReason)
+)
+
+ProvisioningBearerControl = BitStruct(
+    "opcode" / EnumAdapter(BitsInteger(6), BearerOpcode),
+    "type" / Const(GenericProvisioningPDUType.CONTROL, BitsInteger(2)),
+    "parameters" / Switch(
+        this.opcode,
+        {
+            BearerOpcode.LINK_OPEN: Struct("device_uuid" / Bytewise(Bytes(16))),
+            BearerOpcode.LINK_ACK: Struct(),
+            BearerOpcode.LINK_CLOSE: Struct("reason" / EnumAdapter(BitsInteger(8), LinkCloseReason))
+        },
+        default=GreedyBytes,
+    ),
+)
+
+TransactionStartPDU = Struct(
+    *EmbeddedBitStruct(
+        "_",
+        "last_segment_number" / BitsInteger(6),
+        "type" / Const(GenericProvisioningPDUType.START, BitsInteger(2)),
+    ),
+    "total_length" / Int16ub,
+    "frame_check" / Int8ub,
+    "data" / GreedyBytes
+)
+
+TransactionContinuationPDU = Struct(
+    *EmbeddedBitStruct(
+        "_",
+        "segment_index" / BitsInteger(6),
+        "type" / Const(GenericProvisioningPDUType.CONTINUATION, BitsInteger(2)),
+    ),
+    "data" / GreedyBytes
+)
+
+TransactionPDUSegment = Select(
+    TransactionStartPDU,
+    TransactionContinuationPDU,
+    ProvisioningBearerControl
+)
+
+ProvisioningMessage = Struct(
+    "link_id" / Bytes(4),
+    "transaction_id" / Int8ub,
+    "data" / GreedyBytes
+)
 # fmt: on
 
 
-def provisioning_confirmation(secret, inputs, random, auth=None):
-    confirmation_salt = s1(inputs)
-    confirmation_key = k1(secret, confirmation_salt, b'prck')
+class ProvisioningEncryption:
 
-    return confirmation_salt, aes_cmac(confirmation_key, random + struct.pack('16s', auth or b''))
+    @staticmethod
+    def data_encrypt(secret, inputs, data):
+        """ inputs = confirmation_salt + provisioner_random + device_random """
+        provisioning_salt = s1(inputs)
+        provisioning_key = k1(secret, provisioning_salt, b'prsk')
+        provisioning_nonce = k1(secret, provisioning_salt, b"prsn")[-13:]
 
+        return aes_ccm_encrypt(provisioning_key, provisioning_nonce, data, tag_length=8)
 
-def provisioning_decrypt(secret, confirmation_salt, provisioner_random, device_random, data, mic):
-    provisioning_salt = s1(confirmation_salt + provisioner_random + device_random)
+    @staticmethod
+    def data_decrypt(secret, inputs, data, mic=b''):
+        """ inputs = confirmation_salt + provisioner_random + device_random """
+        provisioning_salt = s1(inputs)
+        provisioning_key = k1(secret, provisioning_salt, b'prsk')
+        provisioning_nonce = k1(secret, provisioning_salt, b'prsn')[-13:]
 
-    session_key = k1(secret, provisioning_salt, b'prsk')
-    session_nonce = k1(secret, provisioning_salt, b'prsn')[-13:]
+        return provisioning_salt, aes_ccm_decrypt(provisioning_key, provisioning_nonce, data + mic, tag_length=8)
 
-    return provisioning_salt, aes_ccm_decrypt(session_key, session_nonce, data + mic, tag_length=8)
+    @staticmethod
+    def provisioning_device_key(secret, provisioning_salt):
+        return k1(secret, provisioning_salt, b'prdk')
 
+    @staticmethod
+    def confirmation_encrypt(secret, inputs, random, auth=None):
+        """ inputs = invite(attention) + capabilities(without opcode) + start(msg) + provisioner_key + device_key """
+        confirmation_salt = s1(inputs)
+        confirmation_key = k1(secret, confirmation_salt, b'prck')
 
-def provisioning_device_key(secret, provisioning_salt):
-    return k1(secret, provisioning_salt, b'prdk')
+        return confirmation_salt, aes_cmac(confirmation_key, random + struct.pack('16s', auth or b''))
