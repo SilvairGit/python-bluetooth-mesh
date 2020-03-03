@@ -139,6 +139,10 @@ class Nonce:
         return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
                               0x02, szmic, seq, self.src, self.dst, iv_index).bytes
 
+    def proxy(self, seq, iv_index):
+        return bitstring.pack('uint:8, pad:8, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
+                              0x03, seq, self.src, self.dst, iv_index).bytes
+
 
 class Segment:
     MAX_TRANSPORT_PDU = 15
@@ -209,6 +213,20 @@ class AccessMessage(Segment):
 
         yield from super().segments(application_key, seq, iv_index, payload=upper_transport_pdu, szmic=szmic)
 
+    @classmethod
+    def decrypt(cls, app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu):
+        seg, akf, aid = bitstring.BitString(transport_pdu).unpack('uint:1, uint:1, uint:6')
+
+        # works only for unsegmented messages!
+        if seg:
+            raise NotImplementedError
+        if app_key.aid != aid:
+            raise KeyNotFoundException()
+        transport_nonce = Nonce(src, dst, ttl, ctl)
+        nonce = (transport_nonce.application if akf else transport_nonce.device)(seq, iv_index)
+        decrypted_access = aes_ccm_decrypt(app_key.bytes, nonce, transport_pdu[1:])
+        return AccessMessage(src, dst, ttl, decrypted_access)
+
 
 class ControlMessage(Segment):
     def __init__(self, src, dst, ttl, opcode, payload):
@@ -221,6 +239,33 @@ class ControlMessage(Segment):
 
     def segments(self, application_key, seq, iv_index, szmic=False):
         yield from super().segments(application_key, seq, iv_index, payload=self.payload, szmic=False)
+
+    @classmethod
+    def decrypt(cls, ttl, src, dst, transport_pdu):
+        seg, opcode = bitstring.BitString(transport_pdu).unpack('uint:1, uint:7')
+
+        # works only for unsegmented messages!
+        if seg:
+            raise NotImplementedError
+        return ControlMessage(src, dst, ttl, opcode, transport_pdu[1:])
+
+
+class ProxyConfigMessage(Segment):
+    def __init__(self, src, opcode, payload):
+        super().__init__(src, 0x0000, 0x00, True, payload)
+        self.payload = payload
+        self.opcode = opcode
+
+    def get_opcode(self, application_key):
+        return bitstring.pack('uint:7', self.opcode)
+
+    def segments(self, application_key, seq, iv_index, szmic=False):
+        yield from super().segments(application_key, seq, iv_index, payload=self.payload, szmic=False)
+
+    @classmethod
+    def decrypt(cls, src, transport_pdu):
+        opcode = transport_pdu[0]
+        return ProxyConfigMessage(src, opcode, transport_pdu[1:])
 
 
 class SegmentAckMessage(ControlMessage):
@@ -240,38 +285,22 @@ class NetworkMessage:
     def __init__(self, message: Segment):
         self.message = message
 
-    @staticmethod
-    def _unpack_transport_pdu(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu):
-        seg = bitstring.BitString(transport_pdu).unpack('uint:1')
-
-        if seg == 1:
-            raise NotImplementedError
-
-        if ctl == 1:
-            _, opcode = bitstring.BitString(transport_pdu).unpack('uint:1, uint:7')
-            return NetworkMessage(ControlMessage(src, dst, ttl, opcode, transport_pdu[1:]))
-        else:
-            _, akf, aid = bitstring.BitString(transport_pdu).unpack('uint:1, uint:1, uint:6')
-            if app_key.aid != aid:
-                raise KeyNotFoundException()
-
-            transport_nonce = Nonce(src, dst, ttl, ctl)
-            nonce = (transport_nonce.application if akf else transport_nonce.device)(seq, iv_index)
-            decrypted_access = aes_ccm_decrypt(app_key.bytes, nonce, transport_pdu[1:])
-            return NetworkMessage(AccessMessage(src, dst, ttl, decrypted_access))
-
     def pack(self, application_key, network_key, seq, iv_index, *, transport_seq=None):
         nid, encryption_key, privacy_key = network_key.encryption_keys
 
         # when retrying a segment, use the original sequence number during application
-        # encryption, but a newer one on network lever
+        # encryption, but a newer one on network layer
         if transport_seq is None:
             transport_seq = seq
 
         for seq, pdu in enumerate(self.message.segments(application_key, transport_seq, iv_index),
                                   start=seq):
+            if isinstance(self.message, ProxyConfigMessage):
+                nonce = self.message.nonce.proxy(seq, iv_index)
+            else:
+                nonce = self.message.nonce.network(seq, iv_index)
             network_pdu = aes_ccm_encrypt(encryption_key,
-                                          self.message.nonce.network(seq, iv_index),
+                                          nonce,
                                           bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes,
                                           b'', 8 if self.message.ctl else 4)
 
@@ -290,14 +319,14 @@ class NetworkMessage:
                                       iv_index & 1, nid, obfuscated_header, network_pdu).bytes
 
     @classmethod
-    def unpack(cls, app_key: ApplicationKey, net_key: NetworkKey, local_iv_index: int, network_pdu: bytes):
+    def unpack(cls, app_key: ApplicationKey, net_key: NetworkKey, local_iv_index: int, network_pdu: bytes,
+               is_proxy_config=False):
         nid, encryption_key, privacy_key = net_key.encryption_keys
         last_iv, nid, obfuscated_header, encoded_data_mic = bitstring.BitString(network_pdu).unpack(
             'uint:1, uint:7, bytes:6, bytes')
 
         if nid != nid:
             raise KeyNotFoundException()
-
         iv_index = local_iv_index if (local_iv_index & 0x01) == last_iv else local_iv_index - 1
         privacy_random = bitstring.pack('pad:40, uintbe:32, bytes:7',
                                         iv_index, encoded_data_mic[:7]).bytes
@@ -305,14 +334,25 @@ class NetworkMessage:
         pecb = aes_ecb(privacy_key, privacy_random)[:6]
         deobfuscated = bytes(map(operator.xor, obfuscated_header, pecb))
         ctl, ttl, seq, src = bitstring.BitString(deobfuscated).unpack('uint:1, uint:7, uintbe:24, uintbe:16')
-        net_mic_len = 4 if ctl == 0 else 8
-        net_nonce = Nonce(src, 0, ttl, ctl)
+        net_mic_len = 8 if ctl else 4
+
+        if is_proxy_config:
+            nonce = Nonce(src, 0, ttl, ctl).proxy(seq, iv_index)
+        else:
+            nonce = Nonce(src, 0, ttl, ctl).network(seq, iv_index)
         decrypted_net = aes_ccm_decrypt(encryption_key,
-                                        net_nonce.network(seq, iv_index),
+                                        nonce,
                                         encoded_data_mic,
                                         tag_length=net_mic_len)
 
         dst, transport_pdu = bitstring.BitString(decrypted_net).unpack('uintbe:16, bytes')
-        net_message = cls._unpack_transport_pdu(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu)
 
+        if is_proxy_config:
+            transport_msg = ProxyConfigMessage.decrypt(src, transport_pdu)
+        else:
+            if ctl:
+                transport_msg = ControlMessage.decrypt(ttl, src, dst, transport_pdu)
+            else:
+                transport_msg = AccessMessage.decrypt(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu)
+        net_message = NetworkMessage(transport_msg)
         return iv_index, seq, net_message

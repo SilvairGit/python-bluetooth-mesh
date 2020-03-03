@@ -26,7 +26,7 @@ from pytest import fixture, skip, raises
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 from bluetooth_mesh.mesh import (SecureNetworkBeacon, AccessMessage, NetworkMessage,
                                  SegmentAckMessage, ControlMessage, Nonce,
-                                 UnprovisionedDeviceBeacon)
+                                 UnprovisionedDeviceBeacon, ProxyConfigMessage)
 
 
 @fixture
@@ -71,6 +71,12 @@ def control_appkey_add_ack_message():
 def control_friend_offer_message():
     parameters = bytes.fromhex('320308ba072f')
     return ControlMessage(src=0x2345, dst=0x1201, ttl=0x00, opcode=0x04, payload=parameters)
+
+
+@fixture
+def proxy_use_whitelist_message():
+    parameters = bytes.fromhex('00')
+    return ProxyConfigMessage(src=0x0001, opcode=0x00, payload=parameters)
 
 
 def test_network_beacon_received(net_key):
@@ -253,3 +259,19 @@ def test_control_unpack_from_network_pdu(control_friend_offer_message: ControlMe
         '68d4c826296d7979d7dbc0c9b4d43eebec129d20a620d01e'))
 
     assert unpacked_network_message.message == control_friend_offer_message
+
+
+def test_proxy_config_pack_to_network_pdu(proxy_use_whitelist_message: ProxyConfigMessage):
+    network_message = NetworkMessage(proxy_use_whitelist_message)
+    net_key_local = NetworkKey(bytes.fromhex('d1aafb2a1a3c281cbdb0e960edfad852'))
+    (seq, network_pdu), = network_message.pack(app_key, net_key_local, seq=0x000001, iv_index=0x12345678)
+
+    assert network_pdu.hex() == '10386bd60efbbb8b8c28512e792d3711f4b526'
+
+
+def test_proxy_config_unpack_from_network_pdu(proxy_use_whitelist_message: ProxyConfigMessage):
+    net_key_local = NetworkKey(bytes.fromhex('d1aafb2a1a3c281cbdb0e960edfad852'))
+    _, _, unpacked_network_message = NetworkMessage.unpack(app_key, net_key_local, 0x12345678, bytes.fromhex(
+        '10386bd60efbbb8b8c28512e792d3711f4b526'), is_proxy_config=True)
+
+    assert unpacked_network_message.message == proxy_use_whitelist_message
