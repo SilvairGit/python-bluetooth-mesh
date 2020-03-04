@@ -272,6 +272,6 @@ def test_proxy_config_pack_to_network_pdu(proxy_use_whitelist_message: ProxyConf
 def test_proxy_config_unpack_from_network_pdu(proxy_use_whitelist_message: ProxyConfigMessage):
     net_key_local = NetworkKey(bytes.fromhex('d1aafb2a1a3c281cbdb0e960edfad852'))
     _, _, unpacked_network_message = NetworkMessage.unpack(app_key, net_key_local, 0x12345678, bytes.fromhex(
-        '10386bd60efbbb8b8c28512e792d3711f4b526'), is_proxy_config=True)
+        '10386bd60efbbb8b8c28512e792d3711f4b526'), proxy=True)
 
     assert unpacked_network_message.message == proxy_use_whitelist_message

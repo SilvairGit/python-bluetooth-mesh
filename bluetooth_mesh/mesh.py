@@ -29,10 +29,6 @@ from uuid import UUID
 from bluetooth_mesh.crypto import aes_cmac, aes_ccm_encrypt, aes_ecb, ApplicationKey, aes_ccm_decrypt, NetworkKey
 
 
-class KeyNotFoundException(Exception):
-    pass
-
-
 class BeaconType(enum.Enum):
     UNPROVISIONED_DEVICE = 0x00
     SECURE_NETWORK = 0x01
@@ -221,7 +217,7 @@ class AccessMessage(Segment):
         if seg:
             raise NotImplementedError
         if app_key.aid != aid:
-            raise KeyNotFoundException()
+            raise KeyError
         transport_nonce = Nonce(src, dst, ttl, ctl)
         nonce = (transport_nonce.application if akf else transport_nonce.device)(seq, iv_index)
         decrypted_access = aes_ccm_decrypt(app_key.bytes, nonce, transport_pdu[1:])
@@ -319,14 +315,13 @@ class NetworkMessage:
                                       iv_index & 1, nid, obfuscated_header, network_pdu).bytes
 
     @classmethod
-    def unpack(cls, app_key: ApplicationKey, net_key: NetworkKey, local_iv_index: int, network_pdu: bytes,
-               is_proxy_config=False):
+    def unpack(cls, app_key: ApplicationKey, net_key: NetworkKey, local_iv_index: int, network_pdu: bytes, proxy=False):
         nid, encryption_key, privacy_key = net_key.encryption_keys
         last_iv, nid, obfuscated_header, encoded_data_mic = bitstring.BitString(network_pdu).unpack(
             'uint:1, uint:7, bytes:6, bytes')
 
         if nid != nid:
-            raise KeyNotFoundException()
+            raise KeyError
         iv_index = local_iv_index if (local_iv_index & 0x01) == last_iv else local_iv_index - 1
         privacy_random = bitstring.pack('pad:40, uintbe:32, bytes:7',
                                         iv_index, encoded_data_mic[:7]).bytes
@@ -336,10 +331,7 @@ class NetworkMessage:
         ctl, ttl, seq, src = bitstring.BitString(deobfuscated).unpack('uint:1, uint:7, uintbe:24, uintbe:16')
         net_mic_len = 8 if ctl else 4
 
-        if is_proxy_config:
-            nonce = Nonce(src, 0, ttl, ctl).proxy(seq, iv_index)
-        else:
-            nonce = Nonce(src, 0, ttl, ctl).network(seq, iv_index)
+        nonce = (Nonce(src, 0, ttl, ctl).proxy if proxy else Nonce(src, 0, ttl, ctl).network)(seq, iv_index)
         decrypted_net = aes_ccm_decrypt(encryption_key,
                                         nonce,
                                         encoded_data_mic,
@@ -347,12 +339,11 @@ class NetworkMessage:
 
         dst, transport_pdu = bitstring.BitString(decrypted_net).unpack('uintbe:16, bytes')
 
-        if is_proxy_config:
+        if proxy:
             transport_msg = ProxyConfigMessage.decrypt(src, transport_pdu)
+        elif ctl:
+            transport_msg = ControlMessage.decrypt(ttl, src, dst, transport_pdu)
         else:
-            if ctl:
-                transport_msg = ControlMessage.decrypt(ttl, src, dst, transport_pdu)
-            else:
-                transport_msg = AccessMessage.decrypt(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu)
+            transport_msg = AccessMessage.decrypt(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu)
         net_message = NetworkMessage(transport_msg)
         return iv_index, seq, net_message
