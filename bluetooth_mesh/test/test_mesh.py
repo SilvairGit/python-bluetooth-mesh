@@ -26,7 +26,8 @@ from pytest import fixture, skip, raises
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 from bluetooth_mesh.mesh import (SecureNetworkBeacon, AccessMessage, NetworkMessage,
                                  SegmentAckMessage, ControlMessage, Nonce,
-                                 UnprovisionedDeviceBeacon)
+                                 UnprovisionedDeviceBeacon, ProxyConfigMessage)
+
 
 @fixture
 def app_key():
@@ -70,6 +71,12 @@ def control_appkey_add_ack_message():
 def control_friend_offer_message():
     parameters = bytes.fromhex('320308ba072f')
     return ControlMessage(src=0x2345, dst=0x1201, ttl=0x00, opcode=0x04, payload=parameters)
+
+
+@fixture
+def proxy_use_whitelist_message():
+    parameters = bytes.fromhex('00')
+    return ProxyConfigMessage(src=0x0001, opcode=0x00, payload=parameters)
 
 
 def test_network_beacon_received(net_key):
@@ -135,6 +142,7 @@ def test_unprovisioned_beacon_created_uri_hash():
 
     assert beacon.pack() == bytes.fromhex('25bdf2eb03cc4383a65add3e8007fb55424304030201')
 
+
 def test_unprovisioned_beacon_created_uri_hash_too_short():
     with raises(ValueError, match='expected 4 bytes'):
         beacon = UnprovisionedDeviceBeacon(uuid.UUID('25bdf2eb-03cc-4383-a65a-dd3e8007fb55'),
@@ -197,13 +205,23 @@ def test_application_pdu_segmented_long_mic(dev_key):
     assert segments[2] == bytes.fromhex('80a6ac424e48e5be9e')
 
 
-def test_application_network_pdu(health_current_status_message, app_key, net_key):
+def test_application_pack_to_network_pdu(health_current_status_message: AccessMessage,
+                                         app_key: ApplicationKey,
+                                         net_key: NetworkKey):
     network_message = NetworkMessage(health_current_status_message)
-
     (seq, network_pdu), = \
         network_message.pack(app_key, net_key, seq=0x000007, iv_index=0x12345678)
 
     assert network_pdu.hex() == '6848cba437860e5673728a627fb938535508e21a6baf57'
+
+
+def test_application_unpack_from_network_pdu(health_current_status_message: AccessMessage,
+                                             app_key: ApplicationKey,
+                                             net_key: NetworkKey):
+    _, _, unpacked_network_message = NetworkMessage.unpack(app_key, net_key, 0x12345678, bytes.fromhex(
+        '6848cba437860e5673728a627fb938535508e21a6baf57'))
+
+    assert unpacked_network_message.message == health_current_status_message
 
 
 def test_application_network_pdu_segmented_retry(health_current_status_message, app_key, net_key):
@@ -226,10 +244,34 @@ def test_control_segment_ack_message(control_appkey_add_ack_message, app_key, ne
     assert network_pdu.hex() == '68e476b5579c980d0d730f94d7f3509df987bb417eb7c05f'
 
 
-def test_control_message(control_friend_offer_message, app_key, net_key):
+def test_control_pack_to_network_pdu(control_friend_offer_message, app_key, net_key):
     network_message = NetworkMessage(control_friend_offer_message)
 
     (seq, network_pdu), = \
         network_message.pack(app_key, net_key, seq=0x014820, iv_index=0x12345678)
 
     assert network_pdu.hex() == '68d4c826296d7979d7dbc0c9b4d43eebec129d20a620d01e'
+
+
+def test_control_unpack_from_network_pdu(control_friend_offer_message: ControlMessage,
+                                         net_key: NetworkKey):
+    _, _, unpacked_network_message = NetworkMessage.unpack(app_key, net_key, 0x12345678, bytes.fromhex(
+        '68d4c826296d7979d7dbc0c9b4d43eebec129d20a620d01e'))
+
+    assert unpacked_network_message.message == control_friend_offer_message
+
+
+def test_proxy_config_pack_to_network_pdu(proxy_use_whitelist_message: ProxyConfigMessage):
+    network_message = NetworkMessage(proxy_use_whitelist_message)
+    net_key_local = NetworkKey(bytes.fromhex('d1aafb2a1a3c281cbdb0e960edfad852'))
+    (seq, network_pdu), = network_message.pack(app_key, net_key_local, seq=0x000001, iv_index=0x12345678)
+
+    assert network_pdu.hex() == '10386bd60efbbb8b8c28512e792d3711f4b526'
+
+
+def test_proxy_config_unpack_from_network_pdu(proxy_use_whitelist_message: ProxyConfigMessage):
+    net_key_local = NetworkKey(bytes.fromhex('d1aafb2a1a3c281cbdb0e960edfad852'))
+    _, _, unpacked_network_message = NetworkMessage.unpack(app_key, net_key_local, 0x12345678, bytes.fromhex(
+        '10386bd60efbbb8b8c28512e792d3711f4b526'), proxy=True)
+
+    assert unpacked_network_message.message == proxy_use_whitelist_message
