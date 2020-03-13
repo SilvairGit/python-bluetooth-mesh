@@ -368,3 +368,39 @@ def test_decrypt_provisioning_data(params):
 
     assert provisioning_data == params['prov_data']
     assert salt == params['salt']
+
+
+@pytest.mark.parametrize(
+    "confirmation_key, confirmation, random, auth", [
+        pytest.param(
+            bytes.fromhex("e31fe046c68ec339c425fc6629f0336f"),
+            bytes.fromhex("eeba521c196b52cc2e37aa40329f554e"),
+            bytes.fromhex("55a2a2bca04cd32ff6f346bd0a0c1a3a"),
+            None,
+            id=""
+        ),
+        pytest.param(
+            bytes.fromhex("e31fe046c68ec339c425fc6629f0336f"),
+            bytes.fromhex("b38a114dfdca1fe153bd2c1e0dc46ac2"),
+            bytes.fromhex("8b19ac31d58b124c946209b5db1021b9"),
+            None,
+            id=""
+        ),
+    ]
+)
+def test_confirmation_validate(confirmation_key, confirmation, random, auth):
+    assert ProvisioningEncryption.confirmation_validate(confirmation_key, confirmation, random, auth)
+
+
+@pytest.mark.parametrize(
+    "secret, provisioning_salt, device_key", [
+        pytest.param(
+            bytes.fromhex("ab85843a2f6d883f62e5684b38e307335fe6e1945ecd19604105c6f23221eb69"),
+            bytes.fromhex("a21c7d45f201cf9489a2fb57145015b4"),
+            bytes.fromhex("0520adad5e0142aa3e325087b4ec16d8"),
+            id=""
+        ),
+    ]
+)
+def test_provisioning_device_key(secret, provisioning_salt, device_key):
+    assert ProvisioningEncryption.provisioning_device_key(secret, provisioning_salt) == device_key

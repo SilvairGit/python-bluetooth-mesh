@@ -42,6 +42,8 @@ setup(
         'bitstring>=3.1.5',
         'construct>=2.9.45,<2.10.0',
         'cryptography>=2.3.1',
+        'ecdsa==0.15',
+        'crc==0.3.0'
     ],
     extras_require={
         'demo': [

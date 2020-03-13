@@ -354,7 +354,7 @@ class NetworkMessage:
         return iv_index, seq, net_message
 
 
-mesh_crc = Configuration(
+MESH_CRC = Configuration(
         width=8,
         polynomial=0x07,
         init_value=0xff,
@@ -363,42 +363,14 @@ mesh_crc = Configuration(
         reverse_output=True
     )
 
+CRC_CALCULATOR = CrcCalculator(configuration=MESH_CRC)
+
 
 class GenericProvisioningPDU:
 
     @staticmethod
     def pack(payload):
-        if isinstance(payload['type'], ProvisioningPDUType):
-            PDU = ProvisioningPDU.build(obj=payload)
-            segments = [PDU[0:20]] + ([PDU[0+i:23+i] for i in range(20, len(PDU), 23)] if len(PDU) > 20 else [])
-            total_len = len(PDU)
-            fcs = CrcCalculator(configuration=mesh_crc).calculate_checksum(PDU)
-
-            ret = list()
-            ret.append(
-                TransactionStartPDU.build(
-                    dict(
-                        last_segment_number=len(segments)-1,
-                        total_length=total_len,
-                        frame_check=fcs,
-                        data=segments.pop(0)
-                    )
-                )
-            )
-
-            for index, segment in enumerate(segments, start=1):
-                ret.append(
-                    TransactionContinuationPDU.build(
-                        dict(
-                            segment_index=index,
-                            data=segment
-                        )
-                    )
-                )
-
-            return ret
-
-        elif isinstance(payload['type'], BearerOpcode):
+        if isinstance(payload['type'], BearerOpcode):
             return [ProvisioningBearerControl.build(
                 dict(
                     opcode=payload['type'],
@@ -406,32 +378,48 @@ class GenericProvisioningPDU:
                 )
             )]
 
+        PDU = ProvisioningPDU.build(obj=payload)
+
+        segments = [PDU[0:20]]
+        if len(PDU) > 20:
+            segments += [PDU[0+i:23+i] for i in range(20, len(PDU), 23)]
+
+        total_len = len(PDU)
+        fcs = CRC_CALCULATOR.calculate_checksum(PDU)
+
+        ret = list()
+        ret.append(
+            TransactionStartPDU.build(
+                dict(
+                    last_segment_number=len(segments)-1,
+                    total_length=total_len,
+                    frame_check=fcs,
+                    data=segments.pop(0)
+                )
+            )
+        )
+
+        for index, segment in enumerate(segments, start=1):
+            ret.append(
+                TransactionContinuationPDU.build(
+                    dict(
+                        segment_index=index,
+                        data=segment
+                    )
+                )
+            )
+
+        return ret
+
     @staticmethod
     def unpack(segments):
         parsed = [TransactionPDUSegment.parse(segment) for segment in segments]
+        parsed.sort(key=lambda segment: getattr(segment, 'segment_index', 0))
 
-        PDU = b""
-        transaction = False
+        if parsed[0].get('opcode') is not None:
+            return dict(type=parsed[0]['opcode'], parameters=parsed[0]['parameters'])
 
-        for index, segment in enumerate(parsed):
-            if segment.type == GenericProvisioningPDUType.START:
-                PDU = segment.data
-                parsed.pop(index)
-                transaction = True
-                break
-
-        if transaction:
-            parsed.sort(key=lambda x: x.segment_index)
-
-            for segment in parsed:
-                PDU += segment.data
-            return ProvisioningPDU.parse(data=PDU)
-
-        else:
-            return dict(
-                    type=parsed[0]['opcode'],
-                    parameters=parsed[0]['parameters']
-                )
+        return ProvisioningPDU.parse(data=b''.join(segment.data for segment in parsed))
 
     @staticmethod
     def ack():
