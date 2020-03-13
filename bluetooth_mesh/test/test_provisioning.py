@@ -169,7 +169,7 @@ def test_confirmation():
 
     auth = None
 
-    salt, confirmation = \
+    salt, key, confirmation = \
         ProvisioningEncryption.confirmation_encrypt(
             ecdh_secret,
             invite + capabilities + start + provisioner_key + device_key,
@@ -238,11 +238,11 @@ valid = [
         id="link open"
     ),
     pytest.param(
-        [bytes.fromhex('00 0002 14 0010')],
+        [bytes.fromhex('00 0002 14 0000')],
         dict(
             type=ProvisioningPDUType.INVITE,
             parameters=dict(
-                attention=16
+                attention=00
             )
         ),
         id="invite"

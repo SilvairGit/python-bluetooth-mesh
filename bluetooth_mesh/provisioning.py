@@ -290,4 +290,8 @@ class ProvisioningEncryption:
         confirmation_salt = s1(inputs)
         confirmation_key = k1(secret, confirmation_salt, b'prck')
 
-        return confirmation_salt, aes_cmac(confirmation_key, random + struct.pack('16s', auth or b''))
+        return confirmation_salt, confirmation_key, aes_cmac(confirmation_key, random + struct.pack('16s', auth or b''))
+
+    @staticmethod
+    def confirmation_validate(confirmation_key, confirmation, random, auth=None):
+        return confirmation == aes_cmac(confirmation_key, random+struct.pack('16s', auth or b''))
