@@ -27,7 +27,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='bluetooth-mesh',
-    version='0.1.27',
+    version='0.1.28',
     author='Michał Lowas-Rzechonek',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
