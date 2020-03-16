@@ -28,6 +28,11 @@ from uuid import UUID
 
 from bluetooth_mesh.crypto import aes_cmac, aes_ccm_encrypt, aes_ecb, ApplicationKey, aes_ccm_decrypt, NetworkKey
 
+from bluetooth_mesh.provisioning import (
+    ProvisioningPDUType, BearerOpcode, ProvisioningBearerControl, ProvisioningPDU, TransactionStartPDU,
+    TransactionContinuationPDU, TransactionPDUSegment, GenericProvisioningPDUType
+)
+from crc.crc import Configuration, CrcCalculator
 
 class BeaconType(enum.Enum):
     UNPROVISIONED_DEVICE = 0x00
@@ -347,3 +352,75 @@ class NetworkMessage:
             transport_msg = AccessMessage.decrypt(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu)
         net_message = NetworkMessage(transport_msg)
         return iv_index, seq, net_message
+
+
+MESH_CRC = Configuration(
+        width=8,
+        polynomial=0x07,
+        init_value=0xff,
+        final_xor_value=0xff,
+        reverse_input=True,
+        reverse_output=True
+    )
+
+CRC_CALCULATOR = CrcCalculator(configuration=MESH_CRC)
+
+
+class GenericProvisioningPDU:
+
+    @staticmethod
+    def pack(payload):
+        if isinstance(payload['type'], BearerOpcode):
+            return [ProvisioningBearerControl.build(
+                dict(
+                    opcode=payload['type'],
+                    parameters=payload['parameters']
+                )
+            )]
+
+        PDU = ProvisioningPDU.build(obj=payload)
+
+        segments = [PDU[0:20]]
+        if len(PDU) > 20:
+            segments += [PDU[0+i:23+i] for i in range(20, len(PDU), 23)]
+
+        total_len = len(PDU)
+        fcs = CRC_CALCULATOR.calculate_checksum(PDU)
+
+        ret = list()
+        ret.append(
+            TransactionStartPDU.build(
+                dict(
+                    last_segment_number=len(segments)-1,
+                    total_length=total_len,
+                    frame_check=fcs,
+                    data=segments.pop(0)
+                )
+            )
+        )
+
+        for index, segment in enumerate(segments, start=1):
+            ret.append(
+                TransactionContinuationPDU.build(
+                    dict(
+                        segment_index=index,
+                        data=segment
+                    )
+                )
+            )
+
+        return ret
+
+    @staticmethod
+    def unpack(segments):
+        parsed = [TransactionPDUSegment.parse(segment) for segment in segments]
+        parsed.sort(key=lambda segment: getattr(segment, 'segment_index', 0))
+
+        if parsed[0].get('opcode') is not None:
+            return dict(type=parsed[0]['opcode'], parameters=parsed[0]['parameters'])
+
+        return ProvisioningPDU.parse(data=b''.join(segment.data for segment in parsed))
+
+    @staticmethod
+    def ack():
+        return b"\x01"
