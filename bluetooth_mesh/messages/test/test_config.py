@@ -267,6 +267,60 @@ valid = [
         id="Retransmit - Max steps"
     ),
     pytest.param(
+        NetworkRetransmit,
+        bytes.fromhex('07'),
+        {
+            "count": 0x07,
+            "interval": 10
+        },
+        id="NetworkRetransmit - Max count"
+    ),
+    pytest.param(
+        NetworkRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x00,
+            "interval": 320
+        },
+        id="NetworkRetransmit - Max steps"
+    ),
+    pytest.param(
+        RelayRetransmit,
+        bytes.fromhex('07'),
+        {
+            "count": 0x07,
+            "interval": 10
+        },
+        id="RelayRetransmit - Max count"
+    ),
+    pytest.param(
+        RelayRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x00,
+            "interval": 320
+        },
+        id="RelayRetransmit - Max steps"
+    ),
+    pytest.param(
+        PublishRetransmit,
+        bytes.fromhex('07'),
+        {
+            "count": 0x07,
+            "interval": 50
+        },
+        id="PublishRetransmit - Max count"
+    ),
+    pytest.param(
+        PublishRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x00,
+            "interval": 1600
+        },
+        id="PublishRetransmit - Max steps"
+    ),
+    pytest.param(
         Struct(*NetAndAppKeyIndex),
         bytes.fromhex('012345'),
         {
@@ -479,7 +533,7 @@ valid = [
             "relay": Relay.DISABLED,
             "retransmit": {
                 "count": 0x00,
-                "interval_steps": 0x00
+                "interval": 10
             }
         },
         id="ConfigRelaySet"
@@ -491,7 +545,7 @@ valid = [
             "relay": Relay.NOT_SUPPORTED,
             "retransmit": {
                 "count": 0x00,
-                "interval_steps": 0x00
+                "interval": 10
             }
         },
         id="ConfigRelayStatus"
@@ -535,7 +589,7 @@ valid = [
             },
             "retransmit": {
                 "count": 0x07,
-                "interval_steps": 0x00
+                "interval": 50
             },
             "model": {
                 "model_id": 0x0605,
@@ -560,7 +614,7 @@ valid = [
             },
             "retransmit": {
                 "count": 1,
-                "interval_steps": 2
+                "interval": 150
             },
             "model": {
                 "model_id": 0x0304
@@ -585,7 +639,7 @@ valid = [
             },
             "retransmit": {
                 "count": 1,
-                "interval_steps": 2
+                "interval": 150
             },
             "model": {
                 "model_id": 0x0506,
@@ -806,7 +860,7 @@ valid = [
         bytes.fromhex('f9'),
         {
             "count": 0x01,
-            "interval_steps": 0x1F
+            "interval": 320
         },
         id="ConfigNetworkTransmitSet"
     ),

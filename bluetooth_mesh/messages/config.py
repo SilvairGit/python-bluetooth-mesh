@@ -513,10 +513,29 @@ CompositionData = Struct(
 
 Retransmit = BitStruct(
     # sssssccc
-    "interval_steps" / BitsInteger(5),  # TODO (Relay Retransmit Interval Steps + 1) * 10ms
-                                        # TODO (Publish Retransmit Interval Steps + 1) * 50
+    "interval_steps" / BitsInteger(5),
     "count" / BitsInteger(3),
 )
+
+
+class RetransmitAdapter(Adapter):
+    def __init__(self, subcon, interval):
+        self.interval = interval
+        self.subcon = subcon
+        super(RetransmitAdapter, self).__init__(subcon)
+
+    def _decode(self, obj, context, path):
+        return dict(count=obj['count'], interval=(obj['interval_steps']+1)*self.interval)
+
+    def _encode(self, obj, context, path):
+        return dict(count=obj['count'], interval_steps=int(round((obj['interval']/self.interval)-1)))
+
+
+NetworkRetransmit = RetransmitAdapter(Retransmit, 10)  # (Network Retransmit Interval Steps + 1) * 10ms
+
+RelayRetransmit = NetworkRetransmit  # (Relay Retransmit Interval Steps + 1) * 10ms
+
+PublishRetransmit = RetransmitAdapter(Retransmit, 50)  # (Publish Retransmit Interval Steps + 1) * 50ms
 
 
 def DoubleKeyIndex(first, second):
@@ -655,7 +674,7 @@ ConfigRelayGet = Struct()
 
 ConfigRelaySet = Struct(
     "relay" / RelayAdapter,
-    "retransmit" / Retransmit,
+    "retransmit" / RelayRetransmit,
 )
 
 ConfigRelayStatus = ConfigRelaySet
@@ -677,7 +696,7 @@ ConfigModelPublicationSet = Struct(
     ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
-    "retransmit" / Retransmit,
+    "retransmit" / PublishRetransmit,
     "model" / ModelId,
 )
 
@@ -698,7 +717,7 @@ ConfigModelPublicationVASet = Struct(
     ),
     "TTL" / TTL,
     "publish_period" / PublishPeriod,
-    "retransmit" / Retransmit,
+    "retransmit" / PublishRetransmit,
     "model" / ModelId,
 )
 
@@ -927,12 +946,7 @@ ConfigLowPowerNodePollTimeoutStatus = Struct(
 
 ConfigNetworkTransmitGet = Struct()
 
-ConfigNetworkTransmitSet = Struct(
-    *EmbeddedBitStruct(
-        "_",
-        *Retransmit.subcon.subcons
-    )
-)
+ConfigNetworkTransmitSet = NetworkRetransmit
 
 ConfigNetworkTransmitStatus = ConfigNetworkTransmitSet
 
