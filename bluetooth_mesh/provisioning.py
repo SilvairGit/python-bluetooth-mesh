@@ -27,6 +27,7 @@ class ProvisioningPDUType(enum.IntEnum):
     DATA = 0x07
     COMPLETE = 0x08
     FAILED = 0x09
+    ACK = 0xFF
 
 
 class GenericProvisioningPDUType(enum.IntEnum):
