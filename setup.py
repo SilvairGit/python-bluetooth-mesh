@@ -30,23 +30,25 @@ setup(
     version='0.2.0',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
-        'Bluetooth Mesh for Python'
+        'Bluetooth mesh for Python'
     ),
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='http://github.com/silvairgit/python-bluetooth-mesh',
     packages=find_packages(exclude=('test*', )),
     python_requires='>=3.6.0',
+    setup_requires=[
+        'pytest-runner>=4.2',
+    ],
     install_requires=[
         'bitstring>=3.1.5',
-        'construct>=2.9.52,<2.10.0',
+        'construct==2.9.45',
         'cryptography>=2.3.1',
         'ecdsa==0.15',
         'crc==0.3.0'
     ],
     tests_require=[
         'pytest>4.1.0',
-        'pytest-runner>=4.2',
     ],
     entry_points=dict(
     ),
