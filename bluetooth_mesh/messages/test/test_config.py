@@ -21,8 +21,8 @@
 #
 from copy import deepcopy
 
-import construct
 import pytest
+from construct import ValidationError
 
 from bluetooth_mesh.messages.config import *
 

@@ -31,18 +31,11 @@ They are not meant to be used directly. See :py:mod:`bluetooth_mesh.application`
 
 import asyncio
 import logging
-from contextlib import suppress
 from typing import Any, List, Mapping, Tuple
 from uuid import UUID
 
 from dbus_next import DBusError
-from dbus_next.service import (
-    PropertyAccess,
-    ServiceInterface,
-    dbus_property,
-    method,
-    signal,
-)
+from dbus_next.service import PropertyAccess, ServiceInterface, dbus_property, method
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 

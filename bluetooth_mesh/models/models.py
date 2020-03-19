@@ -24,7 +24,6 @@ This module implements mesh models, both clients and servers.
 """
 import inspect
 import itertools
-from concurrent import futures
 from functools import partial
 from typing import Any, Dict, Iterable, NamedTuple, Optional, Sequence, Tuple, Type
 

@@ -41,7 +41,6 @@ from construct import (
     Select,
     Struct,
     Switch,
-    ValidationError,
     len_,
     obj_,
     this,

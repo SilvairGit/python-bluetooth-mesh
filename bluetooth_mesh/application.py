@@ -129,7 +129,8 @@ class MachineUUIDMixin(PathMixin):
 
     """
 
-    def get_namespace(self):
+    @staticmethod
+    def get_namespace():
         with open("/etc/machine-id") as machine_id:
             return UUID(machine_id.read().strip())
 
@@ -699,7 +700,7 @@ class Element(LocationMixin):
             if cls.MODEL_ID[0] is None:
                 return "<%s %04x>" % (cls.__name__, cls.MODEL_ID[1])
 
-            return "<%s %04x%04x>" % (cls.__name__, cls.MODEL_ID)
+            return "<%s %04x%04x>" % (cls.__name__, *cls.MODEL_ID)
 
         return "<%s: models=%s>" % (
             type(self).__name__,

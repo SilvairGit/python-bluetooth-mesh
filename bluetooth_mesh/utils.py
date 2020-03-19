@@ -68,9 +68,9 @@ class Signal:
     async def emit(self, *args, **kwargs):
         for callback in list(self.callbacks):
             try:
-                cb = callback(*args, **kwargs)
-                if isawaitable(cb):
-                    await cb
+                result = callback(*args, **kwargs)
+                if isawaitable(result):
+                    await result
             except Exception as ex:
                 self.logger.warning("Callback exception: %s", ex)
 
@@ -97,13 +97,13 @@ class Gatherer:
         self.buffer = asyncio.Queue()
 
         for status in self.tasks.keys():
-            status.add_done_callback(self.cb)
+            status.add_done_callback(self._done_callback)
 
         if timeout:
             loop = loop or asyncio.get_event_loop()
             loop.call_later(timeout, self.timeout)
 
-    def cb(self, item):
+    def _done_callback(self, item):
         task = self.tasks.pop(item)
         try:
             self.buffer.put_nowait((task, item.exception() or item.result()))
@@ -121,8 +121,8 @@ class Gatherer:
     async def __anext__(self):
         if not self.buffer.qsize() and not self.tasks:
             raise StopAsyncIteration
-        else:
-            return await self.buffer.get()
+
+        return await self.buffer.get()
 
 
 def construct_match(received, expected):
