@@ -1,3 +1,5 @@
+# pylint: disable=W0223
+
 from datetime import datetime, timedelta
 from enum import IntEnum
 from math import log, pow

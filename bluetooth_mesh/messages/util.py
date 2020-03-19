@@ -1,3 +1,5 @@
+# pylint: disable=W0223
+
 import math
 
 from construct import (
@@ -16,7 +18,6 @@ from construct import (
     Restreamed,
     Select,
     Struct,
-    Switch,
     ValidationError,
     obj_,
     this,

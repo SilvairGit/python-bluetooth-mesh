@@ -1,17 +1,6 @@
 from enum import IntEnum
 
-from construct import (
-    Embedded,
-    Int8ul,
-    Int16sl,
-    Int16ul,
-    Int32sl,
-    Int32ul,
-    Select,
-    Struct,
-    Switch,
-    this,
-)
+from construct import Embedded, Int8ul, Int16sl, Int32sl, Select, Struct, Switch, this
 
 from bluetooth_mesh.messages.generics import (
     OptionalSetParameters,

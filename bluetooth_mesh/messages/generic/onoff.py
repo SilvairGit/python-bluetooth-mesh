@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-from construct import Int8ul, Probe, Select, Struct, Switch, this
+from construct import Int8ul, Select, Struct, Switch, this
 
 from bluetooth_mesh.messages.generics import (
     Delay,

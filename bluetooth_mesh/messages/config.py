@@ -1,3 +1,5 @@
+# pylint: disable=W0223
+
 import enum
 
 from construct import (
@@ -427,6 +429,8 @@ class AddressType(enum.Enum):
 
 
 def get_address_type(address):
+    # pylint: disable=R0911
+
     if address == 0x0000:
         return AddressType.UNASSIGNED
 

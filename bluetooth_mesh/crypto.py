@@ -19,6 +19,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
+
+# pylint: disable=C0103
+
 from functools import lru_cache
 
 import bitstring

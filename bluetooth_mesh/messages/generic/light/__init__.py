@@ -1,12 +1,14 @@
+# pylint: disable=W0611
+
 from .ctl import (
-    LightCTLOpcode,
     LightCTLMessage,
-    LightCTLSetupOpcode,
+    LightCTLOpcode,
     LightCTLSetupMessage,
+    LightCTLSetupOpcode,
 )
 from .lightness import (
-    LightLightnessOpcode,
     LightLightnessMessage,
-    LightLightnessSetupOpcode,
+    LightLightnessOpcode,
     LightLightnessSetupMessage,
+    LightLightnessSetupOpcode,
 )

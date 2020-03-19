@@ -1,5 +1,4 @@
 from enum import IntEnum
-from math import log, pow
 
 from construct import (
     Array,

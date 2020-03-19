@@ -2,7 +2,6 @@ from enum import IntEnum
 
 from construct import (
     Array,
-    Check,
     ExprValidator,
     Int8ul,
     Int16ul,

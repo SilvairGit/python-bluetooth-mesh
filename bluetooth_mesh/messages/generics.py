@@ -1,3 +1,5 @@
+# pylint: disable=W0223
+
 from construct import Adapter, BitsInteger, BitStruct, Int8ul, Struct
 
 

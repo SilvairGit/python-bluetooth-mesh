@@ -2,13 +2,10 @@ import enum
 
 from construct import (
     Default,
-    Enum,
     ExprValidator,
     GreedyRange,
     Int8ul,
-    Int16ub,
     Int16ul,
-    Padding,
     Struct,
     Switch,
     obj_,

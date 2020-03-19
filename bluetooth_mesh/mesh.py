@@ -37,10 +37,8 @@ from bluetooth_mesh.crypto import (
 )
 from bluetooth_mesh.provisioning import (
     BearerOpcode,
-    GenericProvisioningPDUType,
     ProvisioningBearerControl,
     ProvisioningPDU,
-    ProvisioningPDUType,
     TransactionContinuationPDU,
     TransactionPDUSegment,
     TransactionStartPDU,
@@ -132,7 +130,7 @@ class SecureNetworkBeacon:
         return beacon, auth
 
     def verify(self, auth, network_key):
-        beacon, _auth = self.pack(network_key)
+        _, _auth = self.pack(network_key)
         return auth == _auth
 
 
@@ -214,7 +212,7 @@ class Segment:
     def get_opcode(self, application_key):
         raise NotImplementedError
 
-    def segments(self, application_key, seq, iv_index, payload, szmic):
+    def _segments(self, application_key, seq, payload, szmic):
         opcode = self.get_opcode(application_key)
         seq_zero = seq & 0x1FFF
         seg = len(payload) > self.MAX_TRANSPORT_PDU
@@ -271,8 +269,8 @@ class AccessMessage(Segment):
             application_key.bytes, nonce, self.payload, b"", 8 if szmic else 4
         )
 
-        yield from super().segments(
-            application_key, seq, iv_index, payload=upper_transport_pdu, szmic=szmic
+        yield from super()._segments(
+            application_key, seq, payload=upper_transport_pdu, szmic=szmic
         )
 
     @classmethod
@@ -304,8 +302,8 @@ class ControlMessage(Segment):
         return bitstring.pack("uint:7", self.opcode)
 
     def segments(self, application_key, seq, iv_index, szmic=False):
-        yield from super().segments(
-            application_key, seq, iv_index, payload=self.payload, szmic=False
+        yield from super()._segments(
+            application_key, seq, payload=self.payload, szmic=False
         )
 
     @classmethod
@@ -328,8 +326,8 @@ class ProxyConfigMessage(Segment):
         return bitstring.pack("uint:7", self.opcode)
 
     def segments(self, application_key, seq, iv_index, szmic=False):
-        yield from super().segments(
-            application_key, seq, iv_index, payload=self.payload, szmic=False
+        yield from super()._segments(
+            application_key, seq, payload=self.payload, szmic=False
         )
 
     @classmethod
@@ -414,12 +412,12 @@ class NetworkMessage:
         network_pdu: bytes,
         proxy=False,
     ):
-        nid, encryption_key, privacy_key = net_key.encryption_keys
+        # pylint: disable=R0914
+        _nid, encryption_key, privacy_key = net_key.encryption_keys
         last_iv, nid, obfuscated_header, encoded_data_mic = bitstring.BitString(
             network_pdu
         ).unpack("uint:1, uint:7, bytes:6, bytes")
-
-        if nid != nid:
+        if nid != _nid:
             raise KeyError
         iv_index = (
             local_iv_index if (local_iv_index & 0x01) == last_iv else local_iv_index - 1

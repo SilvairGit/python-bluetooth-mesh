@@ -1,3 +1,5 @@
+# pylint: disable=W0223
+
 import enum
 import struct
 
