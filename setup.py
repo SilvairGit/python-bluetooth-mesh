@@ -27,8 +27,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='bluetooth-mesh',
-    version='0.1.29',
-    author='Michał Lowas-Rzechonek',
+    version='0.2.0',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
         'Bluetooth Mesh for Python'
@@ -37,32 +36,19 @@ setup(
     long_description_content_type="text/markdown",
     url='http://github.com/silvairgit/python-bluetooth-mesh',
     packages=find_packages(exclude=('test*', )),
-    python_requires='>=3.5.0',
+    python_requires='>=3.6.0',
     install_requires=[
         'bitstring>=3.1.5',
-        'construct>=2.9.45,<2.10.0',
+        'construct>=2.9.52,<2.10.0',
         'cryptography>=2.3.1',
         'ecdsa==0.15',
         'crc==0.3.0'
     ],
-    extras_require={
-        'demo': [
-            'docopt>=0.6.2',
-            'marshmallow>=3.0.0rc3',
-            'pillow>=5.4.1',
-            'pygobject>=3.30.4',
-            'pydbus>=0.6.0',
-            'prompt-toolkit>=2.0.8',
-        ],
-    },
     tests_require=[
         'pytest>4.1.0',
         'pytest-runner>=4.2',
     ],
     entry_points=dict(
-        console_scripts=[
-            'gatt-client = bluetooth_mesh.cli.gatt_client:main [demo]',
-        ]
     ),
     classifiers=[
         'Development Status :: 3 - Alpha',
