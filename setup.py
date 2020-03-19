@@ -19,12 +19,12 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
-from setuptools import setup, find_packages
-
+from setuptools import find_packages, setup
 
 with open("README.md", "r") as f:
     long_description = f.read()
 
+# fmt: off
 setup(
     name='bluetooth-mesh',
     version='0.2.0',
@@ -62,3 +62,4 @@ setup(
         'Topic :: System :: Networking',
     ],
 )
+# fmt: on

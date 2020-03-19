@@ -20,22 +20,23 @@
 #
 #
 from pytest import fixture, skip
+
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 
 
 @fixture
 def app_key():
-    return ApplicationKey(bytes.fromhex('63964771734fbd76e3b40519d1d94a48'))
+    return ApplicationKey(bytes.fromhex("63964771734fbd76e3b40519d1d94a48"))
 
 
 @fixture
 def net_key():
-    return NetworkKey(bytes.fromhex('7dd7364cd842ad18c17c2b820c84c3d6'))
+    return NetworkKey(bytes.fromhex("7dd7364cd842ad18c17c2b820c84c3d6"))
 
 
 @fixture
 def dev_key():
-    return DeviceKey(bytes.fromhex('9d6dd0e96eb25dc19a40ed9914f8f03f'))
+    return DeviceKey(bytes.fromhex("9d6dd0e96eb25dc19a40ed9914f8f03f"))
 
 
 def test_application_key_id(app_key):
@@ -50,19 +51,17 @@ def test_encryption_keys_master(net_key):
     nid, encryption_key, privacy_key = net_key.encryption_keys
 
     assert nid == 0x68
-    assert encryption_key == bytes.fromhex('0953fa93e7caac9638f58820220a398e')
-    assert privacy_key == bytes.fromhex('8b84eedec100067d670971dd2aa700cf')
+    assert encryption_key == bytes.fromhex("0953fa93e7caac9638f58820220a398e")
+    assert privacy_key == bytes.fromhex("8b84eedec100067d670971dd2aa700cf")
 
 
 def test_network_id(net_key):
-    assert net_key.network_id == bytes.fromhex('3ecaff672f673370')
+    assert net_key.network_id == bytes.fromhex("3ecaff672f673370")
 
 
 def test_identity_key(net_key):
-    assert net_key.identity_key == bytes.fromhex('84396c435ac48560b5965385253e210c')
+    assert net_key.identity_key == bytes.fromhex("84396c435ac48560b5965385253e210c")
 
 
 def test_beacon_key(net_key):
-    assert net_key.beacon_key == bytes.fromhex('5423d967da639a99cb02231a83f7d254')
-
-
+    assert net_key.beacon_key == bytes.fromhex("5423d967da639a99cb02231a83f7d254")

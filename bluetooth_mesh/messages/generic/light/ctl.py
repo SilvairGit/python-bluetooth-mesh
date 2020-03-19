@@ -1,8 +1,14 @@
-from construct import Int8ul, Int16ul, Select, Struct, Switch, this, Embedded
 from enum import IntEnum
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
-from bluetooth_mesh.messages.generics import OptionalSetParameters, TransitionTimeAdapter, TransitionTime
+
+from construct import Embedded, Int8ul, Int16ul, Select, Struct, Switch, this
+
 from bluetooth_mesh.messages.config import StatusCodeAdapter
+from bluetooth_mesh.messages.generics import (
+    OptionalSetParameters,
+    TransitionTime,
+    TransitionTimeAdapter,
+)
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 
 class LightCTLOpcode(IntEnum):
@@ -27,6 +33,7 @@ class LightCTLSetupOpcode(IntEnum):
     CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED = 0x826C
 
 
+# fmt: off
 LightCTLGet = Struct()
 
 LightCTLDefault = Struct(
@@ -145,3 +152,4 @@ LightCTLSetupMessage = Struct(
         },
     )
 )
+# fmt: on

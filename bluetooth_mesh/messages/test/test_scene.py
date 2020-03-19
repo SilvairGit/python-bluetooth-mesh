@@ -1,9 +1,10 @@
 import pytest
 from construct import SelectError, ValidationError
 
-from bluetooth_mesh.messages.scene import SceneMessageOpcode, SceneMessage
+from bluetooth_mesh.messages.scene import SceneMessage, SceneMessageOpcode
 
 invalid = [
+    # fmt: off
     pytest.param(
         SelectError,
         SceneMessageOpcode.SCENE_RECALL,
@@ -34,9 +35,11 @@ invalid = [
         SceneMessageOpcode.SCENE_STORE_UNACKNOWLEDGED,
         dict(scene_number=0),
         id="SCENE_STORE_UNACKNOWLEDGED_with_prohibited_scene_number")
+    # fmt: on
 ]
 
 valid = [
+    # fmt: off
     pytest.param(
         b'\x82\x41',
         SceneMessageOpcode.SCENE_GET,
@@ -102,6 +105,7 @@ valid = [
         SceneMessageOpcode.SCENE_DELETE_UNACKNOWLEDGED,
         dict(scene_number=1),
         id="SCENE_DELETE_UNACKNOWLEDGED"),
+    # fmt: on
 ]
 
 
@@ -116,6 +120,6 @@ def test_build_valid(encoded, opcode, data):
 
 
 @pytest.mark.parametrize("exception,opcode,data", invalid)
-def test_build_valid(exception,opcode, data):
+def test_build_valid(exception, opcode, data):
     with pytest.raises(exception):
         SceneMessage.build(dict(opcode=opcode, params=data))

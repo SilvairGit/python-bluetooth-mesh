@@ -1,13 +1,19 @@
-import pytest
-
-from bluetooth_mesh.messages.sensor import (
-    SensorMessage, SensorOpcode, SensorSetupMessage, SensorSetupOpcode, SensorSampling, SensorSettingAccess
-)
-from bluetooth_mesh.messages.properties import PropertyID
 from datetime import datetime
 
+import pytest
+
+from bluetooth_mesh.messages.properties import PropertyID
+from bluetooth_mesh.messages.sensor import (
+    SensorMessage,
+    SensorOpcode,
+    SensorSampling,
+    SensorSettingAccess,
+    SensorSetupMessage,
+    SensorSetupOpcode,
+)
 
 valid = [
+    # fmt: off
     pytest.param(
         b'\x82\x30',
         SensorOpcode.SENSOR_DESCRIPTOR_GET,
@@ -111,9 +117,11 @@ valid = [
                   voltage=12.5))
          ],
         id="SENSOR_STATUS_2_SHORT_PROP"),
+    # fmt: on
 ]
 
 valid_setup = [
+    # fmt: off
     pytest.param(
         b'\x58\x30\x00\x01\x00\x04\x00\x09\x00',
         SensorSetupOpcode.SENSOR_SETTINGS_STATUS,
@@ -155,10 +163,11 @@ valid_setup = [
                  electric_current_value=2.0,
                  sensing_duration=dict(seconds=0.5132))),
         id="SENSOR_SETTING_STATUS"),
-
+    # fmt: on
 ]
 
 valid_properties = [
+    # fmt: off
     pytest.param(
         b'\x59\x57\x00\x57\x00\xc8\x00',
         dict(sensor_property_id=PropertyID.PRESENT_INPUT_CURRENT,
@@ -652,6 +661,7 @@ valid_properties = [
                  maximum_voltage=12.5
              )),
         id="RelativeValueInAVoltageRange"),
+    # fmt: on
 ]
 
 
@@ -662,8 +672,7 @@ def test_parse_valid(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid)
 def test_build_valid(encoded, opcode, data):
-    assert SensorMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert SensorMessage.build(dict(opcode=opcode, params=data)) == encoded
 
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_setup)
@@ -673,8 +682,7 @@ def test_parse_valid_setup(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_setup)
 def test_build_valid_setup(encoded, opcode, data):
-    assert SensorSetupMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert SensorSetupMessage.build(dict(opcode=opcode, params=data)) == encoded
 
 
 @pytest.mark.parametrize("encoded,data", valid_properties)
@@ -684,5 +692,9 @@ def test_parse_valid_property(encoded, data):
 
 @pytest.mark.parametrize("encoded,data", valid_properties)
 def test_build_valid_property(encoded, data):
-    assert SensorSetupMessage.build(dict(opcode=SensorSetupOpcode.SENSOR_SETTING_SET, params=data)) == \
-        encoded
+    assert (
+        SensorSetupMessage.build(
+            dict(opcode=SensorSetupOpcode.SENSOR_SETTING_SET, params=data)
+        )
+        == encoded
+    )

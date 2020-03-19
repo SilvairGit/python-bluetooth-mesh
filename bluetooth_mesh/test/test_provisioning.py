@@ -1,24 +1,25 @@
-import pytest
 import ecdsa
-from bluetooth_mesh.provisioning import (
-    ProvisioningAlgorithm,
-    ProvisioningPublicKeyType,
-    ProvisioningStaticOOBType,
-    ProvisioningOutputOOBAction,
-    ProvisioningInputOOBAction,
-    ProvisioningAuthenticationMethod,
-    ProvisioningPDU,
-    ProvisioningPDUType,
-    GenericProvisioningPDUType,
-    ProvisioningBearerControl,
-    BearerOpcode,
-    LinkCloseReason,
-    ProvisioningEncryption
-)
+import pytest
 
 from bluetooth_mesh.mesh import GenericProvisioningPDU
+from bluetooth_mesh.provisioning import (
+    BearerOpcode,
+    GenericProvisioningPDUType,
+    LinkCloseReason,
+    ProvisioningAlgorithm,
+    ProvisioningAuthenticationMethod,
+    ProvisioningBearerControl,
+    ProvisioningEncryption,
+    ProvisioningInputOOBAction,
+    ProvisioningOutputOOBAction,
+    ProvisioningPDU,
+    ProvisioningPDUType,
+    ProvisioningPublicKeyType,
+    ProvisioningStaticOOBType,
+)
 
 valid = [
+    # fmt: off
     pytest.param(
         bytes.fromhex('0010'),
         dict(
@@ -108,78 +109,87 @@ valid = [
         ),
         id="data",
     ),
+    # fmt: on
 ]
 
 
 @pytest.mark.parametrize("encoded,decoded", valid)
 def test_build(encoded, decoded):
     result = ProvisioningPDU.build(obj=decoded)
-    # print(result)
     assert result == encoded
 
 
 @pytest.mark.parametrize("encoded,decoded", valid)
 def test_parse(encoded, decoded):
     result = ProvisioningPDU.parse(data=encoded)
-    # print(result)
     assert result == decoded
 
 
 # NOTE: ecdsa.VerifyingKey does not overload __eq__
-@pytest.mark.parametrize("encoded,decoded", [
-    pytest.param(
-        bytes.fromhex('03'
-                      '2c31a47b5779809ef44cb5eaaf5c3e43d5f8faad4a8794cb987e9b03745c78dd'
-                      '919512183898dfbecd52e2408e43871fd021109117bd3ed4eaf8437743715d4f'),
-        dict(
-            type=ProvisioningPDUType.PUBLIC_KEY,
-            parameters=dict(
-                key=ecdsa.VerifyingKey.from_string(
-                    bytes.fromhex('2c31a47b5779809ef44cb5eaaf5c3e43d5f8faad4a8794cb987e9b03745c78dd'
-                                  '919512183898dfbecd52e2408e43871fd021109117bd3ed4eaf8437743715d4f'),
-                    curve=ecdsa.NIST256p,
+@pytest.mark.parametrize(
+    # fmt: off
+    "encoded,decoded",
+    [
+        pytest.param(
+            bytes.fromhex(
+                '03'
+                '2c31a47b5779809ef44cb5eaaf5c3e43d5f8faad4a8794cb987e9b03745c78dd'
+                '919512183898dfbecd52e2408e43871fd021109117bd3ed4eaf8437743715d4f'
+            ),
+            dict(
+                type=ProvisioningPDUType.PUBLIC_KEY,
+                parameters=dict(
+                    key=ecdsa.VerifyingKey.from_string(
+                        bytes.fromhex(
+                            '2c31a47b5779809ef44cb5eaaf5c3e43d5f8faad4a8794cb987e9b03745c78dd'
+                            '919512183898dfbecd52e2408e43871fd021109117bd3ed4eaf8437743715d4f'
+                        ),
+                        curve=ecdsa.NIST256p,
+                    )
                 )
-            )
+            ),
+            id="public key",
         ),
-        id="public key",
-    ),
-])
+    ]
+    # fmt: on
+)
 def test_parse_key(encoded, decoded):
     result = ProvisioningPDU.parse(data=encoded)
-    assert result['type'] == decoded['type']
-    assert result['parameters']['key'].to_pem() == decoded['parameters']['key'].to_pem()
+    assert result["type"] == decoded["type"]
+    assert result["parameters"]["key"].to_pem() == decoded["parameters"]["key"].to_pem()
 
 
 def test_confirmation():
-    invite = bytes.fromhex('00')
-    capabilities = bytes.fromhex('0100010000000000000000')
-    start = bytes.fromhex('0000000000')
+    invite = bytes.fromhex("00")
+    capabilities = bytes.fromhex("0100010000000000000000")
+    start = bytes.fromhex("0000000000")
     provisioner_key = bytes.fromhex(
-        '2c31a47b5779809ef44cb5eaaf5c3e43d5f8faad4a8794cb987e9b03745c78dd'
-        '919512183898dfbecd52e2408e43871fd021109117bd3ed4eaf8437743715d4f'
+        "2c31a47b5779809ef44cb5eaaf5c3e43d5f8faad4a8794cb987e9b03745c78dd"
+        "919512183898dfbecd52e2408e43871fd021109117bd3ed4eaf8437743715d4f"
     )
     device_key = bytes.fromhex(
-        'f465e43ff23d3f1b9dc7dfc04da8758184dbc966204796eccf0d6cf5e16500cc'
-        '0201d048bcbbd899eeefc424164e33c201c2b010ca6b4d43a8a155cad8ecb279'
+        "f465e43ff23d3f1b9dc7dfc04da8758184dbc966204796eccf0d6cf5e16500cc"
+        "0201d048bcbbd899eeefc424164e33c201c2b010ca6b4d43a8a155cad8ecb279"
     )
     ecdh_secret = bytes.fromhex(
-        'ab85843a2f6d883f62e5684b38e307335fe6e1945ecd19604105c6f23221eb69'
+        "ab85843a2f6d883f62e5684b38e307335fe6e1945ecd19604105c6f23221eb69"
     )
-    random = bytes.fromhex('8b19ac31d58b124c946209b5db1021b9')
+    random = bytes.fromhex("8b19ac31d58b124c946209b5db1021b9")
 
     auth = None
 
-    salt, key, confirmation = \
-        ProvisioningEncryption.confirmation_encrypt(
-            ecdh_secret,
-            invite + capabilities + start + provisioner_key + device_key,
-            random,
-            auth)
+    salt, key, confirmation = ProvisioningEncryption.confirmation_encrypt(
+        ecdh_secret,
+        invite + capabilities + start + provisioner_key + device_key,
+        random,
+        auth,
+    )
 
-    assert confirmation == bytes.fromhex('b38a114dfdca1fe153bd2c1e0dc46ac2')
+    assert confirmation == bytes.fromhex("b38a114dfdca1fe153bd2c1e0dc46ac2")
 
 
 bearer_ctrl = [
+    # fmt: off
     pytest.param(
         bytes.fromhex('03 70cf7c9732a345b691494810d2e9cbf4'),
         dict(
@@ -211,6 +221,7 @@ bearer_ctrl = [
         ),
         id="link close"
     ),
+    # fmt: on
 ]
 
 
@@ -227,6 +238,7 @@ def test_parse_provisioning(encoded, decoded):
 
 
 valid = [
+    # fmt: off
     pytest.param(
         [bytes.fromhex('03 70cf7c9732a345b691494810d2e9cbf4')],
         dict(
@@ -242,7 +254,7 @@ valid = [
         dict(
             type=ProvisioningPDUType.INVITE,
             parameters=dict(
-                attention=00
+                attention=0
             )
         ),
         id="invite"
@@ -307,6 +319,7 @@ valid = [
         ),
         id="ack",
     )
+    # fmt: on
 ]
 
 
@@ -323,6 +336,7 @@ def test_unpack_generic(encoded, decoded):
 
 
 prov_params = [
+    # fmt: off
     pytest.param(
         dict(
             secret=bytes.fromhex('ab85843a2f6d883f62e5684b38e307335fe6e1945ecd19604105c6f23221eb69'),
@@ -344,64 +358,81 @@ prov_params = [
         ),
         id=""
     )
+    # fmt: on
 ]
 
 
 @pytest.mark.parametrize("params", prov_params)
 def test_encrypt_provisioning_data(params):
 
-    prov_data = params['net_key'] + params['net_key_index'] + params['flags'] + params['ivindex'] + params['address']
-
-    assert prov_data == params['prov_data']
-
-    enc_provisioning_data = ProvisioningEncryption.data_encrypt(
-        secret=params['secret'],
-        inputs=params['confirmation_salt'] + params['random_provisioner'] + params['random_device'],
-        data=prov_data
-
+    prov_data = (
+        params["net_key"]
+        + params["net_key_index"]
+        + params["flags"]
+        + params["ivindex"]
+        + params["address"]
     )
 
-    assert enc_provisioning_data == params['enc_provisioning_data'] + params['mic']
+    assert prov_data == params["prov_data"]
+
+    enc_provisioning_data = ProvisioningEncryption.data_encrypt(
+        secret=params["secret"],
+        inputs=params["confirmation_salt"]
+        + params["random_provisioner"]
+        + params["random_device"],
+        data=prov_data,
+    )
+
+    assert enc_provisioning_data == params["enc_provisioning_data"] + params["mic"]
 
 
 @pytest.mark.parametrize("params", prov_params)
 def test_decrypt_provisioning_data(params):
-    enc_provisioning_data = params['enc_provisioning_data'] + params['mic']
+    enc_provisioning_data = params["enc_provisioning_data"] + params["mic"]
 
     salt, provisioning_data = ProvisioningEncryption.data_decrypt(
-        secret=params['secret'],
-        inputs=params['confirmation_salt'] + params['random_provisioner'] + params['random_device'],
-        data=enc_provisioning_data
+        secret=params["secret"],
+        inputs=params["confirmation_salt"]
+        + params["random_provisioner"]
+        + params["random_device"],
+        data=enc_provisioning_data,
     )
 
-    assert provisioning_data == params['prov_data']
-    assert salt == params['salt']
+    assert provisioning_data == params["prov_data"]
+    assert salt == params["salt"]
 
 
 @pytest.mark.parametrize(
-    "confirmation_key, confirmation, random, auth", [
+    # fmt :off
+    "confirmation_key, confirmation, random, auth",
+    [
         pytest.param(
             bytes.fromhex("e31fe046c68ec339c425fc6629f0336f"),
             bytes.fromhex("eeba521c196b52cc2e37aa40329f554e"),
             bytes.fromhex("55a2a2bca04cd32ff6f346bd0a0c1a3a"),
             None,
-            id=""
+            id="",
         ),
         pytest.param(
             bytes.fromhex("e31fe046c68ec339c425fc6629f0336f"),
             bytes.fromhex("b38a114dfdca1fe153bd2c1e0dc46ac2"),
             bytes.fromhex("8b19ac31d58b124c946209b5db1021b9"),
             None,
-            id=""
+            id="",
         ),
     ]
+    # fmt: on
 )
 def test_confirmation_validate(confirmation_key, confirmation, random, auth):
-    assert ProvisioningEncryption.confirmation_validate(confirmation_key, confirmation, random, auth)
+    assert ProvisioningEncryption.confirmation_validate(
+        confirmation_key, confirmation, random, auth
+    )
 
 
 @pytest.mark.parametrize(
-    "secret, provisioning_salt, device_key", [
+    # fmt: off
+    "secret, provisioning_salt, device_key",
+    [
         pytest.param(
             bytes.fromhex("ab85843a2f6d883f62e5684b38e307335fe6e1945ecd19604105c6f23221eb69"),
             bytes.fromhex("a21c7d45f201cf9489a2fb57145015b4"),
@@ -409,6 +440,10 @@ def test_confirmation_validate(confirmation_key, confirmation, random, auth):
             id=""
         ),
     ]
+    # fmt: on
 )
 def test_provisioning_device_key(secret, provisioning_salt, device_key):
-    assert ProvisioningEncryption.provisioning_device_key(secret, provisioning_salt) == device_key
+    assert (
+        ProvisioningEncryption.provisioning_device_key(secret, provisioning_salt)
+        == device_key
+    )

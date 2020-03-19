@@ -2,8 +2,8 @@ import pytest
 
 from bluetooth_mesh.messages import AccessMessage
 
-
 valid = [
+    # fmt: off
     pytest.param(
         bytes.fromhex("04003601030405"),
         {
@@ -35,6 +35,7 @@ valid = [
         },
         id="3 byte opcode"
     )
+    # fmt: on
 ]
 
 

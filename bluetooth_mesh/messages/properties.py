@@ -1,12 +1,30 @@
-from math import pow, log
-from construct import (
-    Int8sl, Int8ul, Int16ul, Int16sl, Int24ul, Int32ul, Struct, Embedded,
-    Switch, this, Adapter, Probe, Flag, Array, Byte, BytesInteger, BitsInteger, PaddedString
-)
 from datetime import datetime, timedelta
+from enum import IntEnum
+from math import log, pow
+
+from construct import (
+    Adapter,
+    Array,
+    BitsInteger,
+    Byte,
+    BytesInteger,
+    Embedded,
+    Flag,
+    Int8sl,
+    Int8ul,
+    Int16sl,
+    Int16ul,
+    Int24ul,
+    Int32ul,
+    PaddedString,
+    Probe,
+    Struct,
+    Switch,
+    this,
+)
+
 from bluetooth_mesh.messages.config import EmbeddedBitStruct
 from bluetooth_mesh.messages.util import DefaultCountValidator
-from enum import IntEnum
 
 
 class PropertyID(IntEnum):
@@ -140,6 +158,13 @@ class DateValidator(Adapter):
 
     def _encode(self, obj, content, path):
         return 0x0 if obj is None else (obj - self.EPOCH).days
+
+
+def FixedString(size):
+    return PaddedString(size, "utf8")
+
+
+# fmt: off
 
 
 # time
@@ -418,11 +443,6 @@ RelativeRuntimeInAGenericLevelRange = Struct(
     "maximum_generic_level" / DefaultCountValidator(Int16ul),
 )
 
-
-def FixedString(size):
-    return PaddedString(size, "utf8")
-
-
 PropertyValue = Switch(
     this.sensor_setting_property_id,
     {
@@ -541,3 +561,4 @@ PropertyValue = Switch(
     },
     default=Array(this.length, Byte)
 )
+# fmt: off

@@ -1,15 +1,23 @@
 import enum
 
 from construct import (
-    Int8ul, Int16ul, Int16ub,
-    Default, Enum, Struct, Switch,
-    GreedyRange, Padding, Default,
-    ExprValidator, obj_, this
+    Default,
+    Enum,
+    ExprValidator,
+    GreedyRange,
+    Int8ul,
+    Int16ub,
+    Int16ul,
+    Padding,
+    Struct,
+    Switch,
+    obj_,
+    this,
 )
 
 from .util import EnumAdapter, Opcode
 
-
+# fmt: off
 FaultTest = Struct(
     "test_id" / Int8ul,
     "company_id" / Int16ul,
@@ -54,6 +62,7 @@ HealthAttentionGet = Struct()
 HealthAttentionSet = Attention
 
 HealthAttentionStatus = Attention
+# fmt: off
 
 class HealthOpcode(enum.IntEnum):
     ATTENTION_GET = 0x8004
@@ -73,6 +82,7 @@ class HealthOpcode(enum.IntEnum):
     PERIOD_STATUS = 0x8037
 
 
+# fmt: off
 HealthMessage = Struct(
     "opcode" / EnumAdapter(Opcode, HealthOpcode),
     "params" / Switch(
@@ -96,3 +106,4 @@ HealthMessage = Struct(
         }
     )
 )
+# fmt: on

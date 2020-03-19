@@ -1,7 +1,24 @@
-from construct import Int8ul, Int16sl, Int16ul, Int32sl, Int32ul, Select, Struct, Switch, this, Embedded
 from enum import IntEnum
+
+from construct import (
+    Embedded,
+    Int8ul,
+    Int16sl,
+    Int16ul,
+    Int32sl,
+    Int32ul,
+    Select,
+    Struct,
+    Switch,
+    this,
+)
+
+from bluetooth_mesh.messages.generics import (
+    OptionalSetParameters,
+    TransitionTime,
+    TransitionTimeAdapter,
+)
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode
-from bluetooth_mesh.messages.generics import TransitionTimeAdapter, TransitionTime, OptionalSetParameters
 
 
 class GenericLevelOpcode(IntEnum):
@@ -15,6 +32,7 @@ class GenericLevelOpcode(IntEnum):
     MOVE_SET_UNACKNOWLEDGED = 0x820C
 
 
+# fmt: off
 GenericLevelGet = Struct()
 
 GenericLevelSetMinimal = Struct(
@@ -93,3 +111,4 @@ GenericLevelMessage = Struct(
         },
     )
 )
+# fmt: on

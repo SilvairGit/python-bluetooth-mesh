@@ -1,6 +1,8 @@
-from construct import Int8ul, Int24ul, Struct, Switch, this, BitStruct, BitsInteger
 from enum import IntEnum
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, DefaultCountValidator
+
+from construct import BitsInteger, BitStruct, Int8ul, Int24ul, Struct, Switch, this
+
+from bluetooth_mesh.messages.util import DefaultCountValidator, EnumAdapter, Opcode
 
 
 class GenericBatteryOpcode(IntEnum):
@@ -36,6 +38,7 @@ class GenericBatteryFlagsServiceability(IntEnum):
     BATTERY_SERVICEABILITY_UNKNOWN = 0b11
 
 
+# fmt: off
 BatteryFlags = BitStruct(
     "battery_serviceability_flags" / EnumAdapter(BitsInteger(2),
                                                  GenericBatteryFlagsServiceability),
@@ -66,3 +69,4 @@ GenericBatteryMessage = Struct(
         },
     )
 )
+# fmt: on

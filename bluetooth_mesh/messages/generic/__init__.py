@@ -11,5 +11,5 @@ GenericMessage = Select(
     LightCTLMessage,
     LightCTLSetupMessage,
     LightLightnessMessage,
-    LightLightnessSetupMessage
+    LightLightnessSetupMessage,
 )

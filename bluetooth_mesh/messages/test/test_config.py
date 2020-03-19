@@ -1,11 +1,12 @@
-import pytest
-import construct
 from copy import deepcopy
+
+import construct
+import pytest
 
 from bluetooth_mesh.messages.config import *
 
-
 valid = [
+    # fmt: off
     pytest.param(
         SecureNetworkBeaconAdapter,
         bytes.fromhex('00'),
@@ -864,9 +865,11 @@ valid = [
         },
         id="ConfigNetworkTransmitSet"
     ),
+    # fmt: on
 ]
 
 build_valid = [
+    # fmt: off
     pytest.param(
         CompositionDataElement,
         bytes.fromhex('00000101ADDEEFBEADDE'),
@@ -907,9 +910,11 @@ build_valid = [
         },
         id="CompositionDataElement (Vendor and SIG number not needed) - No vendor"
     ),
+    # fmt: on
 ]
 
 parse_invalid = [
+    # fmt: off
     pytest.param(
         ConfigHeartbeatPublicationSet,
         bytes.fromhex('010203048006070809'),
@@ -928,9 +933,11 @@ parse_invalid = [
         ValidationError,
         id="ConfigHeartbeatPublicationSet - period too long",
     ),
+    # fmt: on
 ]
 
 build_invalid = [
+    # fmt: off
     pytest.param(
         ConfigHeartbeatPublicationSet,
         {
@@ -957,6 +964,7 @@ build_invalid = [
         ValidationError,
         id="ConfigHeartbeatPublicationSet - infinite period",
     ),
+    # fmt: on
 ]
 
 
@@ -986,30 +994,24 @@ def test_build_invalid(message, decoded, exception):
 
 
 def test_build_config_message():
-    key = bytes.fromhex('deadbeef' * 4)
+    key = bytes.fromhex("deadbeef" * 4)
 
-    data = ConfigMessage.build(dict(
-        opcode=ConfigOpcode.APPKEY_ADD,
-        params=dict(
-            app_key_index=1,
-            net_key_index=1,
-            app_key=key,
+    data = ConfigMessage.build(
+        dict(
+            opcode=ConfigOpcode.APPKEY_ADD,
+            params=dict(app_key_index=1, net_key_index=1, app_key=key,),
         )
-    ))
+    )
 
-    assert data == bytes.fromhex('00011000') + key
+    assert data == bytes.fromhex("00011000") + key
 
 
 def test_parse_config_message():
-    key = bytes.fromhex('deadbeef' * 4)
+    key = bytes.fromhex("deadbeef" * 4)
 
-    msg = ConfigMessage.parse(bytes.fromhex('00011000') + key)
+    msg = ConfigMessage.parse(bytes.fromhex("00011000") + key)
 
     assert msg == dict(
         opcode=ConfigOpcode.APPKEY_ADD,
-        params=dict(
-            app_key_index=1,
-            net_key_index=1,
-            app_key=key,
-        )
+        params=dict(app_key_index=1, net_key_index=1, app_key=key,),
     )

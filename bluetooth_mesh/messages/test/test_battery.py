@@ -2,13 +2,14 @@ import pytest
 
 from bluetooth_mesh.messages.generic.battery import *
 
-
 valid = [
+    # fmt: off
     pytest.param(
         b'\x82\x23',
         GenericBatteryOpcode.BATTERY_GET,
         dict(),
-        id="BATTERY_GET"),
+        id="BATTERY_GET"
+    ),
     pytest.param(
         b'\x82\x24\x32\xb4\x00\x00\xfe\xfe\x00\x62',
         GenericBatteryOpcode.BATTERY_STATUS,
@@ -23,7 +24,8 @@ valid = [
                 battery_serviceability_flags=GenericBatteryFlagsServiceability.BATTERY_NOT_REQUIRE_SERVICE
             )
         ),
-        id="BATTERY_STATUS"),
+        id="BATTERY_STATUS"
+    ),
     pytest.param(
         b'\x82\x24\xff\xbb\xaa\x00\xff\xff\xff\xdb',
         GenericBatteryOpcode.BATTERY_STATUS,
@@ -38,7 +40,9 @@ valid = [
                 battery_serviceability_flags=GenericBatteryFlagsServiceability.BATTERY_SERVICEABILITY_UNKNOWN
             )
         ),
-        id="BATTERY_STATUS"),
+        id="BATTERY_STATUS"
+    ),
+    # fmt: on
 ]
 
 
@@ -49,5 +53,4 @@ def test_parse_valid(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid)
 def test_build_valid(encoded, opcode, data):
-    assert GenericBatteryMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert GenericBatteryMessage.build(dict(opcode=opcode, params=data)) == encoded

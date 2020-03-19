@@ -1,10 +1,10 @@
-import pytest
 import construct
+import pytest
 
 from bluetooth_mesh.messages.health import *
 
-
 valid = [
+    # fmt: off
     pytest.param(
         HealthCurrentStatus,
         bytes.fromhex("043601"),
@@ -114,18 +114,22 @@ valid = [
         },
         id='HealthAttentionSet',
     ),
+    # fmt: on
 ]
 
 parse_invalid = [
+    # fmt: off
     pytest.param(
         HealthPeriodSet,
         bytes.fromhex("10"),
         construct.core.ValidationError,
         id="HealthPeriodSet - wrong value"
     ),
+    # fmt: on
 ]
 
 build_invalid = [
+    # fmt: off
     pytest.param(
         HealthPeriodSet,
         {
@@ -133,8 +137,10 @@ build_invalid = [
         },
         construct.core.ValidationError,
         id="HealthPeriodSet - wrong value"
-    )
+    ),
+    # fmt: on
 ]
+
 
 @pytest.mark.parametrize("message,encoded,decoded", valid)
 def test_build(message, encoded, decoded):
@@ -161,17 +167,19 @@ def test_build_invalid(message, decoded, exception):
 
 
 def test_build_health_message():
-    data = HealthMessage.build(dict(opcode=HealthOpcode.ATTENTION_SET, params=dict(attention=6)))
+    data = HealthMessage.build(
+        dict(opcode=HealthOpcode.ATTENTION_SET, params=dict(attention=6))
+    )
 
-    assert data == bytes.fromhex('800506')
+    assert data == bytes.fromhex("800506")
 
 
 def test_parse_health_message():
-    msg = HealthMessage.parse(bytes.fromhex('800506'))
+    msg = HealthMessage.parse(bytes.fromhex("800506"))
 
     assert msg == dict(opcode=HealthOpcode.ATTENTION_SET, params=dict(attention=6))
 
 
 def test_parse_health_message_bad_opcode():
     with pytest.raises(construct.core.ValidationError):
-        HealthMessage.parse(bytes.fromhex('8011'))
+        HealthMessage.parse(bytes.fromhex("8011"))

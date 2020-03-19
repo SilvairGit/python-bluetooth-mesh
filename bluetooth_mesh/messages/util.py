@@ -1,8 +1,25 @@
 import math
+
 from construct import (
-    Bit, Int8ub, Int16ub, Int24ub, Struct, BitStruct, Enum,
-    Adapter, Bitwise, Restreamed, Rebuild, Select, Switch, Computed, Embedded,
-    ExprValidator, ValidationError, obj_, this
+    Adapter,
+    Bit,
+    BitStruct,
+    Bitwise,
+    Computed,
+    Embedded,
+    Enum,
+    ExprValidator,
+    Int8ub,
+    Int16ub,
+    Int24ub,
+    Rebuild,
+    Restreamed,
+    Select,
+    Struct,
+    Switch,
+    ValidationError,
+    obj_,
+    this,
 )
 
 
@@ -16,10 +33,7 @@ def reverse(sequence):
 
 def Reversed(subcon):
     return Restreamed(
-        subcon,
-        reverse, subcon.sizeof(),
-        reverse, subcon.sizeof(),
-        identity
+        subcon, reverse, subcon.sizeof(), reverse, subcon.sizeof(), identity
     )
 
 
@@ -70,6 +84,7 @@ def EnumAdapter(subcon, enum):
                 return enum(obj)
             except ValueError:
                 raise ValidationError("object failed validation: %s" % (obj,))
+
     _EnumAdapter.__construct_doc__ = _Enum(subcon, enum)
 
     return _EnumAdapter(subcon)
@@ -85,10 +100,12 @@ def LogAdapter(subcon, *, max_value=None, infinity=False):
 
             if obj == self.MAX_TYPE_VALUE:
                 if infinity:
-                    return float('inf')
+                    return float("inf")
 
             if max_value is not None and obj > max_value:
-                raise ValidationError('max value exceeded, expecting at most %d: %s' % (max_value, obj))
+                raise ValidationError(
+                    "max value exceeded, expecting at most %d: %s" % (max_value, obj)
+                )
 
             return int(math.pow(2, obj - 1))
 
@@ -96,16 +113,18 @@ def LogAdapter(subcon, *, max_value=None, infinity=False):
             if obj == 0:
                 return 0
 
-            if obj == float('inf'):
+            if obj == float("inf"):
                 if infinity:
                     return self.MAX_TYPE_VALUE
 
-                raise ValidationError('infinity is not allowed: %s' % obj)
+                raise ValidationError("infinity is not allowed: %s" % obj)
 
             value = math.log(obj, 2) + 1
 
             if max_value is not None and value > max_value:
-                raise ValidationError('max value exceeded, expecting at most %d: %s' % (max_value, obj))
+                raise ValidationError(
+                    "max value exceeded, expecting at most %d: %s" % (max_value, obj)
+                )
 
             return int(value)
 
@@ -140,10 +159,12 @@ def EmbeddedBitStruct(name, *args, reversed=False):
 
     bit_struct.__construct_doc__ = Embedded(Struct(*args))
 
-    return (name / Rebuild(bit_struct, dict), ) + \
-        tuple(i.name / Computed(this[name][i.name]) for i in args if i.name is not None)
+    return (name / Rebuild(bit_struct, dict),) + tuple(
+        i.name / Computed(this[name][i.name]) for i in args if i.name is not None
+    )
 
 
+# fmt: off
 Opcode = Select(
     ExprValidator(
         Int8ub,
@@ -158,6 +179,7 @@ Opcode = Select(
         (obj_ >> 22 == 3)
     ),
 )
+# fmt: on
 
 
 class DefaultCountValidator(Adapter):
@@ -170,7 +192,11 @@ class DefaultCountValidator(Adapter):
         if obj == (256 ** self.subcon.length) - 1:
             return None
         else:
-            return round(obj * self.resolution, self.rounding) if self.rounding else obj * self.resolution
+            return (
+                round(obj * self.resolution, self.rounding)
+                if self.rounding
+                else obj * self.resolution
+            )
 
     def _encode(self, obj, content, path):
         if obj is None:

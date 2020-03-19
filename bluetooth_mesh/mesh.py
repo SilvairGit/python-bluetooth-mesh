@@ -19,20 +19,33 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
-import bitstring
 import enum
 import math
 import operator
-
 from uuid import UUID
 
-from bluetooth_mesh.crypto import aes_cmac, aes_ccm_encrypt, aes_ecb, ApplicationKey, aes_ccm_decrypt, NetworkKey
-
-from bluetooth_mesh.provisioning import (
-    ProvisioningPDUType, BearerOpcode, ProvisioningBearerControl, ProvisioningPDU, TransactionStartPDU,
-    TransactionContinuationPDU, TransactionPDUSegment, GenericProvisioningPDUType
-)
+import bitstring
 from crc.crc import Configuration, CrcCalculator
+
+from bluetooth_mesh.crypto import (
+    ApplicationKey,
+    NetworkKey,
+    aes_ccm_decrypt,
+    aes_ccm_encrypt,
+    aes_cmac,
+    aes_ecb,
+)
+from bluetooth_mesh.provisioning import (
+    BearerOpcode,
+    GenericProvisioningPDUType,
+    ProvisioningBearerControl,
+    ProvisioningPDU,
+    ProvisioningPDUType,
+    TransactionContinuationPDU,
+    TransactionPDUSegment,
+    TransactionStartPDU,
+)
+
 
 class BeaconType(enum.Enum):
     UNPROVISIONED_DEVICE = 0x00
@@ -40,44 +53,43 @@ class BeaconType(enum.Enum):
 
 
 class UnprovisionedDeviceBeacon:
-    BEACON_FORMAT = 'bytes:16, uint:16, bytes'
+    BEACON_FORMAT = "bytes:16, uint:16, bytes"
 
     def __init__(self, uuid, oob, uri_hash=None):
         self.uuid = uuid
         self.oob = oob
 
         if uri_hash and len(uri_hash) != 4:
-            raise ValueError('Wrong size of URI hash, expected 4 bytes')
+            raise ValueError("Wrong size of URI hash, expected 4 bytes")
 
         self.uri_hash = uri_hash
 
     def __str__(self):
-        return '<%s: uuid=%s, oob=%x, uri_hash=%s>' % (
+        return "<%s: uuid=%s, oob=%x, uri_hash=%s>" % (
             type(self).__name__,
             self.uuid,
             self.oob,
-            self.uri_hash)
+            self.uri_hash,
+        )
 
     @classmethod
     def unpack(cls, beacon):
-        uuid, oob, uri_hash = \
-            bitstring.BitString(beacon).unpack(cls.BEACON_FORMAT)
+        uuid, oob, uri_hash = bitstring.BitString(beacon).unpack(cls.BEACON_FORMAT)
 
         if uri_hash and len(uri_hash) != 4:
-            raise ValueError('Wrong size of URI hash, expected 4 bytes')
+            raise ValueError("Wrong size of URI hash, expected 4 bytes")
 
         return cls(UUID(bytes=uuid), oob, uri_hash or None)
 
     def pack(self):
-        beacon = bitstring.pack(self.BEACON_FORMAT,
-                                self.uuid.bytes,
-                                self.oob,
-                                self.uri_hash or b'').bytes
+        beacon = bitstring.pack(
+            self.BEACON_FORMAT, self.uuid.bytes, self.oob, self.uri_hash or b""
+        ).bytes
         return beacon
 
 
 class SecureNetworkBeacon:
-    BEACON_FORMAT = 'pad:6, uint:1, uint:1, bytes:8, uintbe:32'
+    BEACON_FORMAT = "pad:6, uint:1, uint:1, bytes:8, uintbe:32"
     BEACON_AUTH_SIZE = 8
 
     def __init__(self, key_refresh, iv_update, iv_index, network_id):
@@ -87,32 +99,36 @@ class SecureNetworkBeacon:
         self.network_id = network_id
 
     def __str__(self):
-        return '<%s: key_refresh=%s, iv_update=%s, ivindex=%d, network_id=%s>' % (
+        return "<%s: key_refresh=%s, iv_update=%s, ivindex=%d, network_id=%s>" % (
             type(self).__name__,
             self.key_refresh,
             self.iv_update,
             self.iv_index,
-            self.network_id.hex())
+            self.network_id.hex(),
+        )
 
     @classmethod
     def unpack(cls, message):
-        beacon, auth = message[:-cls.BEACON_AUTH_SIZE], message[-cls.BEACON_AUTH_SIZE:]
+        beacon, auth = (
+            message[: -cls.BEACON_AUTH_SIZE],
+            message[-cls.BEACON_AUTH_SIZE :],
+        )
 
-        iv_update, key_refresh, network_id, iv_index = \
-            bitstring.BitString(beacon).unpack(cls.BEACON_FORMAT)
+        iv_update, key_refresh, network_id, iv_index = bitstring.BitString(
+            beacon
+        ).unpack(cls.BEACON_FORMAT)
 
-        return cls(bool(key_refresh),
-                   bool(iv_update),
-                   iv_index,
-                   network_id), auth
+        return cls(bool(key_refresh), bool(iv_update), iv_index, network_id), auth
 
     def pack(self, network_key):
-        beacon = bitstring.pack(self.BEACON_FORMAT,
-                                self.iv_update,
-                                self.key_refresh,
-                                self.network_id,
-                                self.iv_index).bytes
-        auth = aes_cmac(network_key.beacon_key, beacon)[:self.BEACON_AUTH_SIZE]
+        beacon = bitstring.pack(
+            self.BEACON_FORMAT,
+            self.iv_update,
+            self.key_refresh,
+            self.network_id,
+            self.iv_index,
+        ).bytes
+        auth = aes_cmac(network_key.beacon_key, beacon)[: self.BEACON_AUTH_SIZE]
         return beacon, auth
 
     def verify(self, auth, network_key):
@@ -129,20 +145,47 @@ class Nonce:
         self.ctl = ctl
 
     def network(self, seq, iv_index):
-        return bitstring.pack('uint:8, uint:1, uint:7, uintbe:24, uintbe:16, pad:16, uintbe:32',
-                              0x00, self.ctl, self.ttl, seq, self.src, iv_index).bytes
+        return bitstring.pack(
+            "uint:8, uint:1, uint:7, uintbe:24, uintbe:16, pad:16, uintbe:32",
+            0x00,
+            self.ctl,
+            self.ttl,
+            seq,
+            self.src,
+            iv_index,
+        ).bytes
 
     def application(self, seq, iv_index, szmic=False):
-        return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
-                              0x01, szmic, seq, self.src, self.dst, iv_index).bytes
+        return bitstring.pack(
+            "uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32",
+            0x01,
+            szmic,
+            seq,
+            self.src,
+            self.dst,
+            iv_index,
+        ).bytes
 
     def device(self, seq, iv_index, szmic=False):
-        return bitstring.pack('uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
-                              0x02, szmic, seq, self.src, self.dst, iv_index).bytes
+        return bitstring.pack(
+            "uint:8, uint:1, pad:7, uintbe:24, uintbe:16, uintbe:16, uintbe:32",
+            0x02,
+            szmic,
+            seq,
+            self.src,
+            self.dst,
+            iv_index,
+        ).bytes
 
     def proxy(self, seq, iv_index):
-        return bitstring.pack('uint:8, pad:8, uintbe:24, uintbe:16, uintbe:16, uintbe:32',
-                              0x03, seq, self.src, self.dst, iv_index).bytes
+        return bitstring.pack(
+            "uint:8, pad:8, uintbe:24, uintbe:16, uintbe:16, uintbe:32",
+            0x03,
+            seq,
+            self.src,
+            self.dst,
+            iv_index,
+        ).bytes
 
 
 class Segment:
@@ -160,32 +203,43 @@ class Segment:
     def __eq__(self, other):
         if not isinstance(other, Segment):
             raise NotImplementedError
-        return self.src == other.src and \
-               self.dst == other.dst and \
-               self.ttl == other.ttl and \
-               self.ctl == other.ctl and \
-               self.payload == other.payload
+        return (
+            self.src == other.src
+            and self.dst == other.dst
+            and self.ttl == other.ttl
+            and self.ctl == other.ctl
+            and self.payload == other.payload
+        )
 
     def get_opcode(self, application_key):
         raise NotImplementedError
 
     def segments(self, application_key, seq, iv_index, payload, szmic):
         opcode = self.get_opcode(application_key)
-        seq_zero = seq & 0x1fff
+        seq_zero = seq & 0x1FFF
         seg = len(payload) > self.MAX_TRANSPORT_PDU
 
         if seg:
-            segments = list(payload[i:i + self.SEGMENT_SIZE]
-                            for i in range(0, len(payload), self.SEGMENT_SIZE))
+            segments = list(
+                payload[i : i + self.SEGMENT_SIZE]
+                for i in range(0, len(payload), self.SEGMENT_SIZE)
+            )
 
             seg_n = len(segments) - 1
 
             for seg_o, segment in enumerate(segments):
-                yield bitstring.pack('uint:1, bits:7, uint:1, uint:13, uint:5, uint:5, bytes',
-                                     seg, opcode, szmic, seq_zero, seg_o, seg_n, segment).bytes
+                yield bitstring.pack(
+                    "uint:1, bits:7, uint:1, uint:13, uint:5, uint:5, bytes",
+                    seg,
+                    opcode,
+                    szmic,
+                    seq_zero,
+                    seg_o,
+                    seg_n,
+                    segment,
+                ).bytes
         else:
-            yield bitstring.pack('uint:1, bits:7, bytes',
-                                 seg, opcode, payload).bytes
+            yield bitstring.pack("uint:1, bits:7, bytes", seg, opcode, payload).bytes
 
 
 class AccessMessage(Segment):
@@ -195,7 +249,7 @@ class AccessMessage(Segment):
     def get_opcode(self, application_key):
         akf = isinstance(application_key, ApplicationKey)
         aid = application_key.aid
-        return bitstring.pack('uint:1, uint:6', akf, aid)
+        return bitstring.pack("uint:1, uint:6", akf, aid)
 
     def segments(self, application_key, seq, iv_index, szmic=False):
         short_mic_len = len(self.payload) + 4
@@ -203,20 +257,29 @@ class AccessMessage(Segment):
 
         # Use large MIC if it doesn't affect segmentation
         if len(self.payload) >= self.SEGMENT_SIZE and len(self.payload) < 376:
-            szmic = szmic or (math.ceil(short_mic_len / self.SEGMENT_SIZE) ==
-                              math.ceil(long_mic_len / self.SEGMENT_SIZE))
+            szmic = szmic or (
+                math.ceil(short_mic_len / self.SEGMENT_SIZE)
+                == math.ceil(long_mic_len / self.SEGMENT_SIZE)
+            )
 
         akf = isinstance(application_key, ApplicationKey)
-        nonce = (self.nonce.application if akf else self.nonce.device)(seq, iv_index, szmic)
+        nonce = (self.nonce.application if akf else self.nonce.device)(
+            seq, iv_index, szmic
+        )
 
-        upper_transport_pdu = aes_ccm_encrypt(application_key.bytes, nonce,
-                                              self.payload, b'', 8 if szmic else 4)
+        upper_transport_pdu = aes_ccm_encrypt(
+            application_key.bytes, nonce, self.payload, b"", 8 if szmic else 4
+        )
 
-        yield from super().segments(application_key, seq, iv_index, payload=upper_transport_pdu, szmic=szmic)
+        yield from super().segments(
+            application_key, seq, iv_index, payload=upper_transport_pdu, szmic=szmic
+        )
 
     @classmethod
     def decrypt(cls, app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu):
-        seg, akf, aid = bitstring.BitString(transport_pdu).unpack('uint:1, uint:1, uint:6')
+        seg, akf, aid = bitstring.BitString(transport_pdu).unpack(
+            "uint:1, uint:1, uint:6"
+        )
 
         # works only for unsegmented messages!
         if seg:
@@ -224,7 +287,9 @@ class AccessMessage(Segment):
         if app_key.aid != aid:
             raise KeyError
         transport_nonce = Nonce(src, dst, ttl, ctl)
-        nonce = (transport_nonce.application if akf else transport_nonce.device)(seq, iv_index)
+        nonce = (transport_nonce.application if akf else transport_nonce.device)(
+            seq, iv_index
+        )
         decrypted_access = aes_ccm_decrypt(app_key.bytes, nonce, transport_pdu[1:])
         return AccessMessage(src, dst, ttl, decrypted_access)
 
@@ -236,14 +301,16 @@ class ControlMessage(Segment):
         self.opcode = opcode
 
     def get_opcode(self, application_key):
-        return bitstring.pack('uint:7', self.opcode)
+        return bitstring.pack("uint:7", self.opcode)
 
     def segments(self, application_key, seq, iv_index, szmic=False):
-        yield from super().segments(application_key, seq, iv_index, payload=self.payload, szmic=False)
+        yield from super().segments(
+            application_key, seq, iv_index, payload=self.payload, szmic=False
+        )
 
     @classmethod
     def decrypt(cls, ttl, src, dst, transport_pdu):
-        seg, opcode = bitstring.BitString(transport_pdu).unpack('uint:1, uint:7')
+        seg, opcode = bitstring.BitString(transport_pdu).unpack("uint:1, uint:7")
 
         # works only for unsegmented messages!
         if seg:
@@ -258,10 +325,12 @@ class ProxyConfigMessage(Segment):
         self.opcode = opcode
 
     def get_opcode(self, application_key):
-        return bitstring.pack('uint:7', self.opcode)
+        return bitstring.pack("uint:7", self.opcode)
 
     def segments(self, application_key, seq, iv_index, szmic=False):
-        yield from super().segments(application_key, seq, iv_index, payload=self.payload, szmic=False)
+        yield from super().segments(
+            application_key, seq, iv_index, payload=self.payload, szmic=False
+        )
 
     @classmethod
     def decrypt(cls, src, transport_pdu):
@@ -275,9 +344,12 @@ class SegmentAckMessage(ControlMessage):
         self.seq_zero = seq_zero
         self.block_ack = bitstring.BitArray(i in ack_segments for i in range(32))
 
-        self.payload = bitstring.pack('uint:1, uint:13, pad:2, bits:32',
-                                      self.obo, self.seq_zero,
-                                      reversed(self.block_ack)).bytes
+        self.payload = bitstring.pack(
+            "uint:1, uint:13, pad:2, bits:32",
+            self.obo,
+            self.seq_zero,
+            reversed(self.block_ack),
+        ).bytes
 
         super().__init__(src, dst, ttl, 0x00, self.payload)
 
@@ -294,98 +366,128 @@ class NetworkMessage:
         if transport_seq is None:
             transport_seq = seq
 
-        for seq, pdu in enumerate(self.message.segments(application_key, transport_seq, iv_index),
-                                  start=seq):
+        for seq, pdu in enumerate(
+            self.message.segments(application_key, transport_seq, iv_index), start=seq
+        ):
             if isinstance(self.message, ProxyConfigMessage):
                 nonce = self.message.nonce.proxy(seq, iv_index)
             else:
                 nonce = self.message.nonce.network(seq, iv_index)
-            network_pdu = aes_ccm_encrypt(encryption_key,
-                                          nonce,
-                                          bitstring.pack('uintbe:16, bytes', self.message.dst, pdu).bytes,
-                                          b'', 8 if self.message.ctl else 4)
+            network_pdu = aes_ccm_encrypt(
+                encryption_key,
+                nonce,
+                bitstring.pack("uintbe:16, bytes", self.message.dst, pdu).bytes,
+                b"",
+                8 if self.message.ctl else 4,
+            )
 
-            network_header = bitstring.pack('uint:1, uint:7, uintbe:24, uintbe:16',
-                                            self.message.ctl, self.message.ttl, seq,
-                                            self.message.src).bytes
+            network_header = bitstring.pack(
+                "uint:1, uint:7, uintbe:24, uintbe:16",
+                self.message.ctl,
+                self.message.ttl,
+                seq,
+                self.message.src,
+            ).bytes
 
-            privacy_random = bitstring.pack('pad:40, uintbe:32, bytes:7',
-                                            iv_index, network_pdu[:7]).bytes
+            privacy_random = bitstring.pack(
+                "pad:40, uintbe:32, bytes:7", iv_index, network_pdu[:7]
+            ).bytes
 
             pecb = aes_ecb(privacy_key, privacy_random)[:6]
 
             obfuscated_header = bytes(map(operator.xor, network_header, pecb))
 
-            yield seq, bitstring.pack('uint:1, uint:7, bits, bytes',
-                                      iv_index & 1, nid, obfuscated_header, network_pdu).bytes
+            yield seq, bitstring.pack(
+                "uint:1, uint:7, bits, bytes",
+                iv_index & 1,
+                nid,
+                obfuscated_header,
+                network_pdu,
+            ).bytes
 
     @classmethod
-    def unpack(cls, app_key: ApplicationKey, net_key: NetworkKey, local_iv_index: int, network_pdu: bytes, proxy=False):
+    def unpack(
+        cls,
+        app_key: ApplicationKey,
+        net_key: NetworkKey,
+        local_iv_index: int,
+        network_pdu: bytes,
+        proxy=False,
+    ):
         nid, encryption_key, privacy_key = net_key.encryption_keys
-        last_iv, nid, obfuscated_header, encoded_data_mic = bitstring.BitString(network_pdu).unpack(
-            'uint:1, uint:7, bytes:6, bytes')
+        last_iv, nid, obfuscated_header, encoded_data_mic = bitstring.BitString(
+            network_pdu
+        ).unpack("uint:1, uint:7, bytes:6, bytes")
 
         if nid != nid:
             raise KeyError
-        iv_index = local_iv_index if (local_iv_index & 0x01) == last_iv else local_iv_index - 1
-        privacy_random = bitstring.pack('pad:40, uintbe:32, bytes:7',
-                                        iv_index, encoded_data_mic[:7]).bytes
+        iv_index = (
+            local_iv_index if (local_iv_index & 0x01) == last_iv else local_iv_index - 1
+        )
+        privacy_random = bitstring.pack(
+            "pad:40, uintbe:32, bytes:7", iv_index, encoded_data_mic[:7]
+        ).bytes
 
         pecb = aes_ecb(privacy_key, privacy_random)[:6]
         deobfuscated = bytes(map(operator.xor, obfuscated_header, pecb))
-        ctl, ttl, seq, src = bitstring.BitString(deobfuscated).unpack('uint:1, uint:7, uintbe:24, uintbe:16')
+        ctl, ttl, seq, src = bitstring.BitString(deobfuscated).unpack(
+            "uint:1, uint:7, uintbe:24, uintbe:16"
+        )
         net_mic_len = 8 if ctl else 4
 
-        nonce = (Nonce(src, 0, ttl, ctl).proxy if proxy else Nonce(src, 0, ttl, ctl).network)(seq, iv_index)
-        decrypted_net = aes_ccm_decrypt(encryption_key,
-                                        nonce,
-                                        encoded_data_mic,
-                                        tag_length=net_mic_len)
+        nonce = (
+            Nonce(src, 0, ttl, ctl).proxy if proxy else Nonce(src, 0, ttl, ctl).network
+        )(seq, iv_index)
+        decrypted_net = aes_ccm_decrypt(
+            encryption_key, nonce, encoded_data_mic, tag_length=net_mic_len
+        )
 
-        dst, transport_pdu = bitstring.BitString(decrypted_net).unpack('uintbe:16, bytes')
+        dst, transport_pdu = bitstring.BitString(decrypted_net).unpack(
+            "uintbe:16, bytes"
+        )
 
         if proxy:
             transport_msg = ProxyConfigMessage.decrypt(src, transport_pdu)
         elif ctl:
             transport_msg = ControlMessage.decrypt(ttl, src, dst, transport_pdu)
         else:
-            transport_msg = AccessMessage.decrypt(app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu)
+            transport_msg = AccessMessage.decrypt(
+                app_key, iv_index, ctl, ttl, seq, src, dst, transport_pdu
+            )
         net_message = NetworkMessage(transport_msg)
         return iv_index, seq, net_message
 
 
 MESH_CRC = Configuration(
-        width=8,
-        polynomial=0x07,
-        init_value=0xff,
-        final_xor_value=0xff,
-        reverse_input=True,
-        reverse_output=True
-    )
+    width=8,
+    polynomial=0x07,
+    init_value=0xFF,
+    final_xor_value=0xFF,
+    reverse_input=True,
+    reverse_output=True,
+)
 
 CRC_CALCULATOR = CrcCalculator(configuration=MESH_CRC)
 
 
 class GenericProvisioningPDU:
-
     @staticmethod
     def pack(payload):
-        if payload['type'] == ProvisioningPDUType.ACK:
+        if payload["type"] == ProvisioningPDUType.ACK:
             return [b"\x01"]
 
-        if isinstance(payload['type'], BearerOpcode):
-            return [ProvisioningBearerControl.build(
-                dict(
-                    opcode=payload['type'],
-                    parameters=payload['parameters']
+        if isinstance(payload["type"], BearerOpcode):
+            return [
+                ProvisioningBearerControl.build(
+                    dict(opcode=payload["type"], parameters=payload["parameters"])
                 )
-            )]
+            ]
 
         PDU = ProvisioningPDU.build(obj=payload)
 
         segments = [PDU[0:20]]
         if len(PDU) > 20:
-            segments += [PDU[0+i:23+i] for i in range(20, len(PDU), 23)]
+            segments += [PDU[0 + i : 23 + i] for i in range(20, len(PDU), 23)]
 
         total_len = len(PDU)
         fcs = CRC_CALCULATOR.calculate_checksum(PDU)
@@ -394,10 +496,10 @@ class GenericProvisioningPDU:
         ret.append(
             TransactionStartPDU.build(
                 dict(
-                    last_segment_number=len(segments)-1,
+                    last_segment_number=len(segments) - 1,
                     total_length=total_len,
                     frame_check=fcs,
-                    data=segments.pop(0)
+                    data=segments.pop(0),
                 )
             )
         )
@@ -405,10 +507,7 @@ class GenericProvisioningPDU:
         for index, segment in enumerate(segments, start=1):
             ret.append(
                 TransactionContinuationPDU.build(
-                    dict(
-                        segment_index=index,
-                        data=segment
-                    )
+                    dict(segment_index=index, data=segment)
                 )
             )
 
@@ -420,9 +519,9 @@ class GenericProvisioningPDU:
             return dict(type=ProvisioningPDUType.ACK, parameters=dict())
 
         parsed = [TransactionPDUSegment.parse(segment) for segment in segments]
-        parsed.sort(key=lambda segment: getattr(segment, 'segment_index', 0))
+        parsed.sort(key=lambda segment: getattr(segment, "segment_index", 0))
 
-        if parsed[0].get('opcode') is not None:
-            return dict(type=parsed[0]['opcode'], parameters=parsed[0]['parameters'])
+        if parsed[0].get("opcode") is not None:
+            return dict(type=parsed[0]["opcode"], parameters=parsed[0]["parameters"])
 
-        return ProvisioningPDU.parse(data=b''.join(segment.data for segment in parsed))
+        return ProvisioningPDU.parse(data=b"".join(segment.data for segment in parsed))

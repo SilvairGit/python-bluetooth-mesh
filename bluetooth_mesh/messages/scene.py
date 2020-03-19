@@ -1,7 +1,23 @@
 from enum import IntEnum
-from construct import Struct, Switch, this, Int16ul, Int8ul, Select, Array, Check, ExprValidator, obj_
 
-from bluetooth_mesh.messages.generics import TransitionTimeAdapter, TransitionTime, Delay
+from construct import (
+    Array,
+    Check,
+    ExprValidator,
+    Int8ul,
+    Int16ul,
+    Select,
+    Struct,
+    Switch,
+    obj_,
+    this,
+)
+
+from bluetooth_mesh.messages.generics import (
+    Delay,
+    TransitionTime,
+    TransitionTimeAdapter,
+)
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 
@@ -24,6 +40,7 @@ class SceneStatusCode(IntEnum):
     SCENE_NOT_FOUND = 0x02
 
 
+# fmt: off
 SceneGet = Struct()
 
 SceneRecallMinimal = Struct(
@@ -95,3 +112,4 @@ SceneMessage = Struct(
         }
     )
 )
+# fmt: on

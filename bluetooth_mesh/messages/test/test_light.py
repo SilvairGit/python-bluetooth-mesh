@@ -1,13 +1,19 @@
 import pytest
 
-from bluetooth_mesh.messages.generic.light import (
-    LightLightnessMessage, LightCTLMessage, LightLightnessOpcode, LightCTLOpcode,
-    LightLightnessSetupMessage, LightCTLSetupMessage, LightLightnessSetupOpcode, LightCTLSetupOpcode,
-)
 from bluetooth_mesh.messages.config import StatusCode
-
+from bluetooth_mesh.messages.generic.light import (
+    LightCTLMessage,
+    LightCTLOpcode,
+    LightCTLSetupMessage,
+    LightCTLSetupOpcode,
+    LightLightnessMessage,
+    LightLightnessOpcode,
+    LightLightnessSetupMessage,
+    LightLightnessSetupOpcode,
+)
 
 valid_lightness = [
+    # fmt: off
     pytest.param(
         b'\x82\x4b',
         LightLightnessOpcode.LIGHTNESS_GET,
@@ -133,9 +139,11 @@ valid_lightness = [
              range_min=0x1111,
              range_max=0x8888),
         id="LIGHTNESS_RANGE_STATUS"),
+    # fmt: on
 ]
 
 valid_lightness_setup = [
+    # fmt: off
     pytest.param(
         b'\x82\x59\xbb\xaa',
         LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET,
@@ -167,10 +175,12 @@ valid_lightness_setup = [
         dict(range_min=0xabcd,
              range_max=0x1234),
         id="LIGHTNESS_RANGE_SET_UNACKNOWLEDGED"),
+    # fmt: on
 ]
 
 
 valid_ctl = [
+    # fmt: off
     pytest.param(
         b'\x82\x5d',
         LightCTLOpcode.CTL_GET,
@@ -301,9 +311,11 @@ valid_ctl = [
              ctl_temperature=0xeeff,
              ctl_delta_uv=0x1111),
         id="CTL_TEMPERATURE_DEFAULT_STATUS"),
+    # fmt: on
 ]
 
 valid_ctl_setup = [
+    # fmt: off
     pytest.param(
         b'\x82\x69\xdd\xcc\xff\xee\x11\x11',
         LightCTLSetupOpcode.CTL_TEMPERATURE_DEFAULT_SET,
@@ -331,6 +343,7 @@ valid_ctl_setup = [
         dict(range_min=0x1111,
              range_max=0x2222),
         id="CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED"),
+    # fmt: on
 ]
 
 
@@ -341,8 +354,7 @@ def test_parse_valid_lightness(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_lightness)
 def test_build_valid_lightness(encoded, opcode, data):
-    assert LightLightnessMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert LightLightnessMessage.build(dict(opcode=opcode, params=data)) == encoded
 
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_lightness_setup)
@@ -352,8 +364,7 @@ def test_parse_valid_lightness_setup(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_lightness_setup)
 def test_build_valid_lightness_setup(encoded, opcode, data):
-    assert LightLightnessSetupMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert LightLightnessSetupMessage.build(dict(opcode=opcode, params=data)) == encoded
 
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_ctl)
@@ -363,8 +374,7 @@ def test_parse_valid_ctl(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_ctl)
 def test_build_valid_ctl(encoded, opcode, data):
-    assert LightCTLMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert LightCTLMessage.build(dict(opcode=opcode, params=data)) == encoded
 
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_ctl_setup)
@@ -374,5 +384,4 @@ def test_parse_valid_ctl_setup(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid_ctl_setup)
 def test_build_valid_ctl_setup(encoded, opcode, data):
-    assert LightCTLSetupMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert LightCTLSetupMessage.build(dict(opcode=opcode, params=data)) == encoded
