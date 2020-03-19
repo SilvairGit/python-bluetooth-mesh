@@ -1,6 +1,28 @@
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
 # pylint: disable=W0223
 
 import math
+from ipaddress import IPv4Address
 
 from construct import (
     Adapter,
@@ -18,6 +40,7 @@ from construct import (
     Restreamed,
     Select,
     Struct,
+    Switch,
     ValidationError,
     obj_,
     this,
@@ -204,3 +227,61 @@ class DefaultCountValidator(Adapter):
             return (256 ** self.subcon.length) - 1
         else:
             return round(obj / self.resolution)
+
+
+# TODO: is there a better way to calculate size of a nested struct?
+def SwitchLength(type, switch, mapping, path, default=0):
+    def rebuild(type, v):
+        return Rebuild(type, lambda x: len(v.build(path(x))))
+
+    return Switch(
+        switch,
+        {k: rebuild(type, v) for k, v in mapping.items()},
+        default=Rebuild(type, lambda x: default),
+    )
+
+
+def RebuildLength(type, subcons, path):
+    return Rebuild(type, lambda x: len(subcons.build(path(x))))
+
+
+class MacAddressAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        return ":".join(map("{:02x}".format, obj))
+
+    def _encode(self, obj, context, path):
+        return bytes(int(i, 16) for i in obj.split(":"))
+
+
+class IpAddressAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        return IPv4Address(obj)
+
+    def _encode(self, obj, context, path):
+        return bytes(int(i) for i in obj.split("."))
+
+
+class DictAdapter(Adapter):
+    def __init__(self, subcon, key, value):
+        super().__init__(subcon)
+        self.key = key
+        self.value = value
+
+    def _decode(self, obj, context, path):
+        if isinstance(self.value, (list, tuple)):
+            return {
+                self.key(i): {v.__getfield__(): v(i) for v in self.value} for i in obj
+            }
+
+        return {self.key(i): self.value(i) for i in obj}
+
+    def _encode(self, obj, context, path):
+        key_name = self.key.__getfield__()
+
+        if isinstance(self.value, (list, tuple)):
+            for k, v in obj.items():
+                yield {key_name: k, **v}
+        else:
+            value_name = self.value.__getfield__()
+            for k, v in obj.items():
+                yield {key_name: k, value_name: v}

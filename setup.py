@@ -44,12 +44,21 @@ setup(
         'bitstring>=3.1.5',
         'construct==2.9.45',
         'cryptography>=2.3.1',
+        'crc==0.3.0',
+        'dbus-next==0.1.3',
         'ecdsa==0.15',
-        'crc==0.3.0'
     ],
     tests_require=[
+        'asynctest>=0.12.3',
         'pytest>4.1.0',
+        'pytest-asyncio>=0.10.0',
     ],
+    extras_require=dict(
+        doc=[
+            'sphinx>=2.1.2',
+            'sphinx-autodoc-typehints>=1.7.0',
+        ],
+    ),
     entry_points=dict(
     ),
     classifiers=[

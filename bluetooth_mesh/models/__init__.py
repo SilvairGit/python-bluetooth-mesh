@@ -1,4 +1,4 @@
 # pylint: disable=W0614
 
-from .application import *
+from .base import *
 from .models import *

@@ -39,6 +39,7 @@ from bluetooth_mesh.provisioning import (
     BearerOpcode,
     ProvisioningBearerControl,
     ProvisioningPDU,
+    ProvisioningPDUType,
     TransactionContinuationPDU,
     TransactionPDUSegment,
     TransactionStartPDU,
