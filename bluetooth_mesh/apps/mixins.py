@@ -27,19 +27,6 @@ Application mixins.
 from typing import List, Mapping, Optional, Tuple, Union
 from uuid import uuid5
 
-from aiohttp import ClientSession
-from platforms_clients.commissioning.client import (
-    AsyncCommissioningClient,
-    PlatformEnvironment,
-)
-from platforms_clients.commissioning.representation import entities, schemas
-from prompt_toolkit import PromptSession
-
-from bluetooth_mesh.application import (
-    ApplicationKeyMixin,
-    MachineUUIDMixin,
-    NetworkKeyMixin,
-)
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 from bluetooth_mesh.interfaces import ManagementInterface
 
@@ -102,22 +89,6 @@ class NetworkAwarenessMixin:
             )
 
 
-class Network(entities.Network):
-    areas = {}  # type: Mapping[str, Area]
-
-
-class NetworkSchema(schemas.NetworkSchema):
-    entity_class = Network
-
-
-class Area(entities.Area):
-    zones = {}  # type: Mapping[str, entities.Zone]
-
-
-class AreaSchema(schemas.AreaSchema):
-    entity_class = Area
-
-
 class PlatformLoginMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -136,7 +107,26 @@ class PlatformLoginMixin:
         namespace = super().get_namespace()
         return uuid5(namespace=namespace, name=self.project.project_id)
 
-    async def platform_login(self, get_address=True) -> Tuple[Optional[int], Network]:
+    async def platform_login(self, get_address=True) -> Tuple[Optional[int], "Network"]:
+        from aiohttp import ClientSession
+        from platforms_clients.commissioning.representation import entities, schemas
+        from platforms_clients.commissioning.client import (
+            AsyncCommissioningClient,
+            PlatformEnvironment,
+        )
+
+        class Network(entities.Network):
+            areas = {}  # type: Mapping[str, Area]
+
+        class NetworkSchema(schemas.NetworkSchema):
+            entity_class = Network
+
+        class Area(entities.Area):
+            zones = {}  # type: Mapping[str, entities.Zone]
+
+        class AreaSchema(schemas.AreaSchema):
+            entity_class = Area
+
         login = await self.get_login()
         password = await self.get_password()
 
@@ -191,6 +181,8 @@ class CommandLineMixin:
         self.arguments = arguments
 
     async def get_login(self):
+        from prompt_toolkit import PromptSession
+
         login = self.arguments.get("--login")
 
         if login is None:
@@ -200,6 +192,8 @@ class CommandLineMixin:
         return login
 
     async def get_password(self):
+        from prompt_toolkit import PromptSession
+
         password = self.arguments.get("--password")
 
         if password is None:
@@ -210,6 +204,8 @@ class CommandLineMixin:
         return password
 
     async def get_project(self, projects):
+        from prompt_toolkit import PromptSession
+
         project_name = self.arguments.get("--project")
 
         if project_name is None:
