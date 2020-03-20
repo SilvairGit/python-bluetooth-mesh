@@ -298,18 +298,26 @@ valid = [
             )
         ),
         id="random",
+    ),
+    pytest.param(
+        [bytes.fromhex('01')],
+        dict(
+            type=ProvisioningPDUType.ACK,
+            parameters=dict()
+        ),
+        id="ack",
     )
 ]
 
 
 @pytest.mark.parametrize("encoded,decoded", valid)
-def test_build_generic(encoded, decoded):
+def test_pack_generic(encoded, decoded):
     result = GenericProvisioningPDU.pack(payload=decoded)
     assert result == encoded
 
 
 @pytest.mark.parametrize("encoded,decoded", valid)
-def test_parse_generic(encoded, decoded):
+def test_unpack_generic(encoded, decoded):
     result = GenericProvisioningPDU.unpack(segments=encoded)
     assert result == decoded
 

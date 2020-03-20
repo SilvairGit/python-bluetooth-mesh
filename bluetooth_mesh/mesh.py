@@ -370,6 +370,9 @@ class GenericProvisioningPDU:
 
     @staticmethod
     def pack(payload):
+        if payload['type'] == ProvisioningPDUType.ACK:
+            return [b"\x01"]
+
         if isinstance(payload['type'], BearerOpcode):
             return [ProvisioningBearerControl.build(
                 dict(
@@ -413,6 +416,9 @@ class GenericProvisioningPDU:
 
     @staticmethod
     def unpack(segments):
+        if segments[0] == b"\x01":
+            return dict(type=ProvisioningPDUType.ACK, parameters=dict())
+
         parsed = [TransactionPDUSegment.parse(segment) for segment in segments]
         parsed.sort(key=lambda segment: getattr(segment, 'segment_index', 0))
 
@@ -420,7 +426,3 @@ class GenericProvisioningPDU:
             return dict(type=parsed[0]['opcode'], parameters=parsed[0]['parameters'])
 
         return ProvisioningPDU.parse(data=b''.join(segment.data for segment in parsed))
-
-    @staticmethod
-    def ack():
-        return b"\x01"
