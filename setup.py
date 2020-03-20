@@ -58,8 +58,15 @@ setup(
             'sphinx>=2.1.2',
             'sphinx-autodoc-typehints>=1.7.0',
         ],
+        tools=[
+            'prompt-toolkit==2.0.10',
+            'platforms-clients>=4.39.4',
+        ],
     ),
     entry_points=dict(
+        console_scripts=[
+            'meshcli = bluetooth_mesh.apps.meshcli:main [tools]',
+        ],
     ),
     classifiers=[
         'Development Status :: 3 - Alpha',

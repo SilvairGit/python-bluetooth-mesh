@@ -5,6 +5,7 @@ from .generic import GenericMessage
 from .health import HealthMessage
 from .scene import SceneMessage
 from .sensor import SensorMessage, SensorSetupMessage
+from .silvair import DebugMessage, GatewayConfigMessage, NetworkDiagnosticServerMessage
 from .util import Opcode
 
 # fmt: off
@@ -14,12 +15,15 @@ Message = Struct(
 )
 
 AccessMessage = Select(
-    "HealthMessage" / HealthMessage,
     "ConfigMessage" / ConfigMessage,
+    "DebugMessage"/ DebugMessage,
+    "GatewayConfigMessage" / GatewayConfigMessage,
     "GenericMessage" / GenericMessage,
+    "HealthMessage" / HealthMessage,
+    "Message" / Message,
+    "NetworkDiagnosticServerMessage" / NetworkDiagnosticServerMessage,
     "SceneMessage" / SceneMessage,
     "SensorMessage" / SensorMessage,
     "SensorSetupMessage" / SensorSetupMessage,
-    "Message" / Message,
 )
 # fmt: on
