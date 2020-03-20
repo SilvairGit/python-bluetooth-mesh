@@ -27,7 +27,9 @@ class ProvisioningPDUType(enum.IntEnum):
     DATA = 0x07
     COMPLETE = 0x08
     FAILED = 0x09
-    ACK = 0xFF
+    # ACK type is not in specification and is not actually used in constructing the message
+    # it is there just to allow consistent packing/unpacking of GenericProvisioningPDU
+    ACK = -1
 
 
 class GenericProvisioningPDUType(enum.IntEnum):

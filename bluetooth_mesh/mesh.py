@@ -418,6 +418,7 @@ class GenericProvisioningPDU:
     def unpack(segments):
         if segments[0] == b"\x01":
             return dict(type=ProvisioningPDUType.ACK, parameters=dict())
+
         parsed = [TransactionPDUSegment.parse(segment) for segment in segments]
         parsed.sort(key=lambda segment: getattr(segment, 'segment_index', 0))
 
