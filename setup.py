@@ -54,7 +54,7 @@ setup(
         'pytest-asyncio>=0.10.0',
     ],
     extras_require=dict(
-        doc=[
+        docs=[
             'sphinx>=2.1.2',
             'sphinx-autodoc-typehints>=1.7.0',
         ],

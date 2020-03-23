@@ -14,6 +14,10 @@ python-bluetooth-mesh
     :target: https://travis-ci.org/SilvairGit/python-bluetooth-mesh
     :alt: See Build Status on Travis CI
 
+.. image:: https://readthedocs.org/projects/python-bluetooth-mesh/badge/?version=latest
+    :target: https://python-bluetooth-mesh.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 Bluetooth mesh SDK for Python allows developing applications communicating with
 Bluetooth mesh network using BlueZ's bluetooth-meshd.
 

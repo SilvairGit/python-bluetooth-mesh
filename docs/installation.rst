@@ -18,7 +18,7 @@ There are a number of extra features available, with additional dependencies:
 
 ::
 
-   $ pip install bluetooth_mesh[doc]
+   $ pip install bluetooth_mesh[docs]
 
 * command line tools (e.g. `meshcli`)
 
