@@ -36,7 +36,7 @@ setup(
     long_description_content_type="text/markdown",
     url='http://github.com/silvairgit/python-bluetooth-mesh',
     packages=find_packages(exclude=('test*', )),
-    python_requires='>=3.6.0',
+    python_requires='>=3.6.0,<3.8.0',
     setup_requires=[
         'pytest-runner>=4.2',
     ],
@@ -70,11 +70,15 @@ setup(
     ),
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Environment :: Console',
+        'Framework :: AsyncIO',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy'
         'Topic :: System :: Networking',
     ],
 )
