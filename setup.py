@@ -47,6 +47,7 @@ setup(
         'crc==0.3.0',
         'dbus-next==0.1.3',
         'ecdsa==0.15',
+        'pluggy>=0.13.1',
     ],
     tests_require=[
         'asynctest>=0.12.3',
@@ -62,13 +63,15 @@ setup(
         ],
         tools=[
             'prompt-toolkit==2.0.10',
-            'platforms-clients>=4.39.4',
         ],
     ),
     entry_points=dict(
         console_scripts=[
             'meshcli = bluetooth_mesh.apps.meshcli:main [tools]',
         ],
+        bluetooth_mesh=[
+            'bluetooth_mesh = bluetooth_mesh.apps.mixins',
+        ]
     ),
     classifiers=[
         'Development Status :: 3 - Alpha',

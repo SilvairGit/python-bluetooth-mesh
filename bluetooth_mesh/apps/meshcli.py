@@ -21,6 +21,7 @@
 #
 import asyncio
 import inspect
+import itertools
 import logging
 import os
 import shlex
@@ -32,7 +33,6 @@ from datetime import timedelta
 from functools import partial
 
 from docopt import DocoptExit, docopt
-from platforms_clients.commissioning.representation.entities import GroupAddress
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.eventloop import use_asyncio_event_loop
@@ -40,11 +40,8 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 
 from bluetooth_mesh.application import Application, Element
-from bluetooth_mesh.apps.mixins import (
-    CommandLineMixin,
-    NetworkAwarenessMixin,
-    PlatformLoginMixin,
-)
+from bluetooth_mesh.apps import get_plugin_manager
+from bluetooth_mesh.crypto import DeviceKey
 from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
 from bluetooth_mesh.models import (
     ConfigClient,
@@ -60,6 +57,8 @@ from bluetooth_mesh.models import (
     NetworkDiagnosticSetupClient,
     SceneClient,
 )
+
+plugin_manager = get_plugin_manager()
 
 
 class MeshCompleter(Completer):
@@ -81,7 +80,7 @@ class MeshCompleter(Completer):
             words = shlex.split(command)
             if command.endswith(" "):  # wo for difference in split and shlex.split
                 words.append("")
-            if "-z" in words:  # try zones
+            if command.startswith(LsCommand.CMD) or "-z" in words:  # try zones
                 for zone in {
                     zone.zone_name for zone in self.application.network.groups
                 }:
@@ -190,12 +189,11 @@ class AttentionCommand(ModelCommandMixin, Command):
         elif arguments["<zones>"]:
             tasks = [
                 model.attention_unack(
-                    group.get_address(GroupAddress.HEALTH),
+                    application.network.get_zone_address(name, self.MODEL),
                     app_index=0,
                     attention=attention,
                 )
-                for group in application.network.groups
-                if group.zone_name in arguments["<zones>"]
+                for name in arguments["<zones>"]
             ]
 
         return asyncio.gather(*tasks)
@@ -238,13 +236,12 @@ class RecallSceneCommand(ModelCommandMixin, Command):
         elif arguments["<zones>"]:
             tasks = [
                 model.recall_scene_unack(
-                    group.get_address(GroupAddress.DEFAULT),
+                    application.network.get_zone_address(name, self.MODEL),
                     app_index=0,
                     scene_number=scene_number,
                     transition_time=transition_time,
                 )
-                for group in application.network.groups
-                if group.zone_name in arguments["<zones>"]
+                for name in arguments["<zones>"]
             ]
 
         await asyncio.gather(*tasks)
@@ -706,12 +703,11 @@ class GenericOnOffCommand(ModelCommandMixin, Command):
             command = getattr(model, "{}_unack".format(self.PARAMETER))
             tasks = [
                 command(
-                    group.get_address(GroupAddress.LIGHTNESS),
+                    application.network.get_zone_address(name, self.MODEL),
                     app_index=0,
                     onoff=self.TARGET,
                 )
-                for group in application.network.groups
-                if group.zone_name in arguments["<zones>"]
+                for name in arguments["<zones>"]
             ]
 
         await asyncio.gather(*tasks)
@@ -791,10 +787,8 @@ class MorseCommand(ModelCommandMixin, Command):
     async def __call__(self, application, arguments):
         model = self.get_model(application)
 
-        group = next(
-            group
-            for group in application.network.groups
-            if group.zone_name and group.zone_name in arguments["<zone>"]
+        destination = application.network.get_zone_address(
+            name=arguments["<zone>"], model=self.MODEL
         )
 
         send_interval = 0.01
@@ -802,7 +796,7 @@ class MorseCommand(ModelCommandMixin, Command):
 
         set_unack = partial(
             model.set_level_unack,
-            destination=group.get_address(GroupAddress.LIGHTNESS),
+            destination=destination,
             app_index=0,
             retransmissions=retransmissions,
             send_interval=send_interval,
@@ -861,9 +855,10 @@ class PrimaryElement(Element):
     ]
 
 
-class MeshCommandLine(
-    CommandLineMixin, NetworkAwarenessMixin, PlatformLoginMixin, Application
-):
+application_mixins = itertools.chain(*get_plugin_manager().hook.application_mixins())
+
+
+class MeshCommandLine(*application_mixins, Application):
     PATH = "/com/silvair/meshcli/v6"
 
     COMMANDS = [
@@ -898,7 +893,8 @@ class MeshCommandLine(
     ELEMENTS = {0: PrimaryElement}
 
     def __init__(self, loop: asyncio.AbstractEventLoop, arguments):
-        super().__init__(loop, arguments)
+        super().__init__(loop)
+        self.arguments = arguments
         self.history = FileHistory(os.path.expanduser("~/.meshcli_history"))
         self.completer = MeshCompleter(self)
         self.session = PromptSession(
@@ -907,8 +903,23 @@ class MeshCommandLine(
         self.commands = {cmd.CMD: cmd() for cmd in self.COMMANDS}
         self._tid = 0
 
-    async def configure_node(self):
-        await super().configure_node()
+    async def add_keys(self):
+        for index, key in self.net_keys:
+            await self.add_net_key(index, key)
+
+        for index, bound, key in self.app_keys:
+            await self.add_app_key(
+                net_key_index=bound, app_key_index=index, app_key=key
+            )
+
+        for node in self.network.nodes:
+            # don't overwrite my own key
+            if node.address in range(self.addr, self.addr + len(self.ELEMENTS)):
+                continue
+
+            await self.management_interface.import_remote_node(
+                node.address, len(node.elements), DeviceKey(node.device_key.bytes)
+            )
 
         debug_client = self.get_model_instance(element=0, model=DebugClient)
         health_client = self.get_model_instance(element=0, model=HealthClient)
@@ -918,15 +929,14 @@ class MeshCommandLine(
             await health_client.bind(index)
 
     async def run(self, command):
-        addr, self.network = await self.platform_login()
+        addr, self.network = await self.get_network()
 
         async with self:
             await self._run(addr, command)
 
     async def _run(self, addr, command):
         await self.connect(addr)
-        await self.import_nodes()
-        await self.configure_node()
+        await self.add_keys()
         self.logger.info(
             "Loaded network %s, %d nodes", self.network, len(self.network.nodes)
         )

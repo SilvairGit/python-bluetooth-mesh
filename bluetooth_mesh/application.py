@@ -151,7 +151,7 @@ class NetworkKeyMixin:
         raise NotImplementedError("Getting primary network key should be overridden!")
 
     @property
-    def subnets_net_keys(self) -> List[Tuple[int, NetworkKey]]:
+    def net_keys(self) -> List[Tuple[int, NetworkKey]]:
         """
         Indexes and keyes of the subnets.
         """
@@ -171,6 +171,7 @@ class ApplicationKeyMixin(NetworkKeyMixin):
                 return index, bound, key
 
         raise IndexError("Primary application key not found")
+
 
     @property
     def app_keys(self) -> List[Tuple[int, int, ApplicationKey]]:
@@ -343,15 +344,6 @@ class Application(
             )
 
         return configuration
-
-    async def configure_node(self):
-        for index, key in self.subnets_net_keys:
-            await self.add_net_key(index, key)
-
-        for index, bound, key in self.app_keys:
-            await self.add_app_key(
-                net_key_index=bound, app_key_index=index, app_key=key
-            )
 
     async def add_net_key(self, net_key_index: int, net_key: NetworkKey) -> Any:
         """
