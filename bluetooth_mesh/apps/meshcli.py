@@ -80,14 +80,14 @@ class MeshCompleter(Completer):
             words = shlex.split(command)
             if command.endswith(" "):  # wo for difference in split and shlex.split
                 words.append("")
-            if command.startswith(LsCommand.CMD) or "-z" in words:  # try zones
-                for zone in {
-                    zone.zone_name for zone in self.application.network.groups
-                }:
-                    if zone and zone.startswith(words[-1]):
-                        if " " in zone:
-                            zone = '"{}"'.format(zone)
-                        yield Completion(zone, start_position=-len(words[-1]))
+            if command.startswith(LsCommand.CMD) or "-g" in words:  # try groups
+                for group in self.application.network.groups:
+                    group_name = group.name or ""
+
+                    if group_name.startswith(words[-1]):
+                        if " " in group_name:
+                            group_name = '"{}"'.format(group_name)
+                        yield Completion(group_name, start_position=-len(words[-1]))
 
             else:  # try nodes
                 for node in {
@@ -118,7 +118,7 @@ class LsCommand(Command):
     USAGE = """
     Usage:
         %(cmd)s
-        %(cmd)s [options] <zones>...
+        %(cmd)s [options] <groups>...
 
     Options:
         -l --long
@@ -127,17 +127,17 @@ class LsCommand(Command):
     CMD = "ls"
 
     async def __call__(self, application, arguments):
-        zones = arguments["<zones>"]
+        groups = arguments["<groups>"]
 
-        if zones:
+        if groups:
             nodes = defaultdict(list)
 
             for node in application.network.nodes:
-                if not zones or node.zone_name in zones:
+                if not groups or node.zone_name in groups:
                     nodes[node.zone_name].append(node)
 
-            for zone, nodes in sorted(nodes.items(), key=lambda n: n[0]):
-                yield "{}:".format(zone)
+            for group, nodes in sorted(nodes.items(), key=lambda n: n[0]):
+                yield "{}:".format(group)
                 for node in sorted(nodes, key=lambda n: n.uuid):
                     if arguments["--long"]:
                         yield "\t{} {:04x} {}".format(
@@ -146,8 +146,10 @@ class LsCommand(Command):
                     else:
                         yield "\t{}".format(node.name)
         else:
-            for zone in sorted({node.zone_name for node in application.network.nodes}):
-                yield "\t{}".format(zone)
+            for group in sorted(
+                group.name for group in application.network.groups if group.name
+            ):
+                yield "\t{}".format(group)
 
 
 class ModelCommandMixin:
@@ -162,11 +164,11 @@ class AttentionCommand(ModelCommandMixin, Command):
     USAGE = """
     Usage:
         %(cmd)s [options] <uuid>...
-        %(cmd)s [options] -z <zones>...
+        %(cmd)s [options] -g <groups>...
 
     Options:
         -t --timeout=ATTENTION    Attention timer [default: 5].
-        -z --zones
+        -g --groups
     """
 
     ELEMENT = 0
@@ -186,14 +188,14 @@ class AttentionCommand(ModelCommandMixin, Command):
                 if node.uuid.hex[:4] in arguments["<uuid>"]
             ]
 
-        elif arguments["<zones>"]:
+        elif arguments["<groups>"]:
             tasks = [
                 model.attention_unack(
-                    application.network.get_zone_address(name, self.MODEL),
+                    application.network.get_group_address(name, self.MODEL),
                     app_index=0,
                     attention=attention,
                 )
-                for name in arguments["<zones>"]
+                for name in arguments["<groups>"]
             ]
 
         return asyncio.gather(*tasks)
@@ -203,12 +205,12 @@ class RecallSceneCommand(ModelCommandMixin, Command):
     USAGE = """
     Usage:
         %(cmd)s [options] <uuid>...
-        %(cmd)s [options] -z <zones>...
+        %(cmd)s [options] -g <groups>...
 
     Options:
         -c --scene=SCENE    Number of scene to recall.
         -t --transition-time=TRANSITION-TIME    Transition time in seconds [default: 0].
-        -z --zones
+        -g --groups
     """
     ELEMENT = 0
     MODEL = SceneClient
@@ -233,15 +235,15 @@ class RecallSceneCommand(ModelCommandMixin, Command):
                 if node.uuid.hex[:4] in arguments["<uuid>"]
             ]
 
-        elif arguments["<zones>"]:
+        elif arguments["<groups>"]:
             tasks = [
                 model.recall_scene_unack(
-                    application.network.get_zone_address(name, self.MODEL),
+                    application.network.get_group_address(name, self.MODEL),
                     app_index=0,
                     scene_number=scene_number,
                     transition_time=transition_time,
                 )
-                for name in arguments["<zones>"]
+                for name in arguments["<groups>"]
             ]
 
         await asyncio.gather(*tasks)
@@ -251,20 +253,20 @@ class NodeSelectionCommandMixin:
     USAGE = """
     Usage:
         %(cmd)s <uuid>...
-        %(cmd)s -z <zones>...
+        %(cmd)s -g <groups>...
 
     Options:
-        -z --zones
+        -g --groups
     """
 
     @staticmethod
     def get_addresses(application, arguments):
         uuids = arguments.get("<uuid>", [])
-        zones = arguments.get("<zones>", [])
+        groups = arguments.get("<groups>", [])
         return [
             node.address
             for node in application.network.nodes
-            if node.uuid.hex[:4] in uuids or node.zone_name in zones
+            if node.uuid.hex[:4] in uuids or node.zone_name in groups
         ]
 
 
@@ -543,10 +545,10 @@ class LightCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
     USAGE = """
             Usage:
                 %(cmd)s <uuid>... [--lightness <light>] [--temperature <temp>]
-                %(cmd)s -z <zones>... [--lightness <light>] [--temperature <temp>]
+                %(cmd)s -g <groups>... [--lightness <light>] [--temperature <temp>]
 
             Options:
-                -z --zones
+                -g --groups
                 -l --lightness <light>
                 -t --temperature <temp>
             """
@@ -602,10 +604,10 @@ class NetworkTransmissionCommand(ModelCommandMixin, NodeSelectionCommandMixin, C
     USAGE = """
         Usage:
             %(cmd)s <uuid>... [--interval <millis>] [--count <count>]
-            %(cmd)s -z <zones>... [--interval <millis>] [--count <count>]
+            %(cmd)s -g <groups>... [--interval <millis>] [--count <count>]
 
         Options:
-            -z --zones
+            -g --groups
             -s --interval <millis>
             -c --count <count>
         """
@@ -677,10 +679,10 @@ class GenericOnOffCommand(ModelCommandMixin, Command):
     USAGE = """
     Usage:
         %(cmd)s <uuid>...
-        %(cmd)s -z <zones>...
+        %(cmd)s -g <groups>...
 
     Options:
-        -z --zones
+        -g --groups
     """
     TARGET = None
     MODEL = GenericOnOffClient
@@ -699,15 +701,15 @@ class GenericOnOffCommand(ModelCommandMixin, Command):
                 if node.uuid.hex[:4] in arguments["<uuid>"]
             ]
 
-        elif arguments["<zones>"]:
+        elif arguments["<groups>"]:
             command = getattr(model, "{}_unack".format(self.PARAMETER))
             tasks = [
                 command(
-                    application.network.get_zone_address(name, self.MODEL),
+                    application.network.get_group_address(name, self.MODEL),
                     app_index=0,
                     onoff=self.TARGET,
                 )
-                for name in arguments["<zones>"]
+                for name in arguments["<groups>"]
             ]
 
         await asyncio.gather(*tasks)
@@ -726,10 +728,10 @@ class GenericOffCommand(GenericOnOffCommand):
 class MorseCommand(ModelCommandMixin, Command):
     USAGE = """
     Usage:
-        %(cmd)s -z <zone> <text>
+        %(cmd)s -g <group> <text>
 
     Options:
-        -z --zone
+        -g --group
     """
     CMD = "morse"
     MODEL = GenericLevelClient
@@ -787,8 +789,8 @@ class MorseCommand(ModelCommandMixin, Command):
     async def __call__(self, application, arguments):
         model = self.get_model(application)
 
-        destination = application.network.get_zone_address(
-            name=arguments["<zone>"], model=self.MODEL
+        destination = application.network.get_group_address(
+            name=arguments["<group>"], model=self.MODEL
         )
 
         send_interval = 0.01
