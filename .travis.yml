@@ -26,6 +26,7 @@ cache:
   directories:
   - "$HOME/.cache/pip"
 deploy:
+  skip_existing: true
   provider: pypi
   user: __token__
   password:
