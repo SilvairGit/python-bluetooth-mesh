@@ -117,8 +117,7 @@ class Command:
 class LsCommand(Command):
     USAGE = """
     Usage:
-        %(cmd)s
-        %(cmd)s [options] <groups>...
+        %(cmd)s [options] [<groups>...]
 
     Options:
         -l --long
@@ -129,12 +128,17 @@ class LsCommand(Command):
     async def __call__(self, application, arguments):
         groups = arguments["<groups>"]
 
+        if not groups and arguments["--long"]:
+            groups = [group.name for group in application.network.groups]
+
         if groups:
             nodes = defaultdict(list)
 
             for node in application.network.nodes:
-                if not groups or node.zone_name in groups:
-                    nodes[node.zone_name].append(node)
+                group = application.network.get_node_group(node)
+
+                if not groups or group in groups:
+                    nodes[group].append(node)
 
             for group, nodes in sorted(nodes.items(), key=lambda n: n[0]):
                 yield "{}:".format(group)
@@ -266,7 +270,8 @@ class NodeSelectionCommandMixin:
         return [
             node.address
             for node in application.network.nodes
-            if node.uuid.hex[:4] in uuids or node.zone_name in groups
+            if node.uuid.hex[:4] in uuids
+            or application.network.get_node_group(node) in groups
         ]
 
 
@@ -285,8 +290,10 @@ class ModelGetCommandMixin(ModelCommandMixin, NodeSelectionCommandMixin):
 
         for address, data in results.items():
             node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
+
             param = self.format(data) if data is not None else None
-            yield "{} | {}: {}".format(node.zone_name, node.name, param)
+            yield "{} | {}: {}".format(group, node.name, param)
 
 
 class DebugCommand(ModelGetCommandMixin, Command):
