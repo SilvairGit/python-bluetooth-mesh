@@ -19,12 +19,15 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import cmac
-from cryptography.hazmat.primitives.ciphers import algorithms, aead, Cipher, modes
+
+# pylint: disable=C0103
+
 from functools import lru_cache
 
 import bitstring
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import cmac
+from cryptography.hazmat.primitives.ciphers import Cipher, aead, algorithms, modes
 
 
 def aes_cmac(k, m):
@@ -33,12 +36,12 @@ def aes_cmac(k, m):
     return c.finalize()
 
 
-def aes_ccm_encrypt(k, n, m, a=b'', tag_length=4):
+def aes_ccm_encrypt(k, n, m, a=b"", tag_length=4):
     c = aead.AESCCM(k, tag_length)
     return c.encrypt(n, m, a)
 
 
-def aes_ccm_decrypt(k, n, m, a=b'', tag_length=4):
+def aes_ccm_decrypt(k, n, m, a=b"", tag_length=4):
     c = aead.AESCCM(k, tag_length)
     return c.decrypt(n, m, a)
 
@@ -60,33 +63,33 @@ def k1(N, SALT, P):
 
 
 def k2(N, P):
-    SALT = s1(b'smk2')
+    SALT = s1(b"smk2")
     T = aes_cmac(SALT, N)
-    T0 = b''
-    T1 = aes_cmac(T, T0 + P + b'\x01')
-    T2 = aes_cmac(T, T1 + P + b'\x02')
-    T3 = aes_cmac(T, T2 + P + b'\x03')
+    T0 = b""
+    T1 = aes_cmac(T, T0 + P + b"\x01")
+    T2 = aes_cmac(T, T1 + P + b"\x02")
+    T3 = aes_cmac(T, T2 + P + b"\x03")
 
     k = (T1 + T2 + T3)[-33:]
 
-    n, e, p = bitstring.BitString(k).unpack('pad:1, uint:7, bits:128, bits:128')
+    n, e, p = bitstring.BitString(k).unpack("pad:1, uint:7, bits:128, bits:128")
 
     return n, e.bytes, p.bytes
 
 
 def k3(N):
-    SALT = s1(b'smk3')
+    SALT = s1(b"smk3")
     T = aes_cmac(SALT, N)
-    return aes_cmac(T, b'id64\x01')[-8:]
+    return aes_cmac(T, b"id64\x01")[-8:]
 
 
 def k4(N):
-    SALT = s1(b'smk4')
+    SALT = s1(b"smk4")
     T = aes_cmac(SALT, N)
 
-    k = aes_cmac(T, b'id6\x01')[-1:]
+    k = aes_cmac(T, b"id6\x01")[-1:]
 
-    aid, = bitstring.BitString(k).unpack('pad:2, uint:6')
+    (aid,) = bitstring.BitString(k).unpack("pad:2, uint:6")
 
     return aid
 
@@ -96,7 +99,7 @@ class Key:
         self.bytes = key
 
     def __str__(self):
-        return '<%s: %s>' % (type(self).__name__, self.bytes.hex())
+        return "<%s: %s>" % (type(self).__name__, self.bytes.hex())
 
 
 class ApplicationKey(Key):
@@ -121,14 +124,14 @@ class NetworkKey(Key):
     @property
     @lru_cache(maxsize=1)
     def encryption_keys(self):
-        return k2(self.bytes, b'\x00')
+        return k2(self.bytes, b"\x00")
 
     @property
     @lru_cache(maxsize=1)
     def identity_key(self):
-        return k1(self.bytes, s1(b'nkik'), b'id128\x01')
+        return k1(self.bytes, s1(b"nkik"), b"id128\x01")
 
     @property
     @lru_cache(maxsize=1)
     def beacon_key(self):
-        return k1(self.bytes, s1(b'nkbk'), b'id128\x01')
+        return k1(self.bytes, s1(b"nkbk"), b"id128\x01")

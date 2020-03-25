@@ -1,7 +1,43 @@
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
 from enum import IntEnum
-from construct import Struct, Switch, this, Int16ul, Int8ul, Select, Array, Check, ExprValidator, obj_
 
-from bluetooth_mesh.messages.generics import TransitionTimeAdapter, TransitionTime, Delay
+from construct import (
+    Array,
+    ExprValidator,
+    Int8ul,
+    Int16ul,
+    Select,
+    Struct,
+    Switch,
+    obj_,
+    this,
+)
+
+from bluetooth_mesh.messages.generics import (
+    Delay,
+    TransitionTime,
+    TransitionTimeAdapter,
+)
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 
@@ -24,6 +60,7 @@ class SceneStatusCode(IntEnum):
     SCENE_NOT_FOUND = 0x02
 
 
+# fmt: off
 SceneGet = Struct()
 
 SceneRecallMinimal = Struct(
@@ -95,3 +132,4 @@ SceneMessage = Struct(
         }
     )
 )
+# fmt: on

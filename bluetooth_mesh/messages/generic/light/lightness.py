@@ -1,8 +1,35 @@
-from construct import Int8ul, Int16ul, Select, Struct, Switch, this, Embedded
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
 from enum import IntEnum
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
-from bluetooth_mesh.messages.generics import OptionalSetParameters, TransitionTimeAdapter, TransitionTime
+
+from construct import Embedded, Int8ul, Int16ul, Select, Struct, Switch, this
+
 from bluetooth_mesh.messages.config import StatusCodeAdapter
+from bluetooth_mesh.messages.generics import (
+    OptionalSetParameters,
+    TransitionTime,
+    TransitionTimeAdapter,
+)
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 
 class LightLightnessOpcode(IntEnum):
@@ -29,6 +56,7 @@ class LightLightnessSetupOpcode(IntEnum):
     LIGHTNESS_RANGE_SET_UNACKNOWLEDGED = 0x825C
 
 
+# fmt: off
 LightLightnessGet = Struct()
 
 LightLightnessDefault = Struct(
@@ -75,7 +103,6 @@ LightLightnessSet = Select(
     LightLightnessSetMinimal
 )
 
-
 LightLightnessMessage = Struct(
     "opcode" / EnumAdapter(Opcode, LightLightnessOpcode),
     "params" / Switch(
@@ -99,7 +126,6 @@ LightLightnessMessage = Struct(
     )
 )
 
-
 LightLightnessSetupMessage = Struct(
     "opcode" / EnumAdapter(Opcode, LightLightnessSetupOpcode),
     "params" / Switch(
@@ -112,3 +138,4 @@ LightLightnessSetupMessage = Struct(
         },
     )
 )
+# fmt: on

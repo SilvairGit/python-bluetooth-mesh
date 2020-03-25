@@ -1,13 +1,51 @@
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
+# pylint: disable=W0223
+
 import enum
 import struct
 
-from construct import (Adapter, BitsInteger, BitStruct, Bytes, Bytewise, Const,
-                       ExprAdapter, GreedyBytes, Int8ub, Int16ub, Int32ub, Padding, Struct,
-                       Switch, this, Select)
-
 import ecdsa
+from construct import (
+    Adapter,
+    BitsInteger,
+    BitStruct,
+    Bytes,
+    Bytewise,
+    Const,
+    ExprAdapter,
+    GreedyBytes,
+    Int8ub,
+    Int16ub,
+    Int32ub,
+    Padding,
+    Select,
+    Struct,
+    Switch,
+    this,
+)
+
+from bluetooth_mesh.crypto import aes_ccm_decrypt, aes_ccm_encrypt, aes_cmac, k1, s1
 from bluetooth_mesh.messages.util import BitList, EmbeddedBitStruct, EnumAdapter
-from bluetooth_mesh.crypto import s1, k1, aes_cmac, aes_ccm_decrypt, aes_ccm_encrypt
 
 
 class BearerOpcode(enum.IntEnum):
@@ -206,7 +244,6 @@ ProvisioningPDU = Struct(
     ),
 )
 
-
 LinkOpen = Struct(
     "device_uuid" / Bytes(16)
 )
@@ -264,37 +301,47 @@ ProvisioningMessage = Struct(
 
 
 class ProvisioningEncryption:
-
     @staticmethod
     def data_encrypt(secret, inputs, data):
         """ inputs = confirmation_salt + provisioner_random + device_random """
         provisioning_salt = s1(inputs)
-        provisioning_key = k1(secret, provisioning_salt, b'prsk')
+        provisioning_key = k1(secret, provisioning_salt, b"prsk")
         provisioning_nonce = k1(secret, provisioning_salt, b"prsn")[-13:]
 
         return aes_ccm_encrypt(provisioning_key, provisioning_nonce, data, tag_length=8)
 
     @staticmethod
-    def data_decrypt(secret, inputs, data, mic=b''):
+    def data_decrypt(secret, inputs, data, mic=b""):
         """ inputs = confirmation_salt + provisioner_random + device_random """
         provisioning_salt = s1(inputs)
-        provisioning_key = k1(secret, provisioning_salt, b'prsk')
-        provisioning_nonce = k1(secret, provisioning_salt, b'prsn')[-13:]
+        provisioning_key = k1(secret, provisioning_salt, b"prsk")
+        provisioning_nonce = k1(secret, provisioning_salt, b"prsn")[-13:]
 
-        return provisioning_salt, aes_ccm_decrypt(provisioning_key, provisioning_nonce, data + mic, tag_length=8)
+        return (
+            provisioning_salt,
+            aes_ccm_decrypt(
+                provisioning_key, provisioning_nonce, data + mic, tag_length=8
+            ),
+        )
 
     @staticmethod
     def provisioning_device_key(secret, provisioning_salt):
-        return k1(secret, provisioning_salt, b'prdk')
+        return k1(secret, provisioning_salt, b"prdk")
 
     @staticmethod
     def confirmation_encrypt(secret, inputs, random, auth=None):
         """ inputs = invite(attention) + capabilities(without opcode) + start(msg) + provisioner_key + device_key """
         confirmation_salt = s1(inputs)
-        confirmation_key = k1(secret, confirmation_salt, b'prck')
+        confirmation_key = k1(secret, confirmation_salt, b"prck")
 
-        return confirmation_salt, confirmation_key, aes_cmac(confirmation_key, random + struct.pack('16s', auth or b''))
+        return (
+            confirmation_salt,
+            confirmation_key,
+            aes_cmac(confirmation_key, random + struct.pack("16s", auth or b"")),
+        )
 
     @staticmethod
     def confirmation_validate(confirmation_key, confirmation, random, auth=None):
-        return confirmation == aes_cmac(confirmation_key, random+struct.pack('16s', auth or b''))
+        return confirmation == aes_cmac(
+            confirmation_key, random + struct.pack("16s", auth or b"")
+        )

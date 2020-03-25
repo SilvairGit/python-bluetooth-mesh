@@ -1,17 +1,50 @@
-from construct import (
-    Int8ul, Int16ul, obj_, Select, Struct, Switch,
-    this, Embedded, GreedyRange, Const,
-    BitsInteger, Array, Byte, ExprAdapter
-)
-from math import pow, log
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
 from enum import IntEnum
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+
+from construct import (
+    Array,
+    BitsInteger,
+    Byte,
+    Const,
+    Embedded,
+    ExprAdapter,
+    GreedyRange,
+    Int8ul,
+    Int16ul,
+    Select,
+    Struct,
+    Switch,
+    obj_,
+    this,
+)
+
 from bluetooth_mesh.messages.config import DoubleKeyIndex, EmbeddedBitStruct
-from bluetooth_mesh.messages.properties import PropertyValue, DefaultCountValidator
+from bluetooth_mesh.messages.properties import DefaultCountValidator, PropertyValue
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 
 class SensorSampling(IntEnum):
-    UNSPECIFIED = 0X00
+    UNSPECIFIED = 0x00
     INSTANTANEOUS = 0x01
     ARITHMETIC_MEAN = 0x02
     RMS = 0x03
@@ -50,6 +83,7 @@ class SensorSetupOpcode(IntEnum):
     SENSOR_SETTING_STATUS = 0x5B
 
 
+# fmt: off
 SensorGetMinimal = Struct()
 
 SensorGetOptional = Struct(
@@ -212,3 +246,4 @@ SensorSetupMessage = Struct(
         },
     )
 )
+# fmt: on

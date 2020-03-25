@@ -1,6 +1,29 @@
-from construct import Int8ul, Int24ul, Struct, Switch, this, BitStruct, BitsInteger
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
 from enum import IntEnum
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, DefaultCountValidator
+
+from construct import BitsInteger, BitStruct, Int8ul, Int24ul, Struct, Switch, this
+
+from bluetooth_mesh.messages.util import DefaultCountValidator, EnumAdapter, Opcode
 
 
 class GenericBatteryOpcode(IntEnum):
@@ -36,6 +59,7 @@ class GenericBatteryFlagsServiceability(IntEnum):
     BATTERY_SERVICEABILITY_UNKNOWN = 0b11
 
 
+# fmt: off
 BatteryFlags = BitStruct(
     "battery_serviceability_flags" / EnumAdapter(BitsInteger(2),
                                                  GenericBatteryFlagsServiceability),
@@ -66,3 +90,4 @@ GenericBatteryMessage = Struct(
         },
     )
 )
+# fmt: on

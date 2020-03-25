@@ -1,12 +1,53 @@
-from math import pow, log
-from construct import (
-    Int8sl, Int8ul, Int16ul, Int16sl, Int24ul, Int32ul, Struct, Embedded,
-    Switch, this, Adapter, Probe, Flag, Array, Byte, BytesInteger, BitsInteger, PaddedString
-)
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
+# pylint: disable=W0223
+
 from datetime import datetime, timedelta
+from enum import IntEnum
+from math import log, pow
+
+from construct import (
+    Adapter,
+    Array,
+    BitsInteger,
+    Byte,
+    BytesInteger,
+    Embedded,
+    Flag,
+    Int8sl,
+    Int8ul,
+    Int16sl,
+    Int16ul,
+    Int24ul,
+    Int32ul,
+    PaddedString,
+    Probe,
+    Struct,
+    Switch,
+    this,
+)
+
 from bluetooth_mesh.messages.config import EmbeddedBitStruct
 from bluetooth_mesh.messages.util import DefaultCountValidator
-from enum import IntEnum
 
 
 class PropertyID(IntEnum):
@@ -140,6 +181,13 @@ class DateValidator(Adapter):
 
     def _encode(self, obj, content, path):
         return 0x0 if obj is None else (obj - self.EPOCH).days
+
+
+def FixedString(size):
+    return PaddedString(size, "utf8")
+
+
+# fmt: off
 
 
 # time
@@ -418,11 +466,6 @@ RelativeRuntimeInAGenericLevelRange = Struct(
     "maximum_generic_level" / DefaultCountValidator(Int16ul),
 )
 
-
-def FixedString(size):
-    return PaddedString(size, "utf8")
-
-
 PropertyValue = Switch(
     this.sensor_setting_property_id,
     {
@@ -541,3 +584,4 @@ PropertyValue = Switch(
     },
     default=Array(this.length, Byte)
 )
+# fmt: off

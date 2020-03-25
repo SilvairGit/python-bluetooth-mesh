@@ -1,11 +1,33 @@
-import pytest
-import construct
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
 from copy import deepcopy
+
+import pytest
+from construct import ValidationError
 
 from bluetooth_mesh.messages.config import *
 
-
 valid = [
+    # fmt: off
     pytest.param(
         SecureNetworkBeaconAdapter,
         bytes.fromhex('00'),
@@ -864,9 +886,11 @@ valid = [
         },
         id="ConfigNetworkTransmitSet"
     ),
+    # fmt: on
 ]
 
 build_valid = [
+    # fmt: off
     pytest.param(
         CompositionDataElement,
         bytes.fromhex('00000101ADDEEFBEADDE'),
@@ -907,9 +931,11 @@ build_valid = [
         },
         id="CompositionDataElement (Vendor and SIG number not needed) - No vendor"
     ),
+    # fmt: on
 ]
 
 parse_invalid = [
+    # fmt: off
     pytest.param(
         ConfigHeartbeatPublicationSet,
         bytes.fromhex('010203048006070809'),
@@ -928,9 +954,11 @@ parse_invalid = [
         ValidationError,
         id="ConfigHeartbeatPublicationSet - period too long",
     ),
+    # fmt: on
 ]
 
 build_invalid = [
+    # fmt: off
     pytest.param(
         ConfigHeartbeatPublicationSet,
         {
@@ -957,6 +985,7 @@ build_invalid = [
         ValidationError,
         id="ConfigHeartbeatPublicationSet - infinite period",
     ),
+    # fmt: on
 ]
 
 
@@ -986,30 +1015,24 @@ def test_build_invalid(message, decoded, exception):
 
 
 def test_build_config_message():
-    key = bytes.fromhex('deadbeef' * 4)
+    key = bytes.fromhex("deadbeef" * 4)
 
-    data = ConfigMessage.build(dict(
-        opcode=ConfigOpcode.APPKEY_ADD,
-        params=dict(
-            app_key_index=1,
-            net_key_index=1,
-            app_key=key,
+    data = ConfigMessage.build(
+        dict(
+            opcode=ConfigOpcode.APPKEY_ADD,
+            params=dict(app_key_index=1, net_key_index=1, app_key=key,),
         )
-    ))
+    )
 
-    assert data == bytes.fromhex('00011000') + key
+    assert data == bytes.fromhex("00011000") + key
 
 
 def test_parse_config_message():
-    key = bytes.fromhex('deadbeef' * 4)
+    key = bytes.fromhex("deadbeef" * 4)
 
-    msg = ConfigMessage.parse(bytes.fromhex('00011000') + key)
+    msg = ConfigMessage.parse(bytes.fromhex("00011000") + key)
 
     assert msg == dict(
         opcode=ConfigOpcode.APPKEY_ADD,
-        params=dict(
-            app_key_index=1,
-            net_key_index=1,
-            app_key=key,
-        )
+        params=dict(app_key_index=1, net_key_index=1, app_key=key,),
     )

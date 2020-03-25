@@ -1,14 +1,36 @@
+#
+# python-bluetooth-mesh - Bluetooth Mesh for Python
+#
+# Copyright (C) 2019  SILVAIR sp. z o.o.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#
 import pytest
 
 from bluetooth_mesh.messages.generic.battery import *
 
-
 valid = [
+    # fmt: off
     pytest.param(
         b'\x82\x23',
         GenericBatteryOpcode.BATTERY_GET,
         dict(),
-        id="BATTERY_GET"),
+        id="BATTERY_GET"
+    ),
     pytest.param(
         b'\x82\x24\x32\xb4\x00\x00\xfe\xfe\x00\x62',
         GenericBatteryOpcode.BATTERY_STATUS,
@@ -23,7 +45,8 @@ valid = [
                 battery_serviceability_flags=GenericBatteryFlagsServiceability.BATTERY_NOT_REQUIRE_SERVICE
             )
         ),
-        id="BATTERY_STATUS"),
+        id="BATTERY_STATUS"
+    ),
     pytest.param(
         b'\x82\x24\xff\xbb\xaa\x00\xff\xff\xff\xdb',
         GenericBatteryOpcode.BATTERY_STATUS,
@@ -38,7 +61,9 @@ valid = [
                 battery_serviceability_flags=GenericBatteryFlagsServiceability.BATTERY_SERVICEABILITY_UNKNOWN
             )
         ),
-        id="BATTERY_STATUS"),
+        id="BATTERY_STATUS"
+    ),
+    # fmt: on
 ]
 
 
@@ -49,5 +74,4 @@ def test_parse_valid(encoded, opcode, data):
 
 @pytest.mark.parametrize("encoded,opcode,data", valid)
 def test_build_valid(encoded, opcode, data):
-    assert GenericBatteryMessage.build(dict(opcode=opcode, params=data)) == \
-        encoded
+    assert GenericBatteryMessage.build(dict(opcode=opcode, params=data)) == encoded
