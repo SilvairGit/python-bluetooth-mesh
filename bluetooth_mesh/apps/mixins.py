@@ -10,6 +10,6 @@ class LocalNetworkMixin:
         )
 
 
-@hookimpl
+@hookimpl(trylast=True)
 def application_mixins():
     return (LocalNetworkMixin,)
