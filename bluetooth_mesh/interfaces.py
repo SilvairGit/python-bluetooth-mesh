@@ -143,27 +143,29 @@ class ProvisionAgentInterface(ServiceInterface):
 
     @method(name="PrivateKey")
     def private_key(self) -> "ay":
-        return []
+        self.logger.info("Request Private Key")
+        return self.application.private_key()
 
     @method(name="PublicKey")
     def public_key(self) -> "ay":
-        return []
+        self.logger.info("Request Public Key")
+        return self.application.public_key()
 
     @method(name="DisplayString")
     def display_string(self, value: "s"):
-        pass
+        self.application.display_string(value)
 
     @method(name="DisplayNumeric")
     def display_numeric(self, type: "s", number: "u"):
-        pass
+        self.application.display_numeric(type, number)
 
     @method(name="PromptNumeric")
     def prompt_numeric(self, type: "s") -> "u":
-        return 0
+        return self.application.prompt_numeric(type)
 
     @method(name="PromptStatic")
     def prompt_static(self, type: "s") -> "ay":
-        return []
+        return self.application.prompt_static(type)
 
     @method(name="Cancel")
     def cancel(self):
@@ -171,15 +173,41 @@ class ProvisionAgentInterface(ServiceInterface):
 
     @dbus_property(name="Capabilities", access=PropertyAccess.READ)
     def get_capabilities(self) -> "as":
-        return []
+        self.logger.info("Request Capabilities: %s", self.application.capabilities)
+        return [cap.value for cap in self.application.capabilities]
 
     @dbus_property(name="OutOfBandInfo", access=PropertyAccess.READ)
     def out_of_band_info(self) -> "as":
-        return []
+        self.logger.info("Request OutOfBand Info: %s", self.application.oob_info)
+        return [oob.value for oob in self.application.oob_info]
 
     @dbus_property(name="URI", access=PropertyAccess.READ)
     def uri(self) -> "s":
-        return ""
+        return self.application.uri
+
+
+class ProvisionerInterface(ServiceInterface):
+    def __init__(self, application):
+        self.application = application
+        self.logger = logging.getLogger("ProvisionerInterface")
+        super().__init__(name="org.bluez.mesh.Provisioner1")
+
+    @method(name="ScanResult")
+    def scan_result(self, rssi: "n", data: "ay"):
+        self.logger.debug("RSSI: %s, data: %s", rssi, data)
+        self.application.scan_result(rssi, data)
+
+    @method(name="RequestProvData")
+    def request_prov_data(self, count: "y") -> "qq":
+        return self.application.request_prov_data(count)
+
+    @method(name="AddNodeComplete")
+    def add_node_complete(self, uuid: "ay", unicast: "q", count: "y"):
+        self.application.add_node_complete(uuid=uuid, unicast=unicast, count=count)
+
+    @method(name="AddNodeFailed")
+    def add_node_failed(self, uuid: "ay", reason: "s"):
+        self.application.add_node_failed(uuid=uuid, reason=reason)
 
 
 class _ApplicationInterface(ServiceInterface):

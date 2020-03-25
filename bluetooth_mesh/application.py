@@ -27,6 +27,7 @@ This module provides a high-level API for BlueZ mesh stack.
 
 import asyncio
 import logging
+from enum import Enum
 from functools import lru_cache
 from os import urandom
 from typing import Any, Dict, List, Mapping, Optional, Tuple, Type, Union
@@ -46,6 +47,7 @@ from bluetooth_mesh.interfaces import (
     NetworkInterface,
     NodeInterface,
     ProvisionAgentInterface,
+    ProvisionerInterface,
 )
 from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.models import ConfigClient
@@ -56,6 +58,35 @@ __all__ = [
     "Application",
     "Element",
 ]
+
+
+class Capabilities(Enum):
+    BLINK = "blink"
+    BEEP = "beep"
+    VIBRATE = "vibrate"
+    OUT_NUMERIC = "out-numeric"
+    OUT_ALPHA = "out-alpha"
+    PUSH = "push"
+    TWIST = "twist"
+    IN_NUMERIC = "in-numeric"
+    IN_ALPHA = "in-alpha"
+    STATIC_OOB = "static-oob"
+    PUBLIC_OOB = "public-oob"
+
+
+class OOBInfo(Enum):
+    OTHER = "other"
+    URI = "uri"
+    MACHINE_CODE_2D = "machine-code-2d"
+    BAR_CODE = "bar-code"
+    NFC = "nfc"
+    NUMBER = "number"
+    STRING = "string"
+    ON_BOX = "on-box"
+    IN_BOX = "in-box"
+    ON_PAPER = "on-paper"
+    IN_MANUAL = "in-manual"
+    ON_DEVICE = "on-device"
 
 
 class CompositionDataMixin:
@@ -236,6 +267,157 @@ class DBusMixin:
         return await self.dbus_disconnect()
 
 
+class ProvisioningMixin:
+    CAPABILITIES = []
+    OOBINFO = []
+    URI = ""
+
+    def private_key(self) -> bytes:
+        """
+        This method is called during provisioning if the Provisioner
+        has requested Out-Of-Band ECC key exchange. The Private key is
+        returned to the Daemon, and the Public Key is delivered to the
+        remote Provisioner using a method that does not involve the
+        Bluetooth Mesh system. The Private Key returned must be 32
+        octets in size.
+        """
+        raise NotImplementedError("Getting private key should be overridden!")
+
+    def public_key(self) -> bytes:
+        """
+        This method is called during provisioning if the local device is
+        the Provisioner, and is requestng Out-Of-Band ECC key exchange.
+        The Public key is returned to the Daemon that is the matched
+        pair of the Private key of the remote device. The Public Key
+        returned must be 64 octets in size.
+        """
+        raise NotImplementedError("Getting public key should be overridden!")
+
+    def display_string(self, value: str):
+        """
+        This method is called when the Daemon has something important for the Agent to Display,
+        but does not require any additional input locally.
+        :param value: String
+        :return:
+        """
+        raise NotImplementedError("Display functions should be overridden!")
+
+    def display_numeric(self, type: str, number: int):
+        """
+        This method is called when the Daemon has something important
+        for the Agent to Display, but does not require any additional
+        input locally.
+        :param type: String
+        :param value: Integer
+        :return:
+        """
+        raise NotImplementedError("Display functions should be overridden!")
+
+    def prompt_static(self, type: str) -> bytes:
+        """
+        This method is called when the Daemon requires a 16 octet byte
+        array, as an Out-of-Band authentication.
+        :param type:
+        :return:
+        """
+        raise NotImplementedError("Prompt functions should be overridden!")
+
+    def prompt_numeric(self, type: str) -> int:
+        """
+        This method is called when the Daemon requests the user to
+        enter a decimal value between 1-99999999.
+        :param type:
+        :return:
+        """
+        raise NotImplementedError("Prompt functions should be overridden!")
+
+    def cancel(self):
+        """
+        This method gets called by the daemon to cancel any existing
+        Agent Requests. When called, any pending user input should be
+        canceled, and any display requests removed.
+        :return:
+        """
+        raise NotImplementedError("Cancel functions should be overridden!")
+
+    @property
+    def capabilities(self) -> List[Capabilities]:
+        """
+        Return list of available capabilities.
+        """
+        return self.CAPABILITIES
+
+    @capabilities.setter
+    def capabilities(self, cap: List[Capabilities]):
+        self.CAPABILITIES = cap
+
+    @property
+    def oob_info(self) -> List[OOBInfo]:
+        """
+        Indicates availability of OOB data.
+        """
+        return self.OOBINFO
+
+    @oob_info.setter
+    def oob_info(self, info: List[OOBInfo]):
+        self.OOBINFO = info
+
+    @property
+    def uri(self) -> str:
+        return self.URI
+
+
+class ProvisionerMixin:
+    def scan_result(self, rssi: int, data: bytes):
+        """
+        The method is called from the bluetooth-meshd daemon when a
+        unique UUID has been seen during UnprovisionedScan() for
+        unprovsioned devices.
+        :param rssi: signed, normalized measurement of the signal strength of the recieved unprovisioned beacon
+        :param data:
+        :return:
+        """
+        raise NotImplementedError("Provisioner functions should be overridden!")
+
+    def request_prov_data(self, count: int) -> Tuple[int, int]:
+        """
+        This method is implemented by a Provisioner capable application
+        and is called when the remote device has been fully
+        authenticated and confirmed.
+
+        :param count: consecutive unicast addresses the remote device is requesting
+        :return:
+            :param unet_index: Subnet index of the net_key
+            :param uunicast: Primary Unicast address of the new node
+        """
+        raise NotImplementedError("Provisioner functions should be overridden!")
+
+    def add_node_complete(self, uuid: bytes, unicast: int, count: int):
+        """
+        This method is called when the node provisioning initiated
+        by an AddNode() method call successfully completed.
+
+        :param uuid: 16 byte remote device UUID
+        :param unicast: primary address that has been assigned to the new node, and the address of it's config server
+        :param count: number of unicast addresses assigned to the new node
+        :return:
+        """
+        raise NotImplementedError("Provisioner functions should be overridden!")
+
+    def add_node_failed(self, uuid: bytes, reason: str):
+        """
+        This method is called when the node provisioning initiated by
+        AddNode() has failed. Depending on how far Provisioning
+        proceeded before failing, some cleanup of cached data may be
+        required.
+
+        :param uuid: 16 byte remote device UUID
+        :param reason: reason for provisioning failure
+        :return:
+        """
+        raise NotImplementedError("Provisioner functions should be overridden!")
+
+
 class Application(
     CompositionDataMixin,
     TokenRingMixin,
@@ -245,6 +427,8 @@ class Application(
     DeviceKeyMixin,
     NetworkKeyMixin,
     DBusMixin,
+    ProvisioningMixin,
+    ProvisionerMixin,
 ):
     """
     Base class for mesh applications.
@@ -263,6 +447,7 @@ class Application(
 
         self.application_interface = ApplicationInterface(self)
         self.provision_agent_interface = ProvisionAgentInterface(self)
+        self.provisioner_interface = ProvisionerInterface(self)
 
         self.elements = {}  # type: Dict[int, Element]
 
@@ -300,6 +485,7 @@ class Application(
 
         self.bus.export(self.path, self.application_interface)
         self.bus.export(self.path, self.provision_agent_interface)
+        self.bus.export(self.path, self.provisioner_interface)
 
         for index, element_class in self.ELEMENTS.items():
             element = element_class(self, index)
