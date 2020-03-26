@@ -48,10 +48,11 @@ from bluetooth_mesh.interfaces import (
     NodeInterface,
     ProvisionAgentInterface,
     ProvisionerInterface,
+    AclInterface,
 )
 from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.models import ConfigClient
-from bluetooth_mesh.tokenring import TokenRing
+from bluetooth_mesh.tokenring import NewTokenRing
 from bluetooth_mesh.utils import ParsedMeshMessage
 
 __all__ = [
@@ -129,15 +130,25 @@ class TokenRingMixin:
 
     def __init__(self):
         super().__init__()
-        self._token_ring = TokenRing()
+        self._token_ring = NewTokenRing()
 
     @property
     def token(self) -> int:
-        return self._token_ring[self.uuid]
+        node = self._token_ring[self.uuid]
+        return node['token'] if node else 0
 
     @token.setter
     def token(self, value):
         self._token_ring[self.uuid] = value
+
+    @property
+    def acl_tokens(self) -> int:
+        return self._token_ring.get_acl(self.uuid)
+
+    @acl_tokens.setter
+    def acl_tokens(self, value):
+        print("acl_tokens", value)
+        self._token_ring.set_acl(self.uuid, value)
 
 
 class PathMixin:
@@ -455,6 +466,36 @@ class Application(
         self.node_interface = None
         self.management_interface = None
         self.addr = None
+
+    async def _get_acl_interface(self):
+        try:
+            mesh_introspection = await self.bus.introspect(MeshService.NAME, MeshService.PATH)
+            tcp_server = [node.name for node in mesh_introspection.nodes if node.name.startswith("tcpserver_")][0]
+        except IndexError:
+            self.logger.warning("TCP interface missing")
+            return
+
+        path = "%s/%s" % (self.DBUS_SERVICE.PATH, tcp_server)
+        introspection = await self.bus.introspect(MeshService.NAME, path)
+        acl_service = self.bus.get_proxy_object(MeshService.NAME, path, introspection)
+
+        return AclInterface(acl_service)
+
+    async def acl_grant(self, uuid, dev_key, net_key):
+        server = await self._get_acl_interface()
+        tokens = self.acl_tokens
+        if server:
+            token = await server.grant_access(uuid.bytes, dev_key.bytes, net_key.bytes)
+            tokens[uuid] = token
+            self.acl_tokens = tokens
+
+    async def acl_revoke(self, uuid):
+        server = await self._get_acl_interface()
+        tokens = self.acl_tokens
+        if server:
+            await server.revoke_access(self.acl_tokens[uuid])
+            del(tokens[uuid])
+            self.acl_tokens = tokens
 
     async def dbus_connected(self, owner):
         introspection = await self.bus.introspect(
