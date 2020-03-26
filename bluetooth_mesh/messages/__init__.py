@@ -20,10 +20,12 @@ AccessMessage = Select(
     "GatewayConfigMessage" / GatewayConfigMessage,
     "GenericMessage" / GenericMessage,
     "HealthMessage" / HealthMessage,
-    "Message" / Message,
     "NetworkDiagnosticServerMessage" / NetworkDiagnosticServerMessage,
     "SceneMessage" / SceneMessage,
     "SensorMessage" / SensorMessage,
     "SensorSetupMessage" / SensorSetupMessage,
+
+    # this needs to be last
+    "Message" / Message,
 )
 # fmt: on
