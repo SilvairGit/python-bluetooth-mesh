@@ -299,9 +299,13 @@ class NetworkInterface:
 
 class AclInterface:
     def __init__(self, mesh_service):
-        self._interface = mesh_service.get_interface("org.bluez.mesh.AccessControlList1")
+        self._interface = mesh_service.get_interface(
+            "org.bluez.mesh.AccessControlList1"
+        )
 
-    async def grant_access(self, uuid: UUID, dev_key: DeviceKey, net_key: NetworkKey) -> int:
+    async def grant_access(
+        self, uuid: UUID, dev_key: DeviceKey, net_key: NetworkKey
+    ) -> int:
         return await self._interface.call_grant_access(uuid, dev_key, net_key)
 
     async def revoke_access(self, token: int):

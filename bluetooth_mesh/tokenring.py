@@ -20,7 +20,8 @@
 #
 #
 import os
-from marshmallow import Schema, fields, ValidationError
+
+from marshmallow import Schema, ValidationError, fields
 
 
 class StoredNodeSchema(Schema):
@@ -29,7 +30,7 @@ class StoredNodeSchema(Schema):
     network = fields.Dict(keys=fields.String(), values=fields.String())
 
 
-class NewTokenRing:
+class TokenRing:
     PATH = "~/.cache/bluetooth-mesh"
 
     @property
@@ -59,22 +60,22 @@ class NewTokenRing:
 
     @property
     def token(self):
-        return self.data['token']
+        return self.data["token"]
 
     @token.setter
     def token(self, value):
-        self.data['token'] = value
+        self.data["token"] = value
         self._save()
 
     def acl(self, uuid=None, token=None):
         if all((uuid, token)):
-            self.data['acl'][uuid] = token
+            self.data["acl"][uuid] = token
             self._save()
             print(self.data)
             return
 
-        return self.data['acl'].get(uuid) if uuid else self.data['acl'].items()
+        return self.data["acl"].get(uuid) if uuid else self.data["acl"].items()
 
     def drop_acl(self, uuid):
-        del(self.data['acl'][uuid])
+        del self.data["acl"][uuid]
         self._save()
