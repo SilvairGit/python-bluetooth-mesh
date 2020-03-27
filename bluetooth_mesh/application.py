@@ -52,7 +52,7 @@ from bluetooth_mesh.interfaces import (
 )
 from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.models import ConfigClient
-from bluetooth_mesh.tokenring import NewTokenRing
+from bluetooth_mesh.tokenring import TokenRing
 from bluetooth_mesh.utils import ParsedMeshMessage
 
 __all__ = [
@@ -119,36 +119,6 @@ class CompositionDataMixin:
     @property
     def crpl(self) -> int:
         return self.CRPL
-
-
-class TokenRingMixin:
-    """
-    Provides `token` property via persistent, UUID-based token storage.
-
-    See :py:class:`bluetooth_mesh.tokenring.TokenRing` for details.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self._token_ring = NewTokenRing()
-
-    @property
-    def token(self) -> int:
-        node = self._token_ring[self.uuid]
-        return node['token'] if node else 0
-
-    @token.setter
-    def token(self, value):
-        self._token_ring[self.uuid] = value
-
-    @property
-    def acl_tokens(self) -> int:
-        return self._token_ring.get_acl(self.uuid)
-
-    @acl_tokens.setter
-    def acl_tokens(self, value):
-        print("acl_tokens", value)
-        self._token_ring.set_acl(self.uuid, value)
 
 
 class PathMixin:
@@ -431,7 +401,6 @@ class ProvisionerMixin:
 
 class Application(
     CompositionDataMixin,
-    TokenRingMixin,
     MachineUUIDMixin,
     PathMixin,
     ApplicationKeyMixin,
@@ -467,6 +436,8 @@ class Application(
         self.management_interface = None
         self.addr = None
 
+        self.token_ring = None
+
     async def _get_acl_interface(self):
         try:
             mesh_introspection = await self.bus.introspect(MeshService.NAME, MeshService.PATH)
@@ -483,19 +454,15 @@ class Application(
 
     async def acl_grant(self, uuid, dev_key, net_key):
         server = await self._get_acl_interface()
-        tokens = self.acl_tokens
         if server:
             token = await server.grant_access(uuid.bytes, dev_key.bytes, net_key.bytes)
-            tokens[uuid] = token
-            self.acl_tokens = tokens
+            self.token_ring.acl(uuid, token)
 
     async def acl_revoke(self, uuid):
         server = await self._get_acl_interface()
-        tokens = self.acl_tokens
         if server:
-            await server.revoke_access(self.acl_tokens[uuid])
-            del(tokens[uuid])
-            self.acl_tokens = tokens
+            await server.revoke_access(self.token_ring.acl(uuid))
+            self.token_ring.drop_acl(uuid)
 
     async def dbus_connected(self, owner):
         introspection = await self.bus.introspect(
@@ -557,6 +524,7 @@ class Application(
         method in mesh-api.txt_.
 
         """
+        self.token_ring = TokenRing(self.uuid)
         try:
             configuration = await self.attach()
         except (ValueError, dbus_next.errors.DBusError) as ex:
@@ -676,7 +644,7 @@ class Application(
         Remove the node.
         """
         self.logger.info("Leave")
-        await self.network_interface.leave(self.token)
+        await self.network_interface.leave(self.token_ring.token)
 
     async def attach(self, token: Optional[int] = None):
         """
@@ -685,15 +653,15 @@ class Application(
         Returns current node configuration, see documentation for Attach()
         method in mesh-api.txt_.
         """
-        token = token if token is not None else self.token
+        token = token if token is not None else self.token_ring.token
 
         if token is None:
             raise ValueError("No token")
 
-        self.logger.info("Attach %x", self.token)
+        self.logger.info("Attach %x", self.token_ring.token)
         path, configuration = await self.network_interface.attach("/", token)
 
-        self.token = token
+        self.token_ring.token = token
 
         introspection = await self.bus.introspect(MeshService.NAME, path)
         node_service = self.bus.get_proxy_object(MeshService.NAME, path, introspection)
@@ -762,11 +730,11 @@ class Application(
         if flags:
             flags = {k: dbus_next.Variant("b", v) for k, v in flags.items()}
 
-        self.token = await self.network_interface.import_node(
+        self.token_ring.token = await self.network_interface.import_node(
             "/", self.uuid, dev_key, net_key, net_index, flags or {}, iv_index, addr
         )
 
-        return self.token
+        return self.token_ring.token
 
 
 class LocationMixin:

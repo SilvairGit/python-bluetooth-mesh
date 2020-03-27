@@ -20,61 +20,61 @@
 #
 #
 import os
-import warnings
-from typing import Dict
-from uuid import UUID
-from marshmallow import Schema, fields
-
-
-class StoredAclSchema(Schema):
-    uuid = fields.UUID()
-    token = fields.Integer()
+from marshmallow import Schema, fields, ValidationError
 
 
 class StoredNodeSchema(Schema):
     token = fields.Integer()
     acl = fields.Dict(keys=fields.UUID(), values=fields.Integer())
+    network = fields.Dict(keys=fields.String(), values=fields.String())
 
 
 class NewTokenRing:
-    PATH = "~/.cache/bluetooth-mesh-example"
+    PATH = "~/.cache/bluetooth-mesh"
 
     @property
     def path(self):
         return os.path.expanduser(self.PATH)
 
-    def __init__(self):
-        self.__tokens = {}  # type: Dict[UUID, int]
+    def __init__(self, uuid):
+        self.uuid = str(uuid)
         self.schema = StoredNodeSchema()
+        self.data = {}
 
         os.makedirs(self.path, exist_ok=True)
-        for filename in os.listdir(self.path):
-            with open(os.path.join(self.path, filename), "r") as tokenfile:
+        try:
+            with open(os.path.join(self.path, self.uuid), "r") as tokenfile:
                 r = tokenfile.read()
                 try:
-                    self.__tokens[UUID(filename)] = self.schema.loads(r)
-                except Exception as e:
-                    print(e)
+                    self.data = self.schema.loads(r)
+                except ValidationError:
+                    self.data = dict(token=int(r), acl={}, network={})
 
-    def __getitem__(self, uuid):
-        return self.__tokens.get(uuid, {})
+        except FileNotFoundError:
+            self.data = dict(token=0, acl={}, network={})
 
-    def __setitem__(self, uuid, token):
-        if uuid in self.__tokens:
-            self.__tokens[uuid]['token'] = token
-        else:
-            self.__tokens[uuid] = dict(token=token, acl={})
-            self._save(uuid)
+    def _save(self):
+        with open(os.path.join(self.path, self.uuid), "w") as tokenfile:
+            tokenfile.write(self.schema.dumps(self.data))
 
-    def get_acl(self, uuid):
-        if uuid not in self.__tokens:
-            return {}
-        return self.__tokens[uuid].get("acl", {})
+    @property
+    def token(self):
+        return self.data['token']
 
-    def set_acl(self, uuid, acl_data):
-        self.__tokens[uuid]['acl'] = acl_data
-        self._save(uuid)
+    @token.setter
+    def token(self, value):
+        self.data['token'] = value
+        self._save()
 
-    def _save(self, uuid):
-        with open(os.path.join(self.path, str(uuid)), "w") as tokenfile:
-            tokenfile.write(self.schema.dumps(self.__tokens[uuid]))
+    def acl(self, uuid=None, token=None):
+        if all((uuid, token)):
+            self.data['acl'][uuid] = token
+            self._save()
+            print(self.data)
+            return
+
+        return self.data['acl'].get(uuid) if uuid else self.data['acl'].items()
+
+    def drop_acl(self, uuid):
+        del(self.data['acl'][uuid])
+        self._save()

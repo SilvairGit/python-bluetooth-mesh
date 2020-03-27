@@ -565,7 +565,7 @@ class AclCommand(Command):
     CMD = "acl"
 
     def format(self, application):
-        for uuid, token in application.acl_tokens.items():
+        for uuid, token in application.token_ring.acl():
             try:
                 name = application.network.get_node(uuid=uuid).name
             except KeyError:
