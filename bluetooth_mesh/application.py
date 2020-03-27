@@ -184,7 +184,6 @@ class ApplicationKeyMixin(NetworkKeyMixin):
 
         raise IndexError("Primary application key not found")
 
-
     @property
     def app_keys(self) -> List[Tuple[int, int, ApplicationKey]]:
         """
@@ -440,8 +439,14 @@ class Application(
 
     async def _get_acl_interface(self):
         try:
-            mesh_introspection = await self.bus.introspect(MeshService.NAME, MeshService.PATH)
-            tcp_server = [node.name for node in mesh_introspection.nodes if node.name.startswith("tcpserver_")][0]
+            mesh_introspection = await self.bus.introspect(
+                MeshService.NAME, MeshService.PATH
+            )
+            tcp_server = [
+                node.name
+                for node in mesh_introspection.nodes
+                if node.name.startswith("tcpserver_")
+            ][0]
         except IndexError:
             self.logger.warning("TCP interface missing")
             return

@@ -592,11 +592,7 @@ class AclCommand(Command):
                 dev_key = DeviceKey(bytes.fromhex(dev_key))
                 net_key = NetworkKey(bytes.fromhex(net_key))
 
-            await application.acl_grant(
-                uuid=uuid,
-                dev_key=dev_key,
-                net_key=net_key
-            )
+            await application.acl_grant(uuid=uuid, dev_key=dev_key, net_key=net_key)
 
         if arguments["--revoke"]:
             await application.acl_revoke(uuid=UUID(hex=arguments["--revoke"]))
