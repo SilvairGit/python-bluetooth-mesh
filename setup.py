@@ -48,6 +48,7 @@ setup(
         'dbus-next==0.1.3',
         'ecdsa==0.15',
         'pluggy>=0.13.1',
+        'marshmallow==3.0.1',
     ],
     tests_require=[
         'asynctest>=0.12.3',
