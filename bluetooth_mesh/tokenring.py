@@ -32,6 +32,7 @@ class StoredNodeSchema(Schema):
 
 class TokenRing:
     PATH = "~/.cache/bluetooth-mesh"
+    LEGACY_PATH = "~/.cache/bluetooth-mesh-example"
 
     @property
     def path(self):
@@ -43,16 +44,18 @@ class TokenRing:
         self.data = {}
 
         os.makedirs(self.path, exist_ok=True)
-        try:
-            with open(os.path.join(self.path, self.uuid), "r") as tokenfile:
-                r = tokenfile.read()
-                try:
-                    self.data = self.schema.loads(r)
-                except ValidationError:
-                    self.data = dict(token=int(r), acl={}, network={})
+        for path in [self.path, os.path.expanduser(self.LEGACY_PATH)]:
+            try:
+                with open(os.path.join(path, self.uuid), "r") as tokenfile:
+                    r = tokenfile.read()
+                    try:
+                        self.data = self.schema.loads(r)
+                        return
+                    except ValidationError:
+                        self.data = dict(token=int(r), acl={}, network={})
 
-        except FileNotFoundError:
-            self.data = dict(token=0, acl={}, network={})
+            except FileNotFoundError:
+                self.data = dict(token=0, acl={}, network={})
 
     def _save(self):
         with open(os.path.join(self.path, self.uuid), "w") as tokenfile:
