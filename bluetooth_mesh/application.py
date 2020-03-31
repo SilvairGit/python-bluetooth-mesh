@@ -438,20 +438,19 @@ class Application(
         self.token_ring = None
 
     async def _get_acl_interface(self):
-        try:
-            mesh_introspection = await self.bus.introspect(
-                MeshService.NAME, MeshService.PATH
-            )
-            tcp_server = [
-                node.name
-                for node in mesh_introspection.nodes
-                if node.name.startswith("tcpserver_")
-            ][0]
-        except IndexError:
+        mesh_introspection = await self.bus.introspect(
+            MeshService.NAME, MeshService.PATH
+        )
+        tcp_server = [
+            node.name
+            for node in mesh_introspection.nodes
+            if node.name.startswith("tcpserver_")
+        ]
+        if not tcp_server:
             self.logger.warning("TCP interface missing")
-            return
+            raise NotImplementedError
 
-        path = "%s/%s" % (self.DBUS_SERVICE.PATH, tcp_server)
+        path = "%s/%s" % (self.DBUS_SERVICE.PATH, tcp_server[0])
         introspection = await self.bus.introspect(MeshService.NAME, path)
         acl_service = self.bus.get_proxy_object(MeshService.NAME, path, introspection)
 
@@ -459,15 +458,13 @@ class Application(
 
     async def acl_grant(self, uuid, dev_key, net_key):
         server = await self._get_acl_interface()
-        if server:
-            token = await server.grant_access(uuid.bytes, dev_key.bytes, net_key.bytes)
-            self.token_ring.acl(uuid, token)
+        token = await server.grant_access(uuid.bytes, dev_key.bytes, net_key.bytes)
+        self.token_ring.acl(uuid, token)
 
     async def acl_revoke(self, uuid):
         server = await self._get_acl_interface()
-        if server:
-            await server.revoke_access(self.token_ring.acl(uuid))
-            self.token_ring.drop_acl(uuid)
+        await server.revoke_access(self.token_ring.acl(uuid))
+        self.token_ring.drop_acl(uuid)
 
     async def dbus_connected(self, owner):
         introspection = await self.bus.introspect(

@@ -74,7 +74,6 @@ class TokenRing:
         if all((uuid, token)):
             self.data["acl"][uuid] = token
             self._save()
-            print(self.data)
             return
 
         return self.data["acl"].get(uuid) if uuid else self.data["acl"].items()
