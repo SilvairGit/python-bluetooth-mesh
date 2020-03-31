@@ -31,6 +31,7 @@ from concurrent import futures
 from contextlib import suppress
 from datetime import timedelta
 from functools import partial
+from uuid import UUID
 
 from docopt import DocoptExit, docopt
 from prompt_toolkit import PromptSession
@@ -41,7 +42,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 from bluetooth_mesh.application import Application, Element
 from bluetooth_mesh.apps import get_plugin_manager
-from bluetooth_mesh.crypto import DeviceKey
+from bluetooth_mesh.crypto import DeviceKey, NetworkKey
 from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
 from bluetooth_mesh.models import (
     ConfigClient,
@@ -548,6 +549,59 @@ class GatewayPacketsCommand(ModelCommandMixin, NodeSelectionCommandMixin, Comman
         print(parsed)
 
 
+class AclCommand(Command):
+    USAGE = """
+    Usage:
+        %(cmd)s 
+        %(cmd)s --grant <uuid> [--devkey <devkey> --netkey <netkey>]
+        %(cmd)s --revoke <uuid>
+
+    Options:
+        -g --grant=<uuid>      Grant
+        -d --devkey=<devkey>   Devkey
+        -n --netkey=<netkey>   Netkey
+        -r --revoke=<uuid>     Revoke token
+    """
+    CMD = "acl"
+
+    def format(self, application):
+        for uuid, token in application.token_ring.acl():
+            try:
+                name = application.network.get_node(uuid=uuid).name
+            except KeyError:
+                name = None
+            yield uuid, name, token
+
+    async def __call__(self, application, arguments):
+        if arguments["--grant"]:
+            uuid = UUID(arguments["--grant"])
+            dev_key = arguments["--devkey"]
+            net_key = arguments["--netkey"]
+
+            if not all([dev_key, net_key]):
+                try:
+                    dev_key = application.network.get_node(uuid=uuid).device_key
+                    net_key = application.network.network_keys[0]
+                except KeyError:
+                    logging.getLogger("acl_grant").warning(
+                        "Some key data is missing "
+                        "but node could not be found in network configuration to automagically download it."
+                    )
+                    return
+            else:
+                dev_key = DeviceKey(bytes.fromhex(dev_key))
+                net_key = NetworkKey(bytes.fromhex(net_key))
+
+            await application.acl_grant(uuid=uuid, dev_key=dev_key, net_key=net_key)
+
+        if arguments["--revoke"]:
+            await application.acl_revoke(uuid=UUID(hex=arguments["--revoke"]))
+
+        for uuid, name, token in self.format(application):
+            print("\t%s (%s): %s" % (uuid, name, token))
+        print()
+
+
 class LightCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
     USAGE = """
             Usage:
@@ -892,6 +946,7 @@ class MeshCommandLine(*application_mixins, Application):
         RelayCommand,
         GatewayConfigurationCommand,
         GatewayPacketsCommand,
+        AclCommand,
     ]
 
     COMPANY_ID = 0xFEE5

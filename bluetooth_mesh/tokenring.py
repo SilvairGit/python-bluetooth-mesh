@@ -20,39 +20,64 @@
 #
 #
 import os
-import warnings
-from typing import Dict
-from uuid import UUID
+
+from marshmallow import Schema, ValidationError, fields
+
+
+class StoredNodeSchema(Schema):
+    token = fields.Integer()
+    acl = fields.Dict(keys=fields.UUID(), values=fields.Integer())
+    network = fields.Dict(keys=fields.String(), values=fields.String())
 
 
 class TokenRing:
-    PATH = "~/.cache/bluetooth-mesh-example"
+    PATH = "~/.cache/bluetooth-mesh"
+    LEGACY_PATH = "~/.cache/bluetooth-mesh-example"
 
     @property
     def path(self):
         return os.path.expanduser(self.PATH)
 
-    def __init__(self):
-        self.__tokens = {}  # type: Dict[UUID, int]
+    def __init__(self, uuid):
+        self.uuid = str(uuid)
+        self.schema = StoredNodeSchema()
+        self.data = {}
 
         os.makedirs(self.path, exist_ok=True)
-        for filename in os.listdir(self.path):
-            with open(os.path.join(self.path, filename), "r") as tokenfile:
-                self.__tokens[UUID(filename)] = int(tokenfile.readline() or "0", 16)
+        for path in [self.path, os.path.expanduser(self.LEGACY_PATH)]:
+            try:
+                with open(os.path.join(path, self.uuid), "r") as tokenfile:
+                    r = tokenfile.read()
+                    try:
+                        self.data = self.schema.loads(r)
+                        return
+                    except ValidationError:
+                        self.data = dict(token=int(r), acl={}, network={})
 
-    def get(self, uuid) -> int:
-        warnings.warn("TokenRing.get is deprecated, use dict-like API")
-        return self[uuid]
+            except FileNotFoundError:
+                self.data = dict(token=0, acl={}, network={})
 
-    def set(self, uuid, token):
-        warnings.warn("TokenRing.set is deprecated, use dict-like API")
-        self[uuid] = token
+    def _save(self):
+        with open(os.path.join(self.path, self.uuid), "w") as tokenfile:
+            tokenfile.write(self.schema.dumps(self.data))
 
-    def __getitem__(self, uuid) -> int:
-        return self.__tokens.get(uuid, 0)
+    @property
+    def token(self):
+        return self.data["token"]
 
-    def __setitem__(self, uuid, token):
-        self.__tokens[uuid] = token
+    @token.setter
+    def token(self, value):
+        self.data["token"] = value
+        self._save()
 
-        with open(os.path.join(self.path, str(uuid)), "w") as tokenfile:
-            tokenfile.write("%x" % token)
+    def acl(self, uuid=None, token=None):
+        if all((uuid, token)):
+            self.data["acl"][uuid] = token
+            self._save()
+            return
+
+        return self.data["acl"].get(uuid) if uuid else self.data["acl"].items()
+
+    def drop_acl(self, uuid):
+        del self.data["acl"][uuid]
+        self._save()

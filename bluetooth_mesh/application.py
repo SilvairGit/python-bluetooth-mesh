@@ -38,6 +38,7 @@ import dbus_next
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 from bluetooth_mesh.interfaces import (
+    AclInterface,
     ApplicationInterface,
     DBusInterface,
     DBusService,
@@ -120,26 +121,6 @@ class CompositionDataMixin:
         return self.CRPL
 
 
-class TokenRingMixin:
-    """
-    Provides `token` property via persistent, UUID-based token storage.
-
-    See :py:class:`bluetooth_mesh.tokenring.TokenRing` for details.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self._token_ring = TokenRing()
-
-    @property
-    def token(self) -> int:
-        return self._token_ring[self.uuid]
-
-    @token.setter
-    def token(self, value):
-        self._token_ring[self.uuid] = value
-
-
 class PathMixin:
     """
     Provides `path` property under which
@@ -202,7 +183,6 @@ class ApplicationKeyMixin(NetworkKeyMixin):
                 return index, bound, key
 
         raise IndexError("Primary application key not found")
-
 
     @property
     def app_keys(self) -> List[Tuple[int, int, ApplicationKey]]:
@@ -420,7 +400,6 @@ class ProvisionerMixin:
 
 class Application(
     CompositionDataMixin,
-    TokenRingMixin,
     MachineUUIDMixin,
     PathMixin,
     ApplicationKeyMixin,
@@ -455,6 +434,37 @@ class Application(
         self.node_interface = None
         self.management_interface = None
         self.addr = None
+
+        self.token_ring = None
+
+    async def _get_acl_interface(self):
+        mesh_introspection = await self.bus.introspect(
+            MeshService.NAME, MeshService.PATH
+        )
+        tcp_server = [
+            node.name
+            for node in mesh_introspection.nodes
+            if node.name.startswith("tcpserver_")
+        ]
+        if not tcp_server:
+            self.logger.warning("TCP interface missing")
+            raise NotImplementedError
+
+        path = "%s/%s" % (self.DBUS_SERVICE.PATH, tcp_server[0])
+        introspection = await self.bus.introspect(MeshService.NAME, path)
+        acl_service = self.bus.get_proxy_object(MeshService.NAME, path, introspection)
+
+        return AclInterface(acl_service)
+
+    async def acl_grant(self, uuid, dev_key, net_key):
+        server = await self._get_acl_interface()
+        token = await server.grant_access(uuid.bytes, dev_key.bytes, net_key.bytes)
+        self.token_ring.acl(uuid, token)
+
+    async def acl_revoke(self, uuid):
+        server = await self._get_acl_interface()
+        await server.revoke_access(self.token_ring.acl(uuid))
+        self.token_ring.drop_acl(uuid)
 
     async def dbus_connected(self, owner):
         introspection = await self.bus.introspect(
@@ -516,6 +526,7 @@ class Application(
         method in mesh-api.txt_.
 
         """
+        self.token_ring = TokenRing(self.uuid)
         try:
             configuration = await self.attach()
         except (ValueError, dbus_next.errors.DBusError) as ex:
@@ -635,7 +646,7 @@ class Application(
         Remove the node.
         """
         self.logger.info("Leave")
-        await self.network_interface.leave(self.token)
+        await self.network_interface.leave(self.token_ring.token)
 
     async def attach(self, token: Optional[int] = None):
         """
@@ -644,15 +655,15 @@ class Application(
         Returns current node configuration, see documentation for Attach()
         method in mesh-api.txt_.
         """
-        token = token if token is not None else self.token
+        token = token if token is not None else self.token_ring.token
 
         if token is None:
             raise ValueError("No token")
 
-        self.logger.info("Attach %x", self.token)
+        self.logger.info("Attach %x", self.token_ring.token)
         path, configuration = await self.network_interface.attach("/", token)
 
-        self.token = token
+        self.token_ring.token = token
 
         introspection = await self.bus.introspect(MeshService.NAME, path)
         node_service = self.bus.get_proxy_object(MeshService.NAME, path, introspection)
@@ -721,11 +732,11 @@ class Application(
         if flags:
             flags = {k: dbus_next.Variant("b", v) for k, v in flags.items()}
 
-        self.token = await self.network_interface.import_node(
+        self.token_ring.token = await self.network_interface.import_node(
             "/", self.uuid, dev_key, net_key, net_index, flags or {}, iv_index, addr
         )
 
-        return self.token
+        return self.token_ring.token
 
 
 class LocationMixin:
