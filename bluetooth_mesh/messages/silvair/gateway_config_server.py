@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
+import math
 from enum import IntEnum
 
 from construct import (
@@ -28,6 +29,7 @@ from construct import (
     Const,
     Default,
     Embedded,
+    ExprAdapter,
     Int8ul,
     Int16ul,
     PaddedString,
@@ -195,11 +197,17 @@ ConfigurationStatus = Struct(
     "status_code" / EnumAdapter(Int8ul, StatusCode),
 )
 
+LogNumber = ExprAdapter(
+    Int16ul,
+    lambda obj, _: int((2 ** (obj / 100) - 1)),
+    lambda obj, _: int(math.log2(obj + 1) * 100)
+)
+
 # GATEWAY PACKETS MSG
 PacketsStatus = Struct(
-    "total_eth_rx_errors" / Int16ul,
-    "total_eth_tx_errors" / Int16ul,
-    "bandwidth" / Int16ul,
+    "total_eth_rx_errors" / LogNumber,
+    "total_eth_tx_errors" / LogNumber,
+    "bandwidth" / LogNumber,
     "connection_state" / BitStruct(
         "conn_state" / EnumAdapter(BitsInteger(3), ConnState),
         "link_status" / EnumAdapter(BitsInteger(1), LinkStatus),

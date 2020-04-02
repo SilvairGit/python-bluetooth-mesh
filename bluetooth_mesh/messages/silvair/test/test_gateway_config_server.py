@@ -279,12 +279,12 @@ valid = [
     ),
     pytest.param(
         GatewayConfigPayload,
-        bytes.fromhex("0D 0000 0002 03E8 92"),
+        bytes.fromhex("0D 0000 0002 3106 92"),
         GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS,
         dict(
             total_eth_rx_errors=0,
-            total_eth_tx_errors=512,
-            bandwidth=59395,
+            total_eth_tx_errors=33,
+            bandwidth=59063,
             connection_state=dict(
                 conn_state=ConnState.ETHERNET_CONNECTED,
                 link_status=LinkStatus.LINK_UP,
