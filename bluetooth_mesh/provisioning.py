@@ -100,8 +100,8 @@ class ProvisioningOutputOOBAction(enum.IntEnum):
 class ProvisioningInputOOBAction(enum.IntEnum):
     PUSH = 0
     TWIST = 1
-    OUTPUT_NUMERIC = 2
-    OUTPUT_ALPHANUMERIC = 3
+    INPUT_NUMERIC = 2
+    INPUT_ALPHANUMERIC = 3
 
 
 class ProvisioningAuthenticationMethod(enum.IntEnum):
