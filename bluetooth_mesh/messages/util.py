@@ -116,7 +116,7 @@ def EnumAdapter(subcon, enum):
 
 def LogAdapter(subcon, *, max_value=None, infinity=False):
     class _LogAdapter(Adapter):
-        MAX_TYPE_VALUE = int(math.pow(2, subcon.length * 8) - 1)
+        MAX_TYPE_VALUE = int(math.pow(2, subcon.sizeof() * 8) - 1)
 
         def _decode(self, obj, context, path):
             if obj == 0:
@@ -213,7 +213,7 @@ class DefaultCountValidator(Adapter):
         self.resolution = resolution
 
     def _decode(self, obj, content, path):
-        if obj == (256 ** self.subcon.length) - 1:
+        if obj == (256 ** self.subcon.sizeof()) - 1:
             return None
         else:
             return (
@@ -224,7 +224,7 @@ class DefaultCountValidator(Adapter):
 
     def _encode(self, obj, content, path):
         if obj is None:
-            return (256 ** self.subcon.length) - 1
+            return (256 ** self.subcon.sizeof()) - 1
         else:
             return round(obj / self.resolution)
 
