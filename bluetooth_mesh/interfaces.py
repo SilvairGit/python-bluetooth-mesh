@@ -34,7 +34,7 @@ import logging
 from typing import Any, List, Mapping, Tuple
 from uuid import UUID
 
-from dbus_next import DBusError
+from dbus_next import DBusError, Variant
 from dbus_next.service import PropertyAccess, ServiceInterface, dbus_property, method
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
@@ -193,9 +193,9 @@ class ProvisionerInterface(ServiceInterface):
         super().__init__(name="org.bluez.mesh.Provisioner1")
 
     @method(name="ScanResult")
-    def scan_result(self, rssi: "n", data: "ay"):
-        self.logger.debug("RSSI: %s, data: %s", rssi, data)
-        self.application.scan_result(rssi, data)
+    def scan_result(self, rssi: "n", data: "ay", options: "a{sv}"):
+        self.logger.debug("RSSI: %s, data: %s, options: %s", rssi, data, options)
+        self.application.scan_result(rssi, data, options)
 
     @method(name="RequestProvData")
     def request_prov_data(self, count: "y") -> "qq":
@@ -397,14 +397,18 @@ class ManagementInterface:
     def __init__(self, node_service):
         self._interface = node_service.get_interface("org.bluez.mesh.Management1")
 
-    async def unprovisioned_scan(self, seconds: int) -> None:
-        await self._interface.call_unprovisioned_scan(seconds)
+    async def unprovisioned_scan(self, **kwargs) -> None:
+        options = dict(Seconds=Variant("q", kwargs.get("seconds", 0)))
+        await self._interface.call_unprovisioned_scan(options)
 
     async def unprovisioned_scan_cancel(self) -> None:
         await self._interface.call_unprovisioned_scan_cancel()
 
-    async def add_node(self, uuid: UUID) -> None:
-        await self._interface.call_add_node(uuid.bytes)
+    async def add_node(self, uuid: UUID, **kwargs) -> None:
+        options = dict(
+            # TODO: populate with options when defined
+        )
+        await self._interface.call_add_node(uuid.bytes, options)
 
     async def create_subnet(self, net_index: int) -> None:
         await self._interface.call_create_subnet(net_index)

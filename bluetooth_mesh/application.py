@@ -348,13 +348,14 @@ class ProvisioningMixin:
 
 
 class ProvisionerMixin:
-    def scan_result(self, rssi: int, data: bytes):
+    def scan_result(self, rssi: int, data: bytes, options: dict):
         """
         The method is called from the bluetooth-meshd daemon when a
         unique UUID has been seen during UnprovisionedScan() for
         unprovsioned devices.
         :param rssi: signed, normalized measurement of the signal strength of the recieved unprovisioned beacon
         :param data:
+        :param options:
         :return:
         """
         raise NotImplementedError("Provisioner functions should be overridden!")
@@ -722,6 +723,7 @@ class Application(
         """
         Create a self-provisioned node.
         """
+        
         addr = addr or self.addr
 
         net_index, net_key = net_key or self.primary_net_key
