@@ -723,7 +723,9 @@ class Application(
         """
         Create a self-provisioned node.
         """
-        
+
+        self.token_ring = self.token_ring or TokenRing(self.uuid)
+
         addr = addr or self.addr
 
         net_index, net_key = net_key or self.primary_net_key
