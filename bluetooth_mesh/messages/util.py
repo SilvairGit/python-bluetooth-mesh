@@ -101,7 +101,7 @@ def EnumAdapter(subcon, enum):
             return enum(obj)
 
         def _encode(self, obj, context, path):
-            if obj in enum:
+            if obj == enum:
                 return obj.value
 
             try:
