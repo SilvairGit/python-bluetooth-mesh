@@ -581,8 +581,15 @@ class RetransmitAdapter(Adapter):
     def _encode(self, obj, context, path):
         if obj["count"] > 7:
             raise AttributeError("Retransmission count maximum value is 7")
-        if not 0 < obj["interval"] <= 0x20*self.interval or obj["interval"] % self.interval:
-            raise AttributeError("Interval value must be in range of {min} and {max} with increment of {min}".format(min=self.interval, max=0x20*self.interval))
+        if (
+            not 0 < obj["interval"] <= 0x20 * self.interval
+            or obj["interval"] % self.interval
+        ):
+            raise AttributeError(
+                "Interval value must be in range of {min} and {max} with increment of {min}".format(
+                    min=self.interval, max=0x20 * self.interval
+                )
+            )
         return dict(
             count=obj["count"],
             interval_steps=int(round((obj["interval"] / self.interval) - 1)),
