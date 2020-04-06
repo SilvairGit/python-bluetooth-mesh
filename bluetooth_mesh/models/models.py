@@ -649,7 +649,8 @@ class ConfigClient(Model):
         TTL: int = 8,
         publish_step_resolution: int = 2,
         publish_number_of_steps: int = 6,  # 60seconds
-        retransmit: int = 2,
+        retransmit_count: int = 0,
+        retransmit_interval: int = 50,
     ) -> ModelSubscriptionStatus:
 
         status = self.expect_dev(
@@ -668,7 +669,7 @@ class ConfigClient(Model):
                     step_resolution=publish_step_resolution,
                     number_of_steps=publish_number_of_steps,
                 ),
-                retransmit=dict(interval_steps=0, count=retransmit),
+                retransmit=dict(count=retransmit_count, interval=retransmit_interval),
                 model=self._get_model_id(model),
             ),
         )
@@ -689,7 +690,7 @@ class ConfigClient(Model):
                     step_resolution=publish_step_resolution,
                     number_of_steps=publish_number_of_steps,
                 ),
-                retransmit=dict(interval_steps=0, count=retransmit),
+                retransmit=dict(count=retransmit_count, interval=retransmit_interval),
                 model=self._get_model_id(model),
             ),
         )

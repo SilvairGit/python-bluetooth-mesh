@@ -1036,3 +1036,60 @@ def test_parse_config_message():
         opcode=ConfigOpcode.APPKEY_ADD,
         params=dict(app_key_index=1, net_key_index=1, app_key=key,),
     )
+
+
+invalid_retr = [
+    # fmt: off
+    pytest.param(
+        NetworkRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x00,
+            "interval": 0
+        },
+        id="interval = 0"
+    ),
+    pytest.param(
+        NetworkRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x00,
+            "interval": 5
+        },
+        id="interval = 5"
+    ),
+    pytest.param(
+        NetworkRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x00,
+            "interval": 330
+        },
+        id="interval too high"
+    ),
+    pytest.param(
+        PublishRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x00,
+            "interval": 1700
+        },
+        id="interval too high"
+    ),
+    pytest.param(
+        PublishRetransmit,
+        bytes.fromhex('F8'),
+        {
+            "count": 0x08,
+            "interval": 700
+        },
+        id="count too high"
+    ),
+]
+
+
+@pytest.mark.parametrize("message,encoded,decoded", invalid_retr)
+def test_build(message, encoded, decoded):
+    _decoded = deepcopy(decoded)
+    with pytest.raises(AttributeError):
+        message.build(obj=_decoded)
