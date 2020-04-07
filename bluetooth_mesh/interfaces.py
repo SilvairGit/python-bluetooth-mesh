@@ -263,7 +263,7 @@ class NetworkInterface:
     async def leave(self, token: int) -> None:
         await self._interface.call_leave(token)
 
-    async def create_network(self, app_root: str, uuid: UUID) -> int:
+    async def create_network(self, app_root: str, uuid: UUID) -> None:
         return await self._interface.call_create_network(app_root, uuid.bytes)
 
     async def import_node(
@@ -276,9 +276,9 @@ class NetworkInterface:
         flags: Mapping[str, Any],
         iv_index: int,
         unicast: int,
-    ) -> int:
+    ) -> None:
 
-        token = await self._interface.call_import(
+        await self._interface.call_import(
             app_root,
             uuid.bytes,
             dev_key.bytes,
@@ -288,8 +288,6 @@ class NetworkInterface:
             iv_index,
             unicast,
         )
-
-        return token
 
 
 class AclInterface:

@@ -53,7 +53,7 @@ from bluetooth_mesh.interfaces import (
 from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.models import ConfigClient
 from bluetooth_mesh.tokenring import TokenRing
-from bluetooth_mesh.utils import ParsedMeshMessage
+from bluetooth_mesh.utils import ParsedMeshMessage, MeshError
 
 __all__ = [
     "Application",
@@ -437,6 +437,7 @@ class Application(
         self.addr = None
 
         self.token_ring = None
+        self._join_complete = None
 
     async def _get_acl_interface(self):
         mesh_introspection = await self.bus.introspect(
@@ -633,7 +634,20 @@ class Application(
         waiting for PB-ADV based provisioner.
         """
         self.logger.info("Join %s", self.uuid)
+
+        self._join_complete = asyncio.Future()
         await self.network_interface.join("/", self.uuid)
+        return await self._join_complete
+
+    async def create_network(self):
+        """
+        Create a new mesh network.
+        """
+        self.logger.info("Create %s", self.uuid)
+
+        self._join_complete = asyncio.Future()
+        await self.network_interface.create_network("/", self.uuid)
+        return await self._join_complete
 
     async def cancel(self):
         """
@@ -723,9 +737,6 @@ class Application(
         """
         Create a self-provisioned node.
         """
-
-        self.token_ring = self.token_ring or TokenRing(self.uuid)
-
         addr = addr or self.addr
 
         net_index, net_key = net_key or self.primary_net_key
@@ -736,11 +747,23 @@ class Application(
         if flags:
             flags = {k: dbus_next.Variant("b", v) for k, v in flags.items()}
 
-        self.token_ring.token = await self.network_interface.import_node(
+        self._join_complete = asyncio.Future()
+        await self.network_interface.import_node(
             "/", self.uuid, dev_key, net_key, net_index, flags or {}, iv_index, addr
         )
+        return await self._join_complete
 
-        return self.token_ring.token
+    def join_complete(self, token: int):
+        try:
+            self.token_ring = self.token_ring or TokenRing(self.uuid)
+            self.token_ring.token = token
+            self._join_complete.set_result(self.token_ring.token)
+        except Exception as ex:
+            self._join_complete.set_exception(ex)
+            raise dbus_next.errors.DBusError('org.bluez.mesh.Application1', str(ex)) from None
+
+    def join_failed(self, reason: str):
+        self._join_complete.set_exception(MeshError(reason))
 
 
 class LocationMixin:
