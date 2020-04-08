@@ -20,6 +20,7 @@
 #
 #
 import os
+from json.decoder import JSONDecodeError
 
 from marshmallow import Schema, ValidationError, fields
 
@@ -51,8 +52,8 @@ class TokenRing:
                     try:
                         self.data = self.schema.loads(r)
                         return
-                    except ValidationError:
-                        self.data = dict(token=int(r), acl={}, network={})
+                    except (JSONDecodeError, ValidationError, EOFError):
+                        self.data = dict(token=int(r, 16), acl={}, network={})
 
             except FileNotFoundError:
                 self.data = dict(token=0, acl={}, network={})
