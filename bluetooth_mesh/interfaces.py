@@ -264,7 +264,7 @@ class NetworkInterface:
         await self._interface.call_leave(token)
 
     async def create_network(self, app_root: str, uuid: UUID) -> int:
-        return await self._interface.call_create_network(app_root, uuid)
+        return await self._interface.call_create_network(app_root, uuid.bytes)
 
     async def import_node(
         self,
