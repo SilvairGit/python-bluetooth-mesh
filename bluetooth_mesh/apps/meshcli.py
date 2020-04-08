@@ -968,7 +968,7 @@ class MeshCommandLine(*application_mixins, Application):
         self._tid = 0
 
     async def add_keys(self):
-        for index, key in self.net_keys:
+        for index, key in self.subnet_keys:
             await self.add_net_key(index, key)
 
         for index, bound, key in self.app_keys:
