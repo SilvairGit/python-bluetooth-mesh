@@ -163,9 +163,9 @@ class NetworkKeyMixin:
         raise NotImplementedError("Getting primary network key should be overridden!")
 
     @property
-    def net_keys(self) -> List[Tuple[int, NetworkKey]]:
+    def subnet_keys(self) -> List[Tuple[int, NetworkKey]]:
         """
-        Indexes and keyes of the subnets.
+        Indexes and keys of the subnets.
         """
         raise NotImplementedError("Getting subnet network keys should be overridden!")
 
