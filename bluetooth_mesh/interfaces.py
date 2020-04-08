@@ -143,12 +143,10 @@ class ProvisionAgentInterface(ServiceInterface):
 
     @method(name="PrivateKey")
     def private_key(self) -> "ay":
-        self.logger.info("Request Private Key")
         return self.application.private_key()
 
     @method(name="PublicKey")
     def public_key(self) -> "ay":
-        self.logger.info("Request Public Key")
         return self.application.public_key()
 
     @method(name="DisplayString")
@@ -173,12 +171,10 @@ class ProvisionAgentInterface(ServiceInterface):
 
     @dbus_property(name="Capabilities", access=PropertyAccess.READ)
     def get_capabilities(self) -> "as":
-        self.logger.info("Request Capabilities: %s", self.application.capabilities)
         return [cap.value for cap in self.application.capabilities]
 
     @dbus_property(name="OutOfBandInfo", access=PropertyAccess.READ)
     def out_of_band_info(self) -> "as":
-        self.logger.info("Request OutOfBand Info: %s", self.application.oob_info)
         return [oob.value for oob in self.application.oob_info]
 
     @dbus_property(name="URI", access=PropertyAccess.READ)
@@ -194,7 +190,6 @@ class ProvisionerInterface(ServiceInterface):
 
     @method(name="ScanResult")
     def scan_result(self, rssi: "n", data: "ay", options: "a{sv}"):
-        self.logger.debug("RSSI: %s, data: %s, options: %s", rssi, data, options)
         self.application.scan_result(rssi, data, options)
 
     @method(name="RequestProvData")
