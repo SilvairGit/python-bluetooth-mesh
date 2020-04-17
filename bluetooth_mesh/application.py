@@ -798,11 +798,17 @@ class Element(LocationMixin):
         self.index = index
         self.path = "%s/element%d" % (self.application.path, index)
 
+        for opcode in sum((list(model.OPCODES) for model in self.MODELS), []):
+            models = [model for model in self.MODELS if opcode in model.OPCODES]
+
+            assert len(models) == 1, (
+                "Element #%d declares models %r with overlapping opcode %r"
+                % (index, models, opcode)
+            )
+
         self._models = {
             model_class: model_class(self) for model_class in self.MODELS
         }  # type: Dict[Type["Model"], "Model"]
-
-        # TODO: check that models don't have overlapping opcodes
 
     def _parse_message(self, message: bytes) -> Optional[ParsedMeshMessage]:
         try:
