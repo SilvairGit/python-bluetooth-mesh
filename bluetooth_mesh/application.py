@@ -53,7 +53,7 @@ from bluetooth_mesh.interfaces import (
 from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.models import ConfigClient
 from bluetooth_mesh.tokenring import TokenRing
-from bluetooth_mesh.utils import ParsedMeshMessage, MeshError
+from bluetooth_mesh.utils import MeshError, ParsedMeshMessage
 
 __all__ = [
     "Application",
@@ -760,7 +760,9 @@ class Application(
             self._join_complete.set_result(self.token_ring.token)
         except Exception as ex:
             self._join_complete.set_exception(ex)
-            raise dbus_next.errors.DBusError('org.bluez.mesh.Application1', str(ex)) from None
+            raise dbus_next.errors.DBusError(
+                "org.bluez.mesh.Application1", str(ex)
+            ) from None
 
     def join_failed(self, reason: str):
         self._join_complete.set_exception(MeshError(reason))
