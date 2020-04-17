@@ -1070,7 +1070,7 @@ def main():
             --version                      Show version and exit
     """
     use_asyncio_event_loop()
-    arguments = docopt(doc, version="stat_checker 0.5")
+    arguments = docopt(doc, version="meshcli")
 
     logging.basicConfig(
         format="%(asctime)s %(name)-40s %(levelname)-8s %(filename)15s:%(lineno)3s  %(message)s",
