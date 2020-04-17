@@ -153,6 +153,21 @@ class MachineUUIDMixin(PathMixin):
         return uuid5(namespace=namespace, name=self.path)
 
 
+class TokenRingMixin(MachineUUIDMixin):
+    """
+    Provides a token ring handler based on application UUID.
+
+    The handler is responsible for token ring persistence: the framework expects that tokens for nodes of
+    a single application are stored & reused with subsequent launches.
+    """
+    TOKEN_RING = TokenRing
+
+    @property
+    @lru_cache(maxsize=1)
+    def token_ring(self) -> TokenRing:
+        return self.TOKEN_RING(uuid=self.uuid)
+
+
 class NetworkKeyMixin:
     @property
     def primary_net_key(self) -> Tuple[int, NetworkKey]:
@@ -401,6 +416,7 @@ class ProvisionerMixin:
 
 class Application(
     CompositionDataMixin,
+    TokenRingMixin,
     MachineUUIDMixin,
     PathMixin,
     ApplicationKeyMixin,
@@ -436,7 +452,6 @@ class Application(
         self.management_interface = None
         self.addr = None
 
-        self.token_ring = None
         self._join_complete = None
 
     async def _get_acl_interface(self):
@@ -528,7 +543,6 @@ class Application(
         method in mesh-api.txt_.
 
         """
-        self.token_ring = TokenRing(self.uuid)
         try:
             configuration = await self.attach()
         except (ValueError, dbus_next.errors.DBusError) as ex:
@@ -675,7 +689,7 @@ class Application(
         if token is None:
             raise ValueError("No token")
 
-        self.logger.info("Attach %x", self.token_ring.token)
+        self.logger.info("Attach %x", token)
         path, configuration = await self.network_interface.attach("/", token)
 
         self.token_ring.token = token
@@ -755,7 +769,6 @@ class Application(
 
     def join_complete(self, token: int):
         try:
-            self.token_ring = self.token_ring or TokenRing(self.uuid)
             self.token_ring.token = token
             self._join_complete.set_result(self.token_ring.token)
         except Exception as ex:
