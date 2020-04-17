@@ -59,9 +59,6 @@ from bluetooth_mesh.models import (
     SceneClient,
 )
 
-plugin_manager = get_plugin_manager()
-
-
 class MeshCompleter(Completer):
     def __init__(self, application):
         self.application = application
@@ -918,10 +915,7 @@ class PrimaryElement(Element):
     ]
 
 
-application_mixins = itertools.chain(*get_plugin_manager().hook.application_mixins())
-
-
-class MeshCommandLine(*application_mixins, Application):
+class MeshCommandLine(Application):
     PATH = "/com/silvair/meshcli/v6"
 
     COMMANDS = [
@@ -1067,6 +1061,10 @@ def main():
             -p --password <password>       User password to platform service (!unsecured!)
             -n --project <project>         Project name to be loaded from platform
 
+            -P --plugin <plugin>           Use specified plugin to manage provisioning database
+                                           instead of loading all available plugins (use 'help'
+                                           for a list)
+
             -d --debug
             -h --help                      Show this help message and exit
             --version                      Show version and exit
@@ -1080,8 +1078,26 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    plugin_manager = get_plugin_manager()
+
+    if arguments['--plugin'] == 'help':
+        print('Available plugins:')
+        for name, plugin in plugin_manager.list_name_plugin():
+            print('\t%s' % name)
+        return
+    elif arguments['--plugin']:
+        plugin = plugin_manager.get_plugin(arguments['--plugin'])
+        application_mixins = plugin.application_mixins()
+    else:
+        application_mixins = itertools.chain(
+            *plugin_manager.hook.application_mixins()
+        )
+
+    class CommandLine(*application_mixins, MeshCommandLine):
+        pass
+
     loop = asyncio.get_event_loop()
-    mesh_cli = MeshCommandLine(loop, arguments)
+    mesh_cli = CommandLine(loop, arguments)
 
     with suppress(EOFError, KeyboardInterrupt), patch_stdout():
         loop.run_until_complete(mesh_cli.run(arguments.get("<command>")))
