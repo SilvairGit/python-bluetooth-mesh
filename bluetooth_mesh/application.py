@@ -30,7 +30,7 @@ import logging
 from enum import Enum
 from functools import lru_cache
 from os import urandom
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Type, Union
+from typing import Any, Awaitable, Dict, List, Mapping, Optional, Tuple, Type, Union, Callable
 from uuid import UUID, uuid5
 
 import construct
@@ -534,7 +534,7 @@ class Application(
         self.elements = {}
 
     async def connect(
-        self, addr, iv_index=0
+        self, addr: Union[int, Callable[[], int], Awaitable[int]], iv_index: int = 0
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
@@ -543,12 +543,23 @@ class Application(
         Returns current node configuration, see documentation for Attach()
         method in mesh-api.txt_.
 
+        One doesn't have to supply `addr` straight away - you may want to get your address only when
+        Attach() call fails. In that case, you can pass a callback for `addr` - a callable or an awaitable
+        that yields a mesh address.
         """
         try:
             configuration = await self.attach()
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
-            await self.import_node(addr=addr, iv_index=iv_index)
+            if isinstance(addr, Awaitable):
+                mesh_address = await addr
+            elif isinstance(addr, Callable):
+                mesh_address = addr()
+            elif isinstance(addr, int):
+                mesh_address = addr
+            else:
+                raise TypeError("Address not given as a value or an acceptable callback.")
+            await self.import_node(addr=mesh_address, iv_index=iv_index)
             configuration = await self.attach()
 
             # after importing, explicitly import own device key to enable
