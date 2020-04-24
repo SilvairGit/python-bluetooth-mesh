@@ -160,6 +160,7 @@ class TokenRingMixin(MachineUUIDMixin):
     The handler is responsible for token ring persistence: the framework expects that tokens for nodes of
     a single application are stored & reused with subsequent launches.
     """
+
     TOKEN_RING = TokenRing
 
     @property

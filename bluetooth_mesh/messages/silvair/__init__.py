@@ -12,4 +12,6 @@ from .gateway_config_server import GatewayConfigMessage, GatewayConfigServerSubO
 from .network_diagnostic_server import (
     NetworkDiagnosticServerMessage,
     NetworkDiagnosticServerSubOpcode,
+    NetworkDiagnosticSetupServerMessage,
+    NetworkDiagnosticSetupServerSubOpcode,
 )
