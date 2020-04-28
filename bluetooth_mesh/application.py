@@ -30,7 +30,18 @@ import logging
 from enum import Enum
 from functools import lru_cache
 from os import urandom
-from typing import Any, Awaitable, Dict, List, Mapping, Optional, Tuple, Type, Union, Callable
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 from uuid import UUID, uuid5
 
 import construct
@@ -558,7 +569,9 @@ class Application(
             elif isinstance(addr, int):
                 mesh_address = addr
             else:
-                raise TypeError("Address not given as a value or an acceptable callback.")
+                raise TypeError(
+                    "Address not given as a value or an acceptable callback."
+                )
             await self.import_node(addr=mesh_address, iv_index=iv_index)
             configuration = await self.attach()
 
