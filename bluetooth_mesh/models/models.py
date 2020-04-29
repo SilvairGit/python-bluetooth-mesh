@@ -1005,16 +1005,12 @@ class GenericOnOffServer(Model):
         GenericOnOffOpcode.ONOFF_GET,
         GenericOnOffOpcode.ONOFF_SET,
         GenericOnOffOpcode.ONOFF_SET_UNACKNOWLEDGED,
-        GenericOnOffOpcode.ONOFF_STATUS,
     }
 
 
 class GenericOnOffClient(Model):
     MODEL_ID = (None, 0x1001)
     OPCODES = {
-        GenericOnOffOpcode.ONOFF_GET,
-        GenericOnOffOpcode.ONOFF_SET,
-        GenericOnOffOpcode.ONOFF_SET_UNACKNOWLEDGED,
         GenericOnOffOpcode.ONOFF_STATUS,
     }
     _tid = 0
