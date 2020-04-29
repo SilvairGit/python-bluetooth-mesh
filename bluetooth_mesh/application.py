@@ -232,15 +232,16 @@ class DeviceKeyMixin:
 
 class DBusMixin:
     DBUS_SERVICE = None
+    logger: logging.Logger
 
-    def _name_owner_changed(self, name, old_owner, new_owner):
+    def _name_owner_changed(self, name, old_owner, new_owner) -> None:
         if name != self.DBUS_SERVICE.NAME:
             return
 
         self.logger.error("Disconnected from %s (%s)", name, old_owner)
         self.dbus_disconnected(old_owner)
 
-    async def dbus_connect(self):
+    async def dbus_connect(self) -> None:
         message_bus = dbus_next.aio.MessageBus(bus_type=dbus_next.BusType.SYSTEM)
         self.logger.debug("Connecting to D-Bus")
         self.bus = await message_bus.connect()
@@ -257,20 +258,20 @@ class DBusMixin:
         self.dbus_interface.on_name_owner_changed(self._name_owner_changed)
         await self.dbus_connected(owner)
 
-    async def dbus_disconnect(self):
+    async def dbus_disconnect(self) -> None:
         self.dbus_interface.off_name_owner_changed(self._name_owner_changed)
         self.bus.disconnect()
 
-    async def dbus_connected(self, owner):
+    async def dbus_connected(self, owner) -> None:
         pass
 
-    def dbus_disconnected(self, owner):
+    def dbus_disconnected(self, owner) -> Any:
         self.loop.stop()
 
     async def __aenter__(self):
         return await self.dbus_connect()
 
-    async def __aexit__(self, exc_type, exc, tb):
+    async def __aexit__(self, exc_type, exc, tb) -> Any:
         return await self.dbus_disconnect()
 
 
