@@ -1,6 +1,7 @@
 import asyncio
-
+import secrets
 from contextlib import suppress
+
 from docopt import docopt
 
 from bluetooth_mesh.application import Application, Element
@@ -62,14 +63,15 @@ class SampleApplication(Application):
         assert status == StatusCode.SUCCESS, \
             'Cannot bind application key: %s' % status
 
-    async def run(self):
-        await self.connect(iv_index=5)
-        await self.configure()
+    async def run(self, addr):
+        async with self:
+            await self.connect(addr=addr, iv_index=5)
+            await self.configure()
 
-        client = self.elements[0][HealthClient]
+            client = self.elements[0][HealthClient]
 
-        for node in [0x0001, 0x0002, 0x0003]:
-            await client.attention(node, app_index=0, attention=3)
+            for node in [0x0001, 0x0002, 0x0003]:
+                await client.attention(node, app_index=0, attention=3)
 
 
 def main():
@@ -92,10 +94,11 @@ def main():
     addr = int(addr, 16 if addr.startswith('0x') else 10)
 
     loop = asyncio.get_event_loop()
-    app = SampleApplication(addr, loop)
+    app = SampleApplication(loop)
 
     with suppress(KeyboardInterrupt):
-        loop.run_until_complete(app.run())
+        loop.run_until_complete(app.run(addr))
+
 
 if __name__ == '__main__':
     main()
