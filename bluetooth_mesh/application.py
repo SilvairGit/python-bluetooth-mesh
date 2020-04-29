@@ -268,8 +268,9 @@ class DBusMixin:
     def dbus_disconnected(self, owner) -> Any:
         self.loop.stop()
 
-    async def __aenter__(self):
-        return await self.dbus_connect()
+    async def __aenter__(self) -> "DBusMixin":
+        await self.dbus_connect()
+        return self
 
     async def __aexit__(self, exc_type, exc, tb) -> Any:
         return await self.dbus_disconnect()
