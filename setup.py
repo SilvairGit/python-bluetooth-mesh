@@ -53,7 +53,7 @@ setup(
     tests_require=[
         'asynctest>=0.12.3',
         'coveralls>=1.11.`',
-        'pytest>4.1.0',
+        'pytest==5.4.0',
         'pytest-asyncio>=0.10.0',
         'pytest-cov>=2.8.1',
     ],
