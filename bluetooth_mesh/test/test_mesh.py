@@ -90,6 +90,12 @@ def proxy_use_whitelist_message():
     return ProxyConfigMessage(src=0x0001, opcode=0x00, payload=parameters)
 
 
+@fixture
+def app_sar_message():
+    payload = bytes.fromhex("510c00000000020b0c1f00efcdab071b1c")
+    return AccessMessage(src=1234, dst=4321, ttl=1, payload=payload)
+
+
 def test_network_beacon_received(net_key):
     beacon, auth = SecureNetworkBeacon.unpack(
         bytes.fromhex("003ecaff672f673370123456788ea261582f364f6f")
@@ -266,6 +272,22 @@ def test_application_pack_to_network_pdu(
     )
 
     assert network_pdu.hex() == "6848cba437860e5673728a627fb938535508e21a6baf57"
+
+
+def test_application_pack_to_network_pdu_skip_segments(
+    app_sar_message: AccessMessage, app_key: ApplicationKey, net_key: NetworkKey,
+):
+    network_message = NetworkMessage(app_sar_message)
+    ((seq, network_pdu),) = network_message.pack(
+        app_key,
+        net_key,
+        seq=0x000007,
+        iv_index=0x12345678,
+        transport_seq=0x000008,
+        skip_segments=[0],
+    )
+
+    assert network_pdu.hex() == "689353e01b0a211f82734ad0c7c92081616414e0f8b7e7048c7e"
 
 
 def test_application_unpack_from_network_pdu(

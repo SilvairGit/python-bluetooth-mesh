@@ -27,7 +27,7 @@ with open("README.rst", "r") as f:
 # fmt: off
 setup(
     name='bluetooth-mesh',
-    version='0.2.11',
+    version='0.2.12',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
         'Bluetooth mesh for Python'
@@ -38,7 +38,7 @@ setup(
     packages=find_packages(exclude=('test*', )),
     python_requires='>=3.6.0,<3.8.0',
     setup_requires=[
-        'pytest-runner>=4.2',
+        'pytest-runner==4.2',
     ],
     install_requires=[
         'bitstring>=3.1.5',
@@ -51,10 +51,10 @@ setup(
         'marshmallow>=3.0.1,<4.0',
     ],
     tests_require=[
-        'asynctest>=0.12.3',
-        'coveralls>=1.11.`',
-        'pytest==5.4.0',
-        'pytest-asyncio>=0.10.0',
+        'asynctest==0.12.3',
+        'coveralls==2.0.0',
+        'pytest==5.0.0',
+        'pytest-asyncio==0.10.0',
         'pytest-cov>=2.8.1',
     ],
     extras_require=dict(

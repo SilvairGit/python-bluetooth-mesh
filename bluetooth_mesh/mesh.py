@@ -357,7 +357,16 @@ class NetworkMessage:
     def __init__(self, message: Segment):
         self.message = message
 
-    def pack(self, application_key, network_key, seq, iv_index, *, transport_seq=None):
+    def pack(
+        self,
+        application_key,
+        network_key,
+        seq,
+        iv_index,
+        *,
+        transport_seq=None,
+        skip_segments=(),
+    ):
         nid, encryption_key, privacy_key = network_key.encryption_keys
 
         # when retrying a segment, use the original sequence number during application
@@ -365,9 +374,17 @@ class NetworkMessage:
         if transport_seq is None:
             transport_seq = seq
 
-        for seq, pdu in enumerate(
-            self.message.segments(application_key, transport_seq, iv_index), start=seq
-        ):
+        # remove segments that were ack-ed and encrypt with new network sequence
+        segments = [
+            segment
+            for segment in self.message.segments(
+                application_key, transport_seq, iv_index
+            )
+        ]
+        for index in sorted(skip_segments, reverse=True):
+            segments.pop(index)
+
+        for seq, pdu in enumerate(segments, start=seq):
             if isinstance(self.message, ProxyConfigMessage):
                 nonce = self.message.nonce.proxy(seq, iv_index)
             else:
