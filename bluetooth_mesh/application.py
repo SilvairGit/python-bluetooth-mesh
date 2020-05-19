@@ -27,6 +27,7 @@ This module provides a high-level API for BlueZ mesh stack.
 
 import asyncio
 import logging
+from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from os import urandom
@@ -62,7 +63,7 @@ from bluetooth_mesh.interfaces import (
     ProvisionerInterface,
 )
 from bluetooth_mesh.messages import AccessMessage
-from bluetooth_mesh.models import ConfigClient
+from bluetooth_mesh.models import ConfigClient, ModelConfig
 from bluetooth_mesh.tokenring import TokenRing
 from bluetooth_mesh.utils import MeshError, ParsedMeshMessage
 
@@ -729,12 +730,10 @@ class Application(
 
         self.addr = await self.node_interface.address()
 
-        configuration = self._convert_config(configuration)
-
-        for element, models_config in configuration.items():
-            for model_id, model_config in models_config.items():
+        for element, models_configs in configuration.items():
+            for model_tuple, model_config in models_configs.items():
                 self.elements[element].update_model_configuration(
-                    model_id, model_config
+                    *model_tuple, model_config
                 )
 
         self.logger.info(
@@ -745,27 +744,6 @@ class Application(
         )
 
         return configuration
-
-    def _convert_config(self, configuration):
-        ret = {}
-        for model_major_list in configuration:
-            element = model_major_list[0]
-            ret[element] = {}
-            for model_minor_list in model_major_list[1:]:
-                for model_minor_config_list in model_minor_list:
-                    model_config = model_minor_config_list[1]
-                    model_id = model_minor_config_list[0]
-                    ret[element][model_id] = dict()
-
-                    for param, val in model_config.items():
-                        if param == "Subscriptions":
-                            ret[element][model_id][param] = [
-                                addr.value for addr in val.value
-                            ]
-                        else:
-                            ret[element][model_id][param] = val.value
-
-        return ret
 
     async def import_node(
         self,
@@ -916,7 +894,7 @@ class Element(LocationMixin):
                 return
 
     def update_model_configuration(
-        self, model_id: int, configuration: Mapping[str, Any]
+        self, model_id: int, vendor_id: int, configuration: Mapping[str, Any]
     ):
         """
         Called by :py:class:`bluetooth_mesh.interfaces.ElementInterface` when model
@@ -925,12 +903,11 @@ class Element(LocationMixin):
         Passes the configuration to relevant model's
         :py:func:`bluetooth_mesh.models.Model.update_configuration`.
         """
-        vendor_id = configuration.get("Vendor", None)
-
         for model in self._models.values():
             if model.MODEL_ID == (vendor_id, model_id):
-                model.update_configuration(configuration)
-                return
+                model_configuration = ModelConfig(**configuration)
+                model.update_configuration(model_configuration)
+                return model_configuration
 
     def __getitem__(self, model_class: Type["Model"]) -> "Model":
         return self._models[model_class]
