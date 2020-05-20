@@ -31,7 +31,9 @@ They are not meant to be used directly. See :py:mod:`bluetooth_mesh.application`
 
 import asyncio
 import logging
-from typing import Any, List, Mapping, Tuple
+from collections import defaultdict
+from datetime import timedelta
+from typing import Any, Dict, Mapping, Optional, Tuple
 from uuid import UUID
 
 from dbus_next import DBusError, Variant
@@ -90,6 +92,40 @@ class MeshService:
     PATH = "/org/bluez/mesh"
 
 
+def extract_model_config(configuration):
+    vendor_id = None
+    model_conf_dict = {}
+
+    for key, variant in configuration.items():
+        if key == "Vendor":
+            vendor_id = variant.value
+            continue
+
+        if key == "Bindings":
+            model_conf_dict["bindings"] = variant.value
+            continue
+
+        if key == "PublicationPeriod":
+            model_conf_dict["publication_period"] = timedelta(
+                milliseconds=variant.value
+            )
+            continue
+
+        if key == "Subscriptions":
+            subs = []
+
+            for addr in variant.value:
+                if addr.signature == "q":
+                    subs.append(addr.value)
+
+                elif addr.signature == "ay":
+                    subs.append(UUID(bytes=addr.value))
+
+            model_conf_dict["subscriptions"] = set(subs)
+
+    return vendor_id, model_conf_dict
+
+
 class ElementInterface(ServiceInterface):
     def __init__(self, element):
         self.element = element
@@ -122,9 +158,8 @@ class ElementInterface(ServiceInterface):
 
     @method(name="UpdateModelConfiguration")
     def update_model_configuration(self, model_id: "q", configuration: "a{sv}"):
-        self.element.update_model_configuration(
-            model_id, {key: val.value for key, val in configuration.items()}
-        )
+        vendor_id, model_config = extract_model_config(configuration)
+        self.element.update_model_configuration((vendor_id, model_id), model_config)
 
     @dbus_property(name="Index", access=PropertyAccess.READ)
     def get_index(self) -> "y":
@@ -257,8 +292,18 @@ class NetworkInterface:
 
     async def attach(
         self, app_defined_root: str, token: int
-    ) -> Tuple[str, Mapping[int, List[Tuple[int, Mapping[str, Any]]]]]:
-        return await self._interface.call_attach(app_defined_root, token)
+    ) -> Tuple[str, Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]]]:
+        path, configuration = await self._interface.call_attach(app_defined_root, token)
+
+        configuration_dict = defaultdict(dict)
+
+        for element, element_conf in configuration:
+            for model_id, model_conf in element_conf:
+                vendor_id, model_conf_dict = extract_model_config(model_conf)
+
+                configuration_dict[element][(vendor_id, model_id)] = model_conf_dict
+
+        return path, configuration_dict
 
     async def leave(self, token: int) -> None:
         await self._interface.call_leave(token)

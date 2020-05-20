@@ -23,6 +23,7 @@ import asyncio
 import inspect
 from collections import defaultdict
 from contextlib import suppress
+from datetime import timedelta
 from typing import (
     Any,
     Awaitable,
@@ -31,6 +32,7 @@ from typing import (
     Hashable,
     List,
     Mapping,
+    NamedTuple,
     Optional,
     Sequence,
     Set,
@@ -50,6 +52,7 @@ from bluetooth_mesh.utils import (
 
 __all__ = [
     "Model",
+    "ModelConfig",
 ]
 
 
@@ -73,7 +76,7 @@ class Model:
         )  # type: Dict[Union[int, UUID], Set]
 
         assert self.MODEL_ID[1] is not None, "A model has to have ID!"
-        self.configuration = {}
+        self.configuration = ModelConfig()
 
     def __str__(self):
         if self.MODEL_ID[0] is None:
@@ -465,13 +468,13 @@ class Model:
         self.subscription_callbacks[subscription_address].add(callback)
 
         for app_index, *_ in app_keys:
-            if app_index in self.configuration.get("Bindings", []):
+            if app_index in self.configuration.bindings:
                 self.logger.info("App key %s already bound", app_index)
                 continue
 
             await self.bind(app_index)
 
-        if subscription_address in self.configuration.get("Subscriptions", []):
+        if subscription_address in self.configuration.subscriptions:
             element_address = self.element.application.addr + self.element.index
             return ModelSubscriptionStatus(
                 element_address, subscription_address, type(self)
@@ -515,3 +518,19 @@ class Model:
         """
 
         return await self.element.application.bind_app_key(app_key_index, model=self)
+
+
+class ModelConfig:
+    """
+    Model Configuration class for mesh models.
+    """
+
+    def __init__(
+        self,
+        bindings: List[int] = None,
+        publication_period: timedelta = None,
+        subscriptions: Set[Union[int, UUID]] = None,
+    ):
+        self.bindings = bindings or list()
+        self.publication_period = publication_period
+        self.subscriptions = subscriptions or set()
