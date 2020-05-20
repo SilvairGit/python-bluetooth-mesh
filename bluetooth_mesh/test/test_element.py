@@ -101,7 +101,7 @@ def test_other_opcode_dev_message_received(element, source, net_index, get_encod
 def test_update_model_configuration(element):
     config = dict()
     model_config = element.update_model_configuration(
-        MockModel.MODEL_ID[1], MockModel.MODEL_ID[0], config
+        (MockModel.MODEL_ID[0], MockModel.MODEL_ID[1]), config
     )
     MockModel.INSTANCES[0].update_configuration.assert_called_once_with(model_config)
 
@@ -109,7 +109,7 @@ def test_update_model_configuration(element):
 def test_update_vendor_model_configuration(element):
     config = dict()
     model_config = element.update_model_configuration(
-        MockVenforModel.MODEL_ID[1], MockVenforModel.MODEL_ID[0], config
+        (MockVenforModel.MODEL_ID[0], MockVenforModel.MODEL_ID[1]), config
     )
     MockVenforModel.INSTANCES[0].update_configuration.assert_called_once_with(
         model_config

@@ -33,7 +33,7 @@ import asyncio
 import logging
 from collections import defaultdict
 from datetime import timedelta
-from typing import Any, Dict, Mapping, Tuple
+from typing import Any, Dict, Mapping, Optional, Tuple
 from uuid import UUID
 
 from dbus_next import DBusError, Variant
@@ -158,9 +158,8 @@ class ElementInterface(ServiceInterface):
 
     @method(name="UpdateModelConfiguration")
     def update_model_configuration(self, model_id: "q", configuration: "a{sv}"):
-        self.element.update_model_configuration(
-            model_id, *extract_model_config(configuration)
-        )
+        vendor_id, model_config = extract_model_config(configuration)
+        self.element.update_model_configuration((vendor_id, model_id), model_config)
 
     @dbus_property(name="Index", access=PropertyAccess.READ)
     def get_index(self) -> "y":
@@ -293,18 +292,13 @@ class NetworkInterface:
 
     async def attach(
         self, app_defined_root: str, token: int
-    ) -> Tuple[str, Dict[int, Dict[Tuple[int, int], Mapping[str, Any]]]]:
+    ) -> Tuple[str, Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]]]:
         path, configuration = await self._interface.call_attach(app_defined_root, token)
 
         configuration_dict = defaultdict(dict)
 
-        for element_config_list in configuration:
-            assert len(element_config_list) == 2
-            element, element_conf = element_config_list
-
-            for model_config_list in element_conf:
-                assert len(model_config_list) == 2
-                model_id, model_conf = model_config_list
+        for element, element_conf in configuration:
+            for model_id, model_conf in element_conf:
                 vendor_id, model_conf_dict = extract_model_config(model_conf)
 
                 configuration_dict[element][(vendor_id, model_id)] = model_conf_dict

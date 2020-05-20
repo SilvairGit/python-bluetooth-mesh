@@ -27,7 +27,6 @@ This module provides a high-level API for BlueZ mesh stack.
 
 import asyncio
 import logging
-from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from os import urandom
@@ -731,9 +730,9 @@ class Application(
         self.addr = await self.node_interface.address()
 
         for element, models_configs in configuration.items():
-            for model_tuple, model_config in models_configs.items():
+            for model_id, model_config in models_configs.items():
                 self.elements[element].update_model_configuration(
-                    *model_tuple, model_config
+                    model_id, model_config
                 )
 
         self.logger.info(
@@ -894,7 +893,7 @@ class Element(LocationMixin):
                 return
 
     def update_model_configuration(
-        self, model_id: int, vendor_id: int, configuration: Mapping[str, Any]
+        self, model_id: Tuple[Optional[int], int], configuration: Mapping[str, Any]
     ):
         """
         Called by :py:class:`bluetooth_mesh.interfaces.ElementInterface` when model
@@ -904,10 +903,10 @@ class Element(LocationMixin):
         :py:func:`bluetooth_mesh.models.Model.update_configuration`.
         """
         for model in self._models.values():
-            if model.MODEL_ID == (vendor_id, model_id):
-                model_configuration = ModelConfig(**configuration)
-                model.update_configuration(model_configuration)
-                return model_configuration
+            if model.MODEL_ID == model_id:
+                model_config = ModelConfig(**configuration)
+                model.update_configuration(model_config)
+                return model_config
 
     def __getitem__(self, model_class: Type["Model"]) -> "Model":
         return self._models[model_class]
