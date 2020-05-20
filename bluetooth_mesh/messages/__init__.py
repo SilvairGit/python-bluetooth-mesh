@@ -33,5 +33,5 @@ AccessMessage = Select(
 
     # this needs to be last
     "Message" / Message,
-)
+).compile()
 # fmt: on
