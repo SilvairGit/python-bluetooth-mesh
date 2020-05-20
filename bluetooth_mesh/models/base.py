@@ -23,7 +23,6 @@ import asyncio
 import inspect
 from collections import defaultdict
 from contextlib import suppress
-from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import (
     Any,
@@ -33,6 +32,7 @@ from typing import (
     Hashable,
     List,
     Mapping,
+    NamedTuple,
     Optional,
     Sequence,
     Set,
@@ -520,12 +520,17 @@ class Model:
         return await self.element.application.bind_app_key(app_key_index, model=self)
 
 
-@dataclass
 class ModelConfig:
     """
     Model Configuration class for mesh models.
     """
 
-    bindings: List[int] = field(default_factory=list)
-    publication_period: timedelta = None
-    subscriptions: Set[Union[int, UUID]] = field(default_factory=set)
+    def __init__(
+        self,
+        bindings: List[int] = None,
+        publication_period: timedelta = None,
+        subscriptions: Set[Union[int, UUID]] = None,
+    ):
+        self.bindings = bindings or list()
+        self.publication_period = publication_period
+        self.subscriptions = subscriptions or set()
