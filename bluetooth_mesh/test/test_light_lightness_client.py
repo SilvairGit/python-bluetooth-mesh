@@ -19,7 +19,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
-# pylint: disable=W0621, C0103
+# pylint: disable=redefined-outer-name, invalid-name
 import asynctest
 from asynctest import mock, ANY
 
@@ -27,7 +27,7 @@ from bluetooth_mesh import LightLightnessClient, Element
 from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
 from bluetooth_mesh.messages.generic import LightLightnessSetupMessage
 from bluetooth_mesh.messages.generic.light import LightLightnessSetupOpcode
-from bluetooth_mesh.test.fixtures import *  # pylint: disable=W0614, W0401
+from bluetooth_mesh.test.fixtures import *  # pylint: disable=unused-wildcard-import, wildcard-import
 
 
 class LLElementMock(Element):
@@ -58,7 +58,7 @@ async def test_sending_scene_recall_repeated_6_times_with_intervals_by_default(
     )
 
 
-# pylint: disable=W0212
+# pylint: disable=protected-access
 @pytest.mark.asyncio
 @asynctest.patch("asyncio.sleep", new=asynctest.CoroutineMock())
 async def test_scene_recall_calls_node_interface_with_appropriate_arguments(
