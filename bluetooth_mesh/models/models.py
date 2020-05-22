@@ -39,7 +39,7 @@ from bluetooth_mesh.messages.config import (
 )
 from bluetooth_mesh.messages.generic.level import GenericLevelOpcode
 from bluetooth_mesh.messages.generic.light.ctl import LightCTLOpcode
-from bluetooth_mesh.messages.generic.light.lightness import LightLightnessOpcode
+from bluetooth_mesh.messages.generic.light.lightness import LightLightnessOpcode, LightLightnessSetupOpcode
 from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.messages.health import HealthOpcode
 from bluetooth_mesh.messages.scene import SceneMessageOpcode
@@ -1249,6 +1249,16 @@ class LightLightnessServer(Model):
         LightLightnessOpcode.LIGHTNESS_SET,
         LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
         LightLightnessOpcode.LIGHTNESS_STATUS,
+    }
+
+
+class LightLightnessSetupServer(Model):
+    MODEL_ID = (None, 0x1301)
+    OPCODES = {
+        LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET,
+        LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED,
+        LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET,
+        LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
     }
 
 
