@@ -464,12 +464,10 @@ class Model:
         """
         from bluetooth_mesh.models.models import ModelSubscriptionStatus
 
-        self.logger.debug("SUBSCRIBE %04x -> %s", subscription_address, callback)
         self.subscription_callbacks[subscription_address].add(callback)
 
         for app_index, *_ in app_keys:
             if app_index in self.configuration.bindings:
-                self.logger.info("App key %s already bound", app_index)
                 continue
 
             await self.bind(app_index)
@@ -484,23 +482,43 @@ class Model:
             subscription_address, model=self
         )
 
-    async def unsubscribe(self) -> "ModelSubscriptionStatus":
+    async def unsubscribe(
+        self,
+        subscription_address: Optional[int] = None,
+        callback: Optional[
+            Callable[[int, Union[int, UUID], int, ParsedMeshMessage], None]
+        ] = None,
+    ) -> "ModelSubscriptionStatus":
         """
-        Unubscribe from messages sent to `subscription_address` and encrypted with
-        application key with index `app_key_index`.
-
-        This method ensures that the application key is bound to the model.
-
-        This causes `callback` to be called whenerver such message is received.
+        Unubscribe from messages sent to `subscription_address`, or clear
+        subscriptions if `subscription_address` is not provided.
 
         :return: A tuple of:
             - unicast address of the element the bound model belongs to
             - subscription address (usually a group address)
             - class object of the bound model
         """
-        self.subscription_callbacks.clear()
+        from bluetooth_mesh.models.models import ModelSubscriptionStatus
 
-        return await self.element.application.clear_subscriptions(model=self)
+        if subscription_address is None:
+            self.subscription_callbacks.clear()
+            return await self.element.application.clear_subscriptions(model=self)
+
+        self.subscription_callbacks[subscription_address].discard(callback)
+
+        # if there are any callbacks left, do not unsubscribe the model
+        if self.subscription_callbacks[subscription_address]:
+            return
+
+        if subscription_address not in self.configuration.subscriptions:
+            element_address = self.element.application.addr + self.element.index
+            return ModelSubscriptionStatus(
+                element_address, subscription_address, type(self)
+            )
+
+        return await self.element.application.unsubscribe_model(
+            subscription_address, model=self
+        )
 
     async def bind(self, app_key_index: int) -> "ModelBindStatus":
         """
