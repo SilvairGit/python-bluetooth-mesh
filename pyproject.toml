@@ -10,7 +10,7 @@ exclude = '''
     | _build
     | build
     | dist
-    | doc
+    | docs
     | bluez
   )/
 )
