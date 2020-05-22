@@ -653,9 +653,25 @@ class Application(
             model=type(model),
         )
 
-    async def clear_subscriptions(self, model: "Model") -> "ModelSubscriptionStatus":
+    async def unsubscribe_model(
+        self, subscription_address: int, model: "Model"
+    ) -> "ModelSubscriptionStatus":
         """
         See :py:func:`Model.unsubscribe` instead.
+        """
+        client = self.elements[0][ConfigClient]
+
+        return await client.del_subscription(
+            self.addr,
+            net_index=self.primary_net_key[0],
+            element_address=self.addr + model.element.index,
+            subscription_address=subscription_address,
+            model=type(model),
+        )
+
+    async def clear_subscriptions(self, model: "Model") -> "ModelSubscriptionStatus":
+        """
+        See :py:func:`Model.unsubscribe_all` instead.
         """
         client = self.elements[0][ConfigClient]
 
