@@ -1269,6 +1269,7 @@ class LightLightnessClient(Model):
         LightLightnessOpcode.LIGHTNESS_SET,
         LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
         LightLightnessOpcode.LIGHTNESS_STATUS,
+        LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
     }
     _tid = 0
 
@@ -1276,6 +1277,31 @@ class LightLightnessClient(Model):
     def tid(self) -> int:
         self._tid = (self._tid + 1) % 255
         return self._tid
+
+    async def set_lightness_range_unack(
+        self,
+        destination: int,
+        app_index: int,
+        min_lightness: int,
+        max_lightness: int,
+        *,
+        retransmissions: int = 6,
+        send_interval: float = 0.075,
+    ) -> None:
+        async def request():
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
+                params=dict(
+                    range_min=min_lightness,
+                    range_max=max_lightness,
+                ),
+            )
+
+            return await ret
+
+        await self.repeat(request, retransmissions=retransmissions, send_interval=send_interval)
 
     async def get_lightness(
         self,
