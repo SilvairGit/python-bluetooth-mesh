@@ -186,6 +186,15 @@ class Nonce:
             iv_index,
         ).bytes
 
+    def solicitation(self, seq):
+        return bitstring.pack(
+            "uint:8, pad:8, uintbe:24, uintbe:16, pad:16, uintbe:32",
+            0x04,
+            seq,
+            self.src,
+            0,
+        ).bytes
+
 
 class Segment:
     MAX_TRANSPORT_PDU = 15
@@ -337,6 +346,23 @@ class ProxyConfigMessage(Segment):
         return ProxyConfigMessage(src, opcode, transport_pdu[1:])
 
 
+class SolicitationMessage(Segment):
+    def __init__(self, src, dst=0):
+        super().__init__(src, dst, 0x00, True, bytes())
+        self.payload = bytes()
+        self.opcode = bytes()
+
+    def get_opcode(self, application_key):
+        return bitstring.BitString()
+
+    def segments(self, application_key, seq, iv_index, szmic=False):
+        yield bytes()
+
+    @classmethod
+    def decrypt(cls, src):
+        return SolicitationMessage(src)
+
+
 class SegmentAckMessage(ControlMessage):
     def __init__(self, src, dst, ttl, seq_zero, ack_segments, obo=False):
         self.obo = obo
@@ -387,6 +413,9 @@ class NetworkMessage:
         for seq, pdu in enumerate(segments, start=seq):
             if isinstance(self.message, ProxyConfigMessage):
                 nonce = self.message.nonce.proxy(seq, iv_index)
+            elif isinstance(self.message, SolicitationMessage):
+                assert iv_index == 0x00000000
+                nonce = self.message.nonce.solicitation(seq)
             else:
                 nonce = self.message.nonce.network(seq, iv_index)
             network_pdu = aes_ccm_encrypt(
