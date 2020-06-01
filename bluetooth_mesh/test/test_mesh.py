@@ -33,6 +33,7 @@ from bluetooth_mesh.mesh import (
     SecureNetworkBeacon,
     SegmentAckMessage,
     UnprovisionedDeviceBeacon,
+    SolicitationMessage,
 )
 
 
@@ -94,6 +95,10 @@ def proxy_use_whitelist_message():
 def app_sar_message():
     payload = bytes.fromhex("510c00000000020b0c1f00efcdab071b1c")
     return AccessMessage(src=1234, dst=4321, ttl=1, payload=payload)
+
+@fixture
+def proxy_solicitation_message():
+    return SolicitationMessage(src=0x0031, dst=0x0100)
 
 
 def test_network_beacon_received(net_key):
@@ -376,3 +381,15 @@ def test_proxy_config_unpack_from_network_pdu(
     )
 
     assert unpacked_network_message.message == proxy_use_whitelist_message
+
+
+def test_proxy_solicitation_pack_to_network_pdu(
+    proxy_solicitation_message: SolicitationMessage,
+):
+    network_message = NetworkMessage(proxy_solicitation_message)
+    net_key_local = NetworkKey(bytes.fromhex("18eed9c2a56add85049ffc3c59ad0e12"))
+    ((seq, network_pdu),) = network_message.pack(
+        app_key, net_key_local, seq=0x000001, iv_index=0x00000000
+    )
+
+    assert network_pdu.hex() == "7415fd26d31ba53425f13b423508c0019a"
