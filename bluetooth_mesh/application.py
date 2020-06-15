@@ -27,6 +27,7 @@ This module provides a high-level API for BlueZ mesh stack.
 
 import asyncio
 import logging
+import socket
 from enum import Enum
 from functools import lru_cache
 from os import urandom
@@ -62,6 +63,7 @@ from bluetooth_mesh.interfaces import (
     ProvisionerInterface,
 )
 from bluetooth_mesh.messages import AccessMessage
+from bluetooth_mesh.messages.fd import FdMessage, FdMessageType
 from bluetooth_mesh.models import ConfigClient, ModelConfig
 from bluetooth_mesh.tokenring import TokenRing
 from bluetooth_mesh.utils import MeshError, ParsedMeshMessage
@@ -547,7 +549,10 @@ class Application(
         self.elements = {}
 
     async def connect(
-        self, addr: Union[int, Callable[[], int], Awaitable[int]], iv_index: int = 0
+        self,
+        addr: Union[int, Callable[[], int], Awaitable[int]],
+        iv_index: int = 0,
+        use_fd: bool = False,
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
@@ -561,7 +566,7 @@ class Application(
         that yields a mesh address.
         """
         try:
-            configuration = await self.attach()
+            configuration = await self.attach(use_fd=use_fd)
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
             if isinstance(addr, Awaitable):
@@ -575,7 +580,7 @@ class Application(
                     "Address not given as a value or an acceptable callback."
                 )
             await self.import_node(addr=mesh_address, iv_index=iv_index)
-            configuration = await self.attach()
+            configuration = await self.attach(use_fd=use_fd)
 
             # after importing, explicitly import own device key to enable
             # communication with local Config Server
@@ -720,7 +725,7 @@ class Application(
         self.logger.info("Leave")
         await self.network_interface.leave(self.token_ring.token)
 
-    async def attach(self, token: Optional[int] = None):
+    async def attach(self, token: Optional[int] = None, *, use_fd: bool = False):
         """
         Attach to existing node using a token.
 
@@ -733,7 +738,14 @@ class Application(
             raise ValueError("No token")
 
         self.logger.info("Attach %x", token)
-        path, configuration = await self.network_interface.attach("/", token)
+
+        if use_fd:
+            path, configuration, sock = await self.network_interface.attach_fd(
+                "/", token
+            )
+            self._add_reader(sock)
+        else:
+            path, configuration = await self.network_interface.attach("/", token)
 
         self.token_ring.token = token
 
@@ -759,6 +771,23 @@ class Application(
         )
 
         return configuration
+
+    def _add_reader(self, sock):
+        def _read_message():
+            # TODO: keep calling recv() until we don't have anything to read
+            line = sock.recv(1024)
+            msg = FdMessage.parse(line)
+
+            if msg.type == FdMessageType.NETKEY:
+                self.elements[msg.element].dev_key_message_received(
+                    msg.source, msg.params.remote, msg.params.net_index, msg.data
+                )
+            elif msg.type == FdMessageType.APPKEY:
+                self.elements[msg.element].message_received(
+                    msg.source, msg.params.app_index, msg.params.destination, msg.data
+                )
+
+        self.loop.add_reader(sock, _read_message)
 
     async def import_node(
         self,
