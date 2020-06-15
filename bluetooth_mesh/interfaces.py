@@ -31,6 +31,7 @@ They are not meant to be used directly. See :py:mod:`bluetooth_mesh.application`
 
 import asyncio
 import logging
+import socket
 from collections import defaultdict
 from datetime import timedelta
 from enum import Enum
@@ -286,6 +287,17 @@ class NetworkInterface:
     def __init__(self, mesh_service):
         self._interface = mesh_service.get_interface("org.bluez.mesh.Network1")
 
+    def _extract_model_config(self, configuration):
+        configuration_dict = defaultdict(dict)
+
+        for element, element_conf in configuration:
+            for model_id, model_conf in element_conf:
+                vendor_id, model_conf_dict = extract_model_config(model_conf)
+
+                configuration_dict[element][(vendor_id, model_id)] = model_conf_dict
+
+        return configuration_dict
+
     async def join(self, app_defined_root: str, uuid: UUID) -> None:
         await self._interface.call_join(app_defined_root, uuid.bytes)
 
@@ -297,15 +309,23 @@ class NetworkInterface:
     ) -> Tuple[str, Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]]]:
         path, configuration = await self._interface.call_attach(app_defined_root, token)
 
-        configuration_dict = defaultdict(dict)
+        return path, self._extract_model_config(configuration)
 
-        for element, element_conf in configuration:
-            for model_id, model_conf in element_conf:
-                vendor_id, model_conf_dict = extract_model_config(model_conf)
+    async def attach_fd(
+        self, app_defined_root: str, token: int
+    ) -> Tuple[
+        str,
+        Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]],
+        socket.socket
+    ]:
+        path, configuration, fd = await self._interface.call_attach_fd(
+            app_defined_root, token
+        )
 
-                configuration_dict[element][(vendor_id, model_id)] = model_conf_dict
+        sock = socket.fromfd(fd, socket.AF_UNIX, socket.SOCK_DGRAM)
+        sock.setblocking(False)
 
-        return path, configuration_dict
+        return path, self._extract_model_config(configuration), sock
 
     async def leave(self, token: int) -> None:
         await self._interface.call_leave(token)
