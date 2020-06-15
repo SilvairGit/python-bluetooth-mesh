@@ -33,13 +33,15 @@ import asyncio
 import logging
 from collections import defaultdict
 from datetime import timedelta
-from typing import Any, Dict, Mapping, Optional, Tuple
+from enum import Enum
+from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 from uuid import UUID
 
 from dbus_next import DBusError, Variant
 from dbus_next.service import PropertyAccess, ServiceInterface, dbus_property, method
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
+from bluetooth_mesh.utils import Signal
 
 
 class DBusService:
@@ -350,9 +352,40 @@ class AclInterface:
         return await self._interface.call_revoke_access(token)
 
 
+class IvState(Enum):
+    INIT = "init"
+    NORMAL = "normal"
+    UPDATING = "updating"
+    NORMAL_HOLD = "hold"
+
+
 class NodeInterface:
     def __init__(self, node_service):
         self._interface = node_service.get_interface("org.bluez.mesh.Node1")
+        self._properties = node_service.get_interface("org.freedesktop.DBus.Properties")
+        self._properties.on_properties_changed(self._on_properties_changed)
+
+    def _on_properties_changed(
+        self, interface: str, changed: Mapping[str, Any], invalidated: Sequence[str]
+    ):
+        if interface != "org.bluez.mesh.Node1":
+            return
+
+        for name, variant in changed.items():
+            val = variant.value
+
+            if name == "IvIndex":
+                sig = self.iv_index.signal
+            elif name == "IvUpdate":
+                sig = self.iv_udpate.signal
+            elif name == "IvState":
+                sig = self.iv_state.signal
+                val = IvState(variant.value)
+            else:
+                sig = None
+
+            if sig:
+                asyncio.ensure_future(sig.emit(val))
 
     async def send(
         self, element_path: str, destination: int, key_index: int, data: bytes
@@ -418,8 +451,18 @@ class NodeInterface:
     async def iv_update(self) -> bool:
         return await self._interface.get_iv_update()
 
+    iv_update.signal = Signal()
+
     async def iv_index(self) -> int:
         return await self._interface.get_iv_index()
+
+    iv_index.signal = Signal()
+
+    async def iv_state(self) -> IvState:
+        state = await self._interface.get_iv_state()
+        return IvState(state)
+
+    iv_state.signal = Signal()
 
     async def seconds_since_last_heard(self) -> int:
         return await self._interface.get_seconds_since_last_heard()
