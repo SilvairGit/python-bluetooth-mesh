@@ -21,7 +21,7 @@ Message = Struct(
 
 AccessMessage = Select(
     "ConfigMessage" / ConfigMessage,
-    "DebugMessage"/ DebugMessage,
+    "DebugMessage" / DebugMessage,
     "GatewayConfigMessage" / GatewayConfigMessage,
     "GenericMessage" / GenericMessage,
     "HealthMessage" / HealthMessage,
