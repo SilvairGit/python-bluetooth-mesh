@@ -415,8 +415,8 @@ class NodeInterface:
     async def beacon(self) -> bool:
         return await self._interface.get_beacon()
 
-    async def beacon_flags(self) -> int:
-        return await self._interface.get_beacon_flags()
+    async def iv_update(self) -> bool:
+        return await self._interface.get_iv_update()
 
     async def iv_index(self) -> int:
         return await self._interface.get_iv_index()
