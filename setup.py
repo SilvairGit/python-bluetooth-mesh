@@ -45,7 +45,7 @@ setup(
         'construct==2.9.45',
         'cryptography>=2.3.1',
         'crc==0.3.0',
-        'dbus-next==0.1.3',
+        'dbus-next@git+https://github.com/SilvairGit/python-dbus-next.git@8737508e495891fd4bd64554b3269ad8d4ef41a2',
         'ecdsa==0.15',
         'pluggy>=0.13.1',
         'marshmallow>=3.0.1,<4.0',
