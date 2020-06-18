@@ -27,7 +27,7 @@ with open("README.rst", "r") as f:
 # fmt: off
 setup(
     name='bluetooth-mesh',
-    version='0.2.15',
+    version='0.2.16-rc1',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
         'Bluetooth mesh for Python'
@@ -45,10 +45,13 @@ setup(
         'construct==2.9.45',
         'cryptography>=2.3.1',
         'crc==0.3.0',
-        'dbus-next@git+https://github.com/SilvairGit/python-dbus-next.git@8737508e495891fd4bd64554b3269ad8d4ef41a2',
+        'dbus-next==0.1.3',
         'ecdsa==0.15',
         'pluggy>=0.13.1',
         'marshmallow>=3.0.1,<4.0',
+    ],
+    dependency_links=[
+        'https://github.com/SilvairGit/python-dbus-next.git@8737508e495891fd4bd64554b3269ad8d4ef41a2#egg=dbus-next-0.1.3'
     ],
     tests_require=[
         'asynctest==0.12.3',
