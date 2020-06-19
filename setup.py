@@ -27,7 +27,7 @@ with open("README.rst", "r") as f:
 # fmt: off
 setup(
     name='bluetooth-mesh',
-    version='0.2.16rc3',
+    version='0.2.16rc4',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
         'Bluetooth mesh for Python'
@@ -45,7 +45,7 @@ setup(
         'construct==2.9.45',
         'cryptography>=2.3.1',
         'crc==0.3.0',
-        'dbus-next==0.1.4rc0',
+        'dbus-next>=0.1.3',
         'ecdsa==0.15',
         'pluggy>=0.13.1',
         'marshmallow>=3.0.1,<4.0',
