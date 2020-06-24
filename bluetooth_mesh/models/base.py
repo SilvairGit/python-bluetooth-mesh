@@ -88,9 +88,17 @@ class Model:
     def _node_interface(self):
         return self.element.application.node_interface
 
-    def update_configuration(self, configuration):
-        self.logger.debug("Update config of %s: %s", self.MODEL_ID, configuration)
-        self.configuration = configuration
+    def update_configuration(self, configuration: "ModelConfig"):
+        if configuration.bindings is not None:
+            self.configuration.bindings = configuration.bindings
+
+        if configuration.publication_period is not None:
+            self.configuration.publication_period = configuration.publication_period
+
+        if configuration.subscriptions is not None:
+            self.configuration.subscriptions = configuration.subscriptions
+
+        self.logger.info("Update config of %s: %s", self.MODEL_ID, self.configuration)
 
     def message_received(
         self,
@@ -549,6 +557,9 @@ class ModelConfig:
         publication_period: timedelta = None,
         subscriptions: Set[Union[int, UUID]] = None,
     ):
-        self.bindings = bindings or list()
+        self.bindings = bindings
         self.publication_period = publication_period
-        self.subscriptions = subscriptions or set()
+        self.subscriptions = subscriptions
+
+    def __str__(self):
+        return f"<ModelConfig bindings={self.bindings}, subs={self.subscriptions}>"
