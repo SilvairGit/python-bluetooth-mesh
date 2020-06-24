@@ -76,7 +76,7 @@ class Model:
         )  # type: Dict[Union[int, UUID], Set]
 
         assert self.MODEL_ID[1] is not None, "A model has to have ID!"
-        self.configuration = ModelConfig()
+        self.configuration = ModelConfig(bindings=[], subscriptions=[])
 
     def __str__(self):
         if self.MODEL_ID[0] is None:
