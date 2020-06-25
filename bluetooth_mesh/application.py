@@ -553,7 +553,7 @@ class Application(
         self,
         addr: Union[int, Callable[[], int], Awaitable[int]],
         iv_index: int = 0,
-        use_fd: bool = False,
+        use_unix_fd: bool = False,
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
@@ -567,7 +567,7 @@ class Application(
         that yields a mesh address.
         """
         try:
-            configuration = await self.attach(use_fd=use_fd)
+            configuration = await self.attach(use_unix_fd=use_unix_fd)
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
             if isinstance(addr, Awaitable):
@@ -581,7 +581,7 @@ class Application(
                     "Address not given as a value or an acceptable callback."
                 )
             await self.import_node(addr=mesh_address, iv_index=iv_index)
-            configuration = await self.attach(use_fd=use_fd)
+            configuration = await self.attach(use_unix_fd=use_unix_fd)
 
         # after attaching, explicitly import own device key to enable
         # communication with local Config Server
@@ -726,7 +726,7 @@ class Application(
         self.logger.info("Leave")
         await self.network_interface.leave(self.token_ring.token)
 
-    async def attach(self, token: Optional[int] = None, *, use_fd: bool = False):
+    async def attach(self, token: Optional[int] = None, *, use_unix_fd: bool = False):
         """
         Attach to existing node using a token.
 
@@ -740,8 +740,8 @@ class Application(
 
         self.logger.info("Attach %x", token)
 
-        if use_fd:
-            path, configuration, sock = await self.network_interface.attach_fd(
+        if use_unix_fd:
+            path, configuration, sock = await self.network_interface.attach_unix(
                 "/", token
             )
             self._add_reader(sock)

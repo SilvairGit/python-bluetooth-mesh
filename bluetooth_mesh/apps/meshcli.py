@@ -1006,7 +1006,7 @@ class MeshCommandLine(*application_mixins, Application):
             await self._run(addr, command)
 
     async def _run(self, addr, command):
-        await self.connect(addr, use_fd=True)
+        await self.connect(addr, use_unix_fd=True)
         await self.add_keys()
         self.logger.info(
             "Loaded network %s, %d nodes", self.network, len(self.network.nodes)
