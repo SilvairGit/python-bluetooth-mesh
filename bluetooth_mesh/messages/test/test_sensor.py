@@ -719,3 +719,9 @@ def test_build_valid_property(encoded, data):
         )
         == encoded
     )
+
+def test_performance():
+    from bluetooth_mesh.messages import AccessMessage
+
+    print(AccessMessage.benchmark(b'\x51\x0c\x00\x00\x00\x00\x02\x0b\x0c\x1f\x00\xef\xcd\xab\x07\x1b\x1c'))
+    print(SensorMessage.benchmark(b'\x51\x0c\x00\x00\x00\x00\x02\x0b\x0c\x1f\x00\xef\xcd\xab\x07\x1b\x1c'))
