@@ -41,7 +41,7 @@ from bluetooth_mesh.messages.generics import (
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 
-class SceneMessageOpcode(IntEnum):
+class SceneOpcode(IntEnum):
     SCENE_GET = 0x8241
     SCENE_RECALL = 0x8242
     SCENE_RECALL_UNACKNOWLEDGED = 0x8243
@@ -114,20 +114,20 @@ SceneSetup = Struct(
 )
 
 SceneMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, SceneMessageOpcode),
+    "opcode" / Opcode(SceneOpcode),
     "params" / Switch(
         this.opcode,
         {
-            SceneMessageOpcode.SCENE_GET: SceneGet,
-            SceneMessageOpcode.SCENE_RECALL: SceneRecall,
-            SceneMessageOpcode.SCENE_RECALL_UNACKNOWLEDGED: SceneRecall,
-            SceneMessageOpcode.SCENE_STATUS: SceneStatus,
-            SceneMessageOpcode.SCENE_REGISTER_GET: SceneRegisterGet,
-            SceneMessageOpcode.SCENE_REGISTER_STATUS: SceneRegisterStatus,
-            SceneMessageOpcode.SCENE_STORE: SceneSetupWithValidation,
-            SceneMessageOpcode.SCENE_STORE_UNACKNOWLEDGED: SceneSetupWithValidation,
-            SceneMessageOpcode.SCENE_DELETE: SceneSetup,
-            SceneMessageOpcode.SCENE_DELETE_UNACKNOWLEDGED: SceneSetup,
+            SceneOpcode.SCENE_GET: SceneGet,
+            SceneOpcode.SCENE_RECALL: SceneRecall,
+            SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED: SceneRecall,
+            SceneOpcode.SCENE_STATUS: SceneStatus,
+            SceneOpcode.SCENE_REGISTER_GET: SceneRegisterGet,
+            SceneOpcode.SCENE_REGISTER_STATUS: SceneRegisterStatus,
+            SceneOpcode.SCENE_STORE: SceneSetupWithValidation,
+            SceneOpcode.SCENE_STORE_UNACKNOWLEDGED: SceneSetupWithValidation,
+            SceneOpcode.SCENE_DELETE: SceneSetup,
+            SceneOpcode.SCENE_DELETE_UNACKNOWLEDGED: SceneSetup,
 
         }
     )

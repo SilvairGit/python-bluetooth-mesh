@@ -42,7 +42,7 @@ from bluetooth_mesh.messages.generic.light.ctl import LightCTLOpcode
 from bluetooth_mesh.messages.generic.light.lightness import LightLightnessOpcode, LightLightnessSetupOpcode
 from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.messages.health import HealthOpcode
-from bluetooth_mesh.messages.scene import SceneMessageOpcode
+from bluetooth_mesh.messages.scene import SceneOpcode
 from bluetooth_mesh.messages.sensor import SensorOpcode
 from bluetooth_mesh.messages.silvair.debug import DebugOpcode, DebugSubOpcode
 from bluetooth_mesh.messages.silvair.gateway_config_server import (
@@ -1142,16 +1142,16 @@ class GenericOnOffClient(Model):
 class SceneClient(Model):
     MODEL_ID = (None, 0x1205)
     OPCODES = {
-        SceneMessageOpcode.SCENE_GET,
-        SceneMessageOpcode.SCENE_RECALL,
-        SceneMessageOpcode.SCENE_RECALL_UNACKNOWLEDGED,
-        SceneMessageOpcode.SCENE_STATUS,
-        SceneMessageOpcode.SCENE_REGISTER_GET,
-        SceneMessageOpcode.SCENE_REGISTER_STATUS,
-        SceneMessageOpcode.SCENE_STORE,
-        SceneMessageOpcode.SCENE_STORE_UNACKNOWLEDGED,
-        SceneMessageOpcode.SCENE_DELETE,
-        SceneMessageOpcode.SCENE_DELETE_UNACKNOWLEDGED,
+        SceneOpcode.SCENE_GET,
+        SceneOpcode.SCENE_RECALL,
+        SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED,
+        SceneOpcode.SCENE_STATUS,
+        SceneOpcode.SCENE_REGISTER_GET,
+        SceneOpcode.SCENE_REGISTER_STATUS,
+        SceneOpcode.SCENE_STORE,
+        SceneOpcode.SCENE_STORE_UNACKNOWLEDGED,
+        SceneOpcode.SCENE_DELETE,
+        SceneOpcode.SCENE_DELETE_UNACKNOWLEDGED,
     }
 
     def __init__(self, element: "Element"):
@@ -1171,7 +1171,7 @@ class SceneClient(Model):
             ret = self.send_app(
                 destination,
                 app_index=app_index,
-                opcode=SceneMessageOpcode.SCENE_RECALL_UNACKNOWLEDGED,
+                opcode=SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED,
                 params=dict(
                     scene_number=scene_number,
                     tid=values["tid"],
