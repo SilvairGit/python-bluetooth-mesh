@@ -43,6 +43,7 @@ from construct import (
     Switch,
     ValidationError,
     Construct,
+    Container,
     SizeofError,
     stream_read,
     stream_write,
@@ -318,3 +319,28 @@ class DictAdapter(Adapter):
             value_name = self.value.__getfield__()
             for k, v in obj.items():
                 yield {key_name: k, value_name: v}
+
+
+class OpcodeMessage(Construct):
+    OPCODE = Opcode()
+
+    def __init__(self, opcodes):
+        super().__init__()
+        self.opcodes = {k: v.compile() for k, v in opcodes.items()}
+
+    def _parse(self, stream, context, path):
+        opcode = self.OPCODE._parse(stream, context, path)
+        params = self.opcodes[opcode]._parse(stream, context, path)
+
+        return Container(opcode=opcode, params=params)
+
+    def _build(self, obj, stream, context, path):
+        opcode = obj["opcode"]
+
+        self.OPCODE._build(opcode, stream, context, path)
+        self.opcodes[opcode]._build(obj["params"], stream, context, path)
+
+        return obj
+
+    def _sizeof(self, context, path):
+        raise SizeofError

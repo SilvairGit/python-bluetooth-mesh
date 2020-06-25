@@ -164,6 +164,9 @@ class PropertyID(IntEnum):
     TOTAL_LIGHT_EXPOSURE_TIME = 0x006F
     TOTAL_LUMINOUS_ENERGY = 0x0070
 
+    def __repr__(self):
+        return str(self.value)
+
 
 class TimeExponential8Validator(Adapter):
     def _decode(self, obj, content, path):
