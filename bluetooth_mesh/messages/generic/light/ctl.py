@@ -46,12 +46,18 @@ class LightCTLOpcode(IntEnum):
     CTL_TEMPERATURE_DEFAULT_GET = 0x8267
     CTL_TEMPERATURE_DEFAULT_STATUS = 0x8268
 
+    def __repr__(self):
+        return str(self.value)
+
 
 class LightCTLSetupOpcode(IntEnum):
     CTL_TEMPERATURE_DEFAULT_SET = 0x8269
     CTL_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED = 0x826A
     CTL_TEMPERATURE_RANGE_SET = 0x826B
     CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED = 0x826C
+
+    def __repr__(self):
+        return str(self.value)
 
 
 # fmt: off

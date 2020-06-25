@@ -1,4 +1,13 @@
-from construct import Construct, GreedyBytes, Select, Struct
+from construct import (
+    Construct,
+    Container,
+    GreedyBytes,
+    Select,
+    Struct,
+    SizeofError,
+    stream_read_entire,
+    stream_write,
+)
 
 from .config import ConfigMessage, ConfigOpcode
 from .generic.battery import GenericBatteryMessage, GenericBatteryOpcode
@@ -32,13 +41,6 @@ from .silvair.network_diagnostic_server import (
 )
 from .util import Opcode
 
-# fmt: off
-Message = Struct(
-    "opcode" / Opcode(),
-    "params" / GreedyBytes,
-)
-# fmt: on
-
 
 class _AccessMessage(Construct):
     OPCODES = {
@@ -70,12 +72,24 @@ class _AccessMessage(Construct):
     def _parse(self, stream, context, path):
         opcode = Opcode()._parse(stream, context, path)
 
+        try:
+            message = self._opcodes[opcode]
+        except KeyError:
+            return Container(opcode=opcode, params=stream_read_entire(stream))
+
         stream.seek(0)
-        message = self._opcodes.get(opcode, Message)
         return message._parse(stream, context, path)
 
     def _build(self, obj, stream, context, path):
-        message = self._opcodes.get(obj["opcode"], Message)
+        opcode = obj["opcode"]
+
+        try:
+            message = self._opcodes[opcode]
+        except KeyError:
+            Opcode()._build(opcode, stream, context, path)
+            stream_write(stream, obj["params"])
+            return obj
+
         return message._build(obj, stream, context, path)
 
     def _sizeof(self, context, path):

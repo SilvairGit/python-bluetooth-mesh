@@ -40,7 +40,7 @@ from construct import (
 
 from bluetooth_mesh.messages.config import DoubleKeyIndex, EmbeddedBitStruct
 from bluetooth_mesh.messages.properties import DefaultCountValidator, PropertyValue
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, OpcodeMessage
 
 
 class SensorSampling(IntEnum):
@@ -69,6 +69,9 @@ class SensorOpcode(IntEnum):
     SENSOR_SERIES_GET = 0x8233
     SENSOR_SERIES_STATUS = 0x54
 
+    def __repr__(self):
+        return str(self.value)
+
 
 class SensorSetupOpcode(IntEnum):
     SENSOR_CADENCE_GET = 0x8234
@@ -81,6 +84,9 @@ class SensorSetupOpcode(IntEnum):
     SENSOR_SETTING_SET = 0x59
     SENSOR_SETTING_SET_UNACKNOWLEDGED = 0x5A
     SENSOR_SETTING_STATUS = 0x5B
+
+    def __repr__(self):
+        return str(self.value)
 
 
 # fmt: off
@@ -211,39 +217,28 @@ TriggerDelta = Struct(
 #     "fast_cadence_high" / PropertyValue
 # )
 
-SensorMessage = Struct(
-    "opcode" / Opcode(SensorOpcode),
-    "params" / Switch(
-        this.opcode,
-        {
-            SensorOpcode.SENSOR_DESCRIPTOR_GET: SensorGet,
-            SensorOpcode.SENSOR_DESCRIPTOR_STATUS: SensorDescriptorStatus,
-            SensorOpcode.SENSOR_GET: SensorGet,
-            SensorOpcode.SENSOR_STATUS: SensorStatus,
-            # SensorOpcode.SENSOR_COLUMN_GET: SensorColumnGet,
-            # SensorOpcode.SENSOR_COLUMN_STATUS: 0x00,
-            # SensorOpcode.SENSOR_SERIES_GET: SensorSeriesGet,
-            # SensorOpcode.SENSOR_SERIES_STATUS: 0x00,
-        },
-    )
-)
+SensorMessage = OpcodeMessage({
+    SensorOpcode.SENSOR_DESCRIPTOR_GET: SensorGet,
+    SensorOpcode.SENSOR_DESCRIPTOR_STATUS: SensorDescriptorStatus,
+    SensorOpcode.SENSOR_GET: SensorGet,
+    SensorOpcode.SENSOR_STATUS: SensorStatus,
+    # SensorOpcode.SENSOR_COLUMN_GET: SensorColumnGet,
+    # SensorOpcode.SENSOR_COLUMN_STATUS: 0x00,
+    # SensorOpcode.SENSOR_SERIES_GET: SensorSeriesGet,
+    # SensorOpcode.SENSOR_SERIES_STATUS: 0x00,
+})
 
-SensorSetupMessage = Struct(
-    "opcode" / Opcode(SensorSetupOpcode),
-    "params" / Switch(
-        this.opcode,
-        {
-            SensorSetupOpcode.SENSOR_CADENCE_GET: SensorGetOptional,
-            # SensorSetupOpcode.SENSOR_CADENCE_SET: SensorCadence,
-            # SensorSetupOpcode.SENSOR_CADENCE_SET_UNACKNOWLEDGED: SensorCadence,
-            # SensorSetupOpcode.SENSOR_CADENCE_STATUS: SensorCadence,
-            SensorSetupOpcode.SENSOR_SETTINGS_GET: SensorSettingsGet,
-            SensorSetupOpcode.SENSOR_SETTINGS_STATUS: SensorSettingsStatus,
-            SensorSetupOpcode.SENSOR_SETTING_GET: SensorSettingGet,
-            SensorSetupOpcode.SENSOR_SETTING_SET: SensorSettingSet,
-            SensorSetupOpcode.SENSOR_SETTING_SET_UNACKNOWLEDGED: SensorSettingSet,
-            SensorSetupOpcode.SENSOR_SETTING_STATUS: SensorSettingStatus,
-        },
-    )
-)
+
+SensorSetupMessage = OpcodeMessage({
+    SensorSetupOpcode.SENSOR_CADENCE_GET: SensorGetOptional,
+    # SensorSetupOpcode.SENSOR_CADENCE_SET: SensorCadence,
+    # SensorSetupOpcode.SENSOR_CADENCE_SET_UNACKNOWLEDGED: SensorCadence,
+    # SensorSetupOpcode.SENSOR_CADENCE_STATUS: SensorCadence,
+    SensorSetupOpcode.SENSOR_SETTINGS_GET: SensorSettingsGet,
+    SensorSetupOpcode.SENSOR_SETTINGS_STATUS: SensorSettingsStatus,
+    SensorSetupOpcode.SENSOR_SETTING_GET: SensorSettingGet,
+    SensorSetupOpcode.SENSOR_SETTING_SET: SensorSettingSet,
+    SensorSetupOpcode.SENSOR_SETTING_SET_UNACKNOWLEDGED: SensorSettingSet,
+    SensorSetupOpcode.SENSOR_SETTING_STATUS: SensorSettingStatus,
+})
 # fmt: on
