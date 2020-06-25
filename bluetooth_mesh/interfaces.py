@@ -32,6 +32,7 @@ They are not meant to be used directly. See :py:mod:`bluetooth_mesh.application`
 import asyncio
 import logging
 import socket
+import os
 from collections import defaultdict
 from datetime import timedelta
 from enum import Enum
@@ -324,6 +325,32 @@ class NetworkInterface:
 
         sock = socket.fromfd(fd, socket.AF_UNIX, socket.SOCK_DGRAM)
         sock.setblocking(False)
+
+        return path, self._extract_model_config(configuration), sock
+
+    async def attach_unix(self, app_defined_root: str, token: int) -> Tuple[
+        str,
+        Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]]
+    ]:
+        directory = os.getenv("SNAP_DATA", "/tmp")
+
+        if directory == "/tmp":
+            fd_path = os.path.join(directory, "socket")
+        else:
+            fd_path = os.path.join(directory, "sockets", "socket")
+
+        try:
+            os.unlink(fd_path)
+        except:
+            pass
+
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM, 0)
+        sock.setblocking(False)
+        sock.bind(fd_path)
+
+        path, configuration = await self._interface.call_attach_unix(
+            app_defined_root, token, fd_path
+        )
 
         return path, self._extract_model_config(configuration), sock
 
