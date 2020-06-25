@@ -212,7 +212,7 @@ TriggerDelta = Struct(
 # )
 
 SensorMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, SensorOpcode),
+    "opcode" / Opcode(SensorOpcode),
     "params" / Switch(
         this.opcode,
         {
@@ -229,7 +229,7 @@ SensorMessage = Struct(
 )
 
 SensorSetupMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, SensorSetupOpcode),
+    "opcode" / Opcode(SensorSetupOpcode),
     "params" / Switch(
         this.opcode,
         {

@@ -102,7 +102,7 @@ class HealthOpcode(enum.IntEnum):
 
 # fmt: off
 HealthMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, HealthOpcode),
+    "opcode" / Opcode(HealthOpcode),
     "params" / Switch(
         this.opcode,
         {

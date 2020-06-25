@@ -106,7 +106,7 @@ GenericLevelStatus = Select(
 )
 
 GenericLevelMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, GenericLevelOpcode),
+    "opcode" / Opcode(GenericLevelOpcode),
     "params" / Switch(
         this.opcode,
         {

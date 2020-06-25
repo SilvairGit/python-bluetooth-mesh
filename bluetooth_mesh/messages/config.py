@@ -1092,7 +1092,7 @@ class ConfigOpcode(enum.IntEnum):
 
 # fmt: off
 ConfigMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, ConfigOpcode),
+    "opcode" / Opcode(ConfigOpcode),
     "params" / Switch(
         this.opcode,
         {

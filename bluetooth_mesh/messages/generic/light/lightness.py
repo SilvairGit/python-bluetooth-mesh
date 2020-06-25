@@ -104,7 +104,7 @@ LightLightnessSet = Select(
 )
 
 LightLightnessMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, LightLightnessOpcode),
+    "opcode" / Opcode(LightLightnessOpcode),
     "params" / Switch(
         this.opcode,
         {
@@ -127,7 +127,7 @@ LightLightnessMessage = Struct(
 )
 
 LightLightnessSetupMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, LightLightnessSetupOpcode),
+    "opcode" / Opcode(LightLightnessSetupOpcode),
     "params" / Switch(
         this.opcode,
         {

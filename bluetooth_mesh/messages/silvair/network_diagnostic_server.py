@@ -126,12 +126,12 @@ NetworkDiagnosticSetupServerPayload = Struct(
 )
 
 NetworkDiagnosticServerMessage = Struct(
-    "opcode" / Const(NetworkDiagnosticServerOpcode.OPCODE, Opcode),
+    "opcode" / Const(NetworkDiagnosticServerOpcode.OPCODE, Opcode(NetworkDiagnosticServerOpcode)),
     "params" / NetworkDiagnosticServerPayload
 )
 
 NetworkDiagnosticSetupServerMessage = Struct(
-    "opcode" / Const(NetworkDiagnosticSetupServerOpcode.OPCODE, Opcode),
+    "opcode" / Const(NetworkDiagnosticSetupServerOpcode.OPCODE, Opcode(NetworkDiagnosticSetupServerOpcode)),
     "params" / NetworkDiagnosticSetupServerPayload
 )
 # fmt: on

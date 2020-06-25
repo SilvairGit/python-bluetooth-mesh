@@ -140,7 +140,7 @@ LightCTLRangeStatus = Struct(
 
 
 LightCTLMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, LightCTLOpcode),
+    "opcode" / Opcode(LightCTLOpcode),
     "params" / Switch(
         this.opcode,
         {
@@ -162,7 +162,7 @@ LightCTLMessage = Struct(
 
 
 LightCTLSetupMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, LightCTLSetupOpcode),
+    "opcode" / Opcode(LightCTLSetupOpcode),
     "params" / Switch(
         this.opcode,
         {

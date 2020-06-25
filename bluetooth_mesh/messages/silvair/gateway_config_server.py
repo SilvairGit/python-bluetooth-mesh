@@ -228,7 +228,7 @@ GatewayConfigPayload = Struct(
 )
 
 GatewayConfigMessage = Struct(
-    "opcode" / Const(GatewayConfigServerOpcode.OPCODE, Opcode),
+    "opcode" / Const(GatewayConfigServerOpcode.OPCODE, Opcode(GatewayConfigServerOpcode)),
     "params" / GatewayConfigPayload
 )
 # fmt: on

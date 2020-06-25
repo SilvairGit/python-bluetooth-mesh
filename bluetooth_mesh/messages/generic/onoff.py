@@ -64,7 +64,7 @@ GenericOnOffStatus = Select(GenericOnOffStatusOptional, GenericOnOffStatusMinima
 
 
 GenericOnOffMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, GenericOnOffOpcode),
+    "opcode" / Opcode(GenericOnOffOpcode),
     "params"
     / Switch(
         this.opcode,
