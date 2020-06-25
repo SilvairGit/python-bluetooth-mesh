@@ -34,12 +34,16 @@ from construct import (
     Select,
     Struct,
     Switch,
+    Construct,
+    Container,
+    stream_read,
+    stream_write,
     obj_,
     this,
 )
 
 from bluetooth_mesh.messages.config import DoubleKeyIndex, EmbeddedBitStruct
-from bluetooth_mesh.messages.properties import DefaultCountValidator, PropertyValue
+from bluetooth_mesh.messages.properties import DefaultCountValidator, PropertyValue, PropertyDict
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode, OpcodeMessage
 
 
@@ -141,35 +145,56 @@ SensorDescriptorStatus = GreedyRange(
     ),
 )
 
-MarshalledPropertyIDShort = EmbeddedBitStruct(
-    "_",
-    "sensor_setting_property_id" / BitsInteger(11),
-    "length" / ExprAdapter(BitsInteger(4), obj_ + 1, obj_ - 1),
-    "format" / Const(0, BitsInteger(1)),
-    reversed=True
-)
+class _SensorData(Construct):
+    def _parse(self, stream, context, path):
+        property_id = stream_read(stream, 2)
 
-MarshalledPropertyIDLong = EmbeddedBitStruct(
-    "_",
-    "sensor_setting_property_id" / BitsInteger(16),
-    "length" / ExprAdapter(BitsInteger(7), obj_ + 1, obj_ - 1),
-    "format" / Const(1, BitsInteger(1)),
-    reversed=True
-)
+        format = property_id[0] & 0x01
 
-SensorData = Select(
-    Struct(
-        *MarshalledPropertyIDShort,
-        "sensor_setting_raw" / PropertyValue,
-    ),
-    Struct(
-        *MarshalledPropertyIDLong,
-        "sensor_setting_raw" / Array(this.length, Byte),
-    )
-)
+        if format:
+            property_id += stream_read(stream, 1)
+
+            length = (property_id[0] >> 1) + 1
+            sensor_setting_property_id = property_id[1] | property_id[2] << 8
+            sensor_setting_raw = list(stream_read(stream, length))
+
+            return Container(
+                format=1,
+                length=length,
+                sensor_setting_property_id=sensor_setting_property_id,
+                sensor_setting_raw=sensor_setting_raw
+            )
+        else:
+            length = ((property_id[0] >> 1) & 0b1111) + 1
+            sensor_setting_property_id = (property_id[0] >> 5 & 0b111) | property_id[1] << 3
+            sensor_setting_raw = PropertyDict[sensor_setting_property_id]._parse(stream, context, path)
+
+            return Container(
+                format=0,
+                length=length,
+                sensor_setting_property_id=sensor_setting_property_id,
+                sensor_setting_raw=sensor_setting_raw
+            )
+
+    def _build(self, obj, stream, context, path):
+        format = obj["format"]
+        length = obj["length"]
+        sensor_setting_property_id = obj["sensor_setting_property_id"]
+        sensor_setting_raw = obj["sensor_setting_raw"]
+
+        if format:
+            stream_write(stream, bytes([(length - 1) << 1 | 0x01]))
+            stream_write(stream, sensor_setting_property_id.to_bytes(2, byteorder='little'))
+            stream_write(stream, bytes(sensor_setting_raw))
+        else:
+            stream_write(stream, bytes([(length - 1) << 1 | (sensor_setting_property_id & 0b111) << 5]))
+            stream_write(stream, bytes([sensor_setting_property_id >> 3]))
+            PropertyDict[sensor_setting_property_id]._build(sensor_setting_raw, stream, context, path)
+
+        return obj
 
 SensorStatus = GreedyRange(
-    SensorData
+    _SensorData()
 )
 
 # TODO: message not implemented due to somewhat complicated structure and lack of examples
