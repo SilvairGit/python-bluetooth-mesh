@@ -42,6 +42,10 @@ from construct import (
     Struct,
     Switch,
     ValidationError,
+    Construct,
+    SizeofError,
+    stream_read,
+    stream_write,
     obj_,
     this,
 )
@@ -188,22 +192,51 @@ def EmbeddedBitStruct(name, *args, reversed=False):
     )
 
 
-# fmt: off
-Opcode = Select(
-    ExprValidator(
-        Int8ub,
-        (obj_ != 0x7F) and (obj_ >> 7 == 0)
-    ),
-    ExprValidator(
-        Int16ub,
-        (obj_ >> 14 == 2)
-    ),
-    ExprValidator(
-        Int24ub,
-        (obj_ >> 22 == 3)
-    ),
-)
-# fmt: on
+class Opcode(Construct):
+    def __init__(self, type = int):
+        super().__init__()
+        self.type = type
+
+    def _parse(self, stream, context, path):
+        try:
+            opcode = stream_read(stream, 1)[0]
+
+            if opcode == 0x7f:
+                raise ValidationError
+
+            len = opcode >> 7
+
+            # 1 byte opcode
+            if not len:
+                return self.type(opcode)
+
+            len = opcode >> 6
+            opcode = opcode << 8 | stream_read(stream, 1)[0]
+
+            # 2 byte opcode
+            if len == 2:
+                return self.type(opcode)
+
+            if len == 3:
+                opcode = opcode << 8 | stream_read(stream, 1)[0]
+                return self.type(opcode)
+
+            raise ValidationError
+        except ValueError:
+            raise ValidationError
+
+    def _build(self, obj, stream, context, path):
+        if obj > 0xffff:
+            stream_write(stream, obj.to_bytes(3, byteorder='big'))
+        elif obj > 0xff:
+            stream_write(stream, obj.to_bytes(2, byteorder='big'))
+        else:
+            stream_write(stream, obj.to_bytes(1, byteorder='big'))
+
+        return self.type(obj)
+
+    def _sizeof(self, context, path):
+        raise SizeofError
 
 
 class DefaultCountValidator(Adapter):

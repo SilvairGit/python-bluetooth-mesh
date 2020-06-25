@@ -81,7 +81,7 @@ GenericBatteryStatus = Struct(
 )
 
 GenericBatteryMessage = Struct(
-    "opcode" / EnumAdapter(Opcode, GenericBatteryOpcode),
+    "opcode" / Opcode(GenericBatteryOpcode),
     "params" / Switch(
         this.opcode,
         {

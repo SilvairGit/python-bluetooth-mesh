@@ -208,7 +208,7 @@ DebugPayload = Struct(
 )
 
 DebugMessage = Struct(
-    "opcode" / Const(DebugOpcode.OPCODE, Opcode),
+    "opcode" / Const(DebugOpcode.OPCODE, Opcode(DebugOpcode)),
     "params" / DebugPayload
 )
 # fmt: on
