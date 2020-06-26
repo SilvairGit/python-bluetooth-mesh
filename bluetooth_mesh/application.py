@@ -28,6 +28,7 @@ This module provides a high-level API for BlueZ mesh stack.
 import asyncio
 import logging
 import socket
+import struct
 from enum import Enum
 from functools import lru_cache
 from os import urandom
@@ -772,23 +773,32 @@ class Application(
 
         return configuration
 
-    def _add_reader(self, sock):
-        def _read_message():
+    def _add_reader(self, sock: Any) -> Any:
+        HEADER = struct.Struct("<BHB20s")
+        NETKEY_PARAMS = struct.Struct("<H?17x")
+        APPKEY_PARAMS = struct.Struct("<HH16s")
+
+        def _read_message() -> Any:
             while True:
                 try:
                     line, *_ = sock.recvmsg(1024)
                 except BlockingIOError:
                     break
 
-                msg = FdMessage.parse(line)
+                header, data = line[: HEADER.size], line[HEADER.size :]
+                element, source, type, params = HEADER.unpack(header)
 
-                if msg.type == FdMessageType.NETKEY:
-                    self.elements[msg.element].dev_key_message_received(
-                        msg.source, msg.params.remote, msg.params.net_index, msg.data
+                if type == FdMessageType.NETKEY:
+                    net_index, remote = NETKEY_PARAMS.unpack(params)
+
+                    self.elements[element].dev_key_message_received(
+                        source, remote, net_index, data
                     )
-                elif msg.type == FdMessageType.APPKEY:
-                    self.elements[msg.element].message_received(
-                        msg.source, msg.params.app_index, msg.params.destination, msg.data
+                elif type == FdMessageType.APPKEY:
+                    app_index, destination, label = APPKEY_PARAMS.unpack(params)
+
+                    self.elements[element].message_received(
+                        source, app_index, destination, data
                     )
 
         self.loop.add_reader(sock, _read_message)
