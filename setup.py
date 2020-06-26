@@ -42,7 +42,7 @@ setup(
     ],
     install_requires=[
         'bitstring>=3.1.5',
-        'construct==2.9.45',
+        'construct>=2.9.45,<2.9.46',
         'cryptography>=2.3.1',
         'crc==0.3.0',
         'dbus-next==0.1.3',
