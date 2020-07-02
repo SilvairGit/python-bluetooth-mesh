@@ -31,9 +31,11 @@ They are not meant to be used directly. See :py:mod:`bluetooth_mesh.application`
 
 import asyncio
 import logging
+import os
 import socket
 import os
 from collections import defaultdict
+from contextlib import suppress
 from datetime import timedelta
 from enum import Enum
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
@@ -328,28 +330,22 @@ class NetworkInterface:
 
         return path, self._extract_model_config(configuration), sock
 
-    async def attach_unix(self, app_defined_root: str, token: int) -> Tuple[
+    async def attach_unix(
+        self, app_defined_root: str, token: int, socket_path: str
+    ) -> Tuple[
         str,
-        Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]]
+        Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]],
+        socket.socket,
     ]:
-        directory = os.getenv("SNAP_DATA", "/tmp")
-
-        if directory == "/tmp":
-            fd_path = os.path.join(directory, "socket")
-        else:
-            fd_path = os.path.join(directory, "sockets", "socket")
-
-        try:
-            os.unlink(fd_path)
-        except:
-            pass
+        with suppress(FileNotFoundError):
+            os.unlink(socket_path)
 
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM, 0)
         sock.setblocking(False)
-        sock.bind(fd_path)
+        sock.bind(socket_path)
 
         path, configuration = await self._interface.call_attach_unix(
-            app_defined_root, token, fd_path
+            app_defined_root, token, socket_path
         )
 
         return path, self._extract_model_config(configuration), sock
