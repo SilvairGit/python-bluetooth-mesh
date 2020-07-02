@@ -577,11 +577,11 @@ class Application(
             await self.import_node(addr=mesh_address, iv_index=iv_index)
             configuration = await self.attach()
 
-            # after importing, explicitly import own device key to enable
-            # communication with local Config Server
-            await self.management_interface.import_remote_node(
-                self.addr, len(self.ELEMENTS), self.dev_key
-            )
+        # after attaching, explicitly import own device key to enable
+        # communication with local Config Server
+        await self.management_interface.import_remote_node(
+            self.addr, len(self.ELEMENTS), self.dev_key
+        )
 
         return configuration
 
