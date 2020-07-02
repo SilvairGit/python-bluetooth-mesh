@@ -26,6 +26,7 @@ import logging
 import os
 import shlex
 import traceback
+from functools import lru_cache
 from collections import defaultdict
 from concurrent import futures
 from contextlib import suppress
@@ -957,15 +958,36 @@ class MeshCommandLine(*application_mixins, Application):
     ELEMENTS = {0: PrimaryElement}
 
     def __init__(self, loop: asyncio.AbstractEventLoop, arguments):
+        self.config_dir = os.path.expanduser("~/.config/meshcli")
+        os.makedirs(self.config_dir, exist_ok=True)
+
         super().__init__(loop)
         self.arguments = arguments
-        self.history = FileHistory(os.path.expanduser("~/.meshcli_history"))
+
+        self.history = FileHistory(f"{self.config_dir}/history")
         self.completer = MeshCompleter(self)
         self.session = PromptSession(
             history=self.history, completer=self.completer, complete_while_typing=False,
         )
         self.commands = {cmd.CMD: cmd() for cmd in self.COMMANDS}
         self._tid = 0
+
+    def get_cache_args(self):
+        return (f"{self.config_dir}/cache", ), {}
+
+    @property
+    @lru_cache(maxsize=1)
+    def dev_key(self) -> DeviceKey:
+        try:
+            with open(f"{self.config_dir}/{self.uuid}.key", "rb") as dev_key:
+                return DeviceKey(dev_key.read())
+        except FileNotFoundError:
+            key = DeviceKey(os.urandom(16))
+
+            with open(f"{self.config_dir}/{self.uuid}.key", "wb") as dev_key:
+                dev_key.write(key.bytes)
+
+            return key
 
     async def get_network(
         self, get_address=True, environment="preprod", partner_id="silvair"
@@ -1006,7 +1028,7 @@ class MeshCommandLine(*application_mixins, Application):
             await self._run(addr, command)
 
     async def _run(self, addr, command):
-        await self.connect(addr, use_unix_fd=True)
+        await self.connect(addr, socket_path=f"{self.config_dir}/{self.uuid}.socket")
         await self.add_keys()
         self.logger.info(
             "Loaded network %s, %d nodes", self.network, len(self.network.nodes)
