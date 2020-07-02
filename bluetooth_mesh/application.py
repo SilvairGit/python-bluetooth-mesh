@@ -553,7 +553,7 @@ class Application(
         self,
         addr: Union[int, Callable[[], int], Awaitable[int]],
         iv_index: int = 0,
-        use_unix_fd: bool = False,
+        **kwargs,
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
@@ -567,7 +567,7 @@ class Application(
         that yields a mesh address.
         """
         try:
-            configuration = await self.attach(use_unix_fd=use_unix_fd)
+            configuration = await self.attach(**kwargs)
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
             if isinstance(addr, Awaitable):
@@ -581,7 +581,7 @@ class Application(
                     "Address not given as a value or an acceptable callback."
                 )
             await self.import_node(addr=mesh_address, iv_index=iv_index)
-            configuration = await self.attach(use_unix_fd=use_unix_fd)
+            configuration = await self.attach(**kwargs)
 
         # after attaching, explicitly import own device key to enable
         # communication with local Config Server
@@ -726,7 +726,9 @@ class Application(
         self.logger.info("Leave")
         await self.network_interface.leave(self.token_ring.token)
 
-    async def attach(self, token: Optional[int] = None, *, use_unix_fd: bool = False):
+    async def attach(
+        self, token: Optional[int] = None, *, socket_pair=False, socket_path: str = None
+    ):
         """
         Attach to existing node using a token.
 
@@ -738,11 +740,24 @@ class Application(
         if token is None:
             raise ValueError("No token")
 
-        self.logger.info("Attach %x", token)
+        self.logger.info(
+            "Attach %x (socket_pair=%s, socket_path=%s)",
+            token,
+            socket_pair,
+            socket_path,
+        )
 
-        if use_unix_fd:
-            path, configuration, sock = await self.network_interface.attach_unix(
+        if socket_pair and socket_path:
+            raise AssertionError("Use either socket_pair or socket_path")
+
+        if socket_pair:
+            path, configuration, sock = await self.network_interface.attach_fd(
                 "/", token
+            )
+            self._add_reader(sock)
+        elif socket_path:
+            path, configuration, sock = await self.network_interface.attach_unix(
+                "/", token, socket_path
             )
             self._add_reader(sock)
         else:
