@@ -967,6 +967,13 @@ class MeshCommandLine(*application_mixins, Application):
         self.commands = {cmd.CMD: cmd() for cmd in self.COMMANDS}
         self._tid = 0
 
+    async def get_network(
+        self, get_address=True, environment="preprod", partner_id="silvair"
+    ):
+        return await super().get_network(
+            get_address, self.arguments["--env"], self.arguments["--partner"]
+        )
+
     async def add_keys(self):
         for index, key in self.subnet_keys:
             await self.add_net_key(index, key)
@@ -1066,6 +1073,9 @@ def main():
             -l --login <login>             User login to platform service (email)
             -p --password <password>       User password to platform service (!unsecured!)
             -n --project <project>         Project name to be loaded from platform
+
+            --partner <partner>            Partner identifier [default: silvair]
+            --env <environment>            Environment: dev,preprod or prod [default: preprod]
 
             -d --debug
             -h --help                      Show this help message and exit
