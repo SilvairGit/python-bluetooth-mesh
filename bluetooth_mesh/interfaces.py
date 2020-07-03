@@ -420,7 +420,7 @@ class NodeInterface:
             if name == "IvIndex":
                 sig = self.iv_index.signal
             elif name == "IvUpdate":
-                sig = self.iv_udpate.signal
+                sig = self.iv_update.signal
             elif name == "IvState":
                 sig = self.iv_state.signal
                 val = IvState(variant.value)
