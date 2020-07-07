@@ -44,7 +44,10 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from bluetooth_mesh.application import Application, Element
 from bluetooth_mesh.apps import get_plugin_manager
 from bluetooth_mesh.crypto import DeviceKey, NetworkKey
-from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
+from bluetooth_mesh.messages.config import (
+    GATTNamespaceDescriptor,
+    PublishPeriodStepResolution,
+)
 from bluetooth_mesh.models import (
     ConfigClient,
     ConfigServer,
@@ -384,6 +387,74 @@ class RelayCommand(ConfigCommand):
             data["retransmit"]["interval"],
             data["retransmit"]["count"],
         )
+
+
+class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    ELEMENT = 0
+    MODEL = ConfigClient
+    CMD = "publication"
+    USAGE = """
+    Usage:
+        %(cmd)s -e ELEMENT -m MODEL [options] <uuid>...
+        %(cmd)s -e ELEMENT -m MODEL [options] -g <groups>...
+
+    Options:
+        -e --element=ELEMENT [default: 0]
+        -a --address=ADDRESS
+        -k --key-index=KEY_INDEX
+        -t --ttl=TTL
+        -c --count=COUNT
+        -i --interval=INTERVAL
+        -m --model=MODEL
+    """
+
+    async def __call__(self, application, arguments):
+        from bluetooth_mesh import models
+
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+
+        for address in addresses:
+            node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
+            element_index = int(arguments["--element"])
+
+            if arguments['--key-index'] is not None:
+                interval = int(timedelta(seconds=float(arguments['--interval'])).total_seconds() * 1000)
+
+                status = await model.set_publication(
+                    address,
+                    0,
+                    element_address=address + element_index,
+                    publication_address=int(arguments['--address'], 16),
+                    app_key_index=int(arguments['--key-index']),
+                    TTL=int(arguments['--ttl']),
+                    publish_step_resolution=PublishPeriodStepResolution.RESOLUTION_10_S,
+                    publish_number_of_steps=6,
+                    retransmit_count=int(arguments['--count']),
+                    retransmit_interval=interval,
+                    model=getattr(models, arguments["--model"]),
+                )
+            else:
+                status = await model.get_publication(
+                    address,
+                    0,
+                    element_address=address + element_index,
+                    model=getattr(models, arguments["--model"]),
+                )
+
+            yield "{} | {}: #{} {} addr={:04x}, ttl={} key=#{} period={}, retransmit={}/{}".format(
+                group,
+                node.name,
+                element_index,
+                status.model.__name__,
+                status.publication_address,
+                status.ttl,
+                status.app_key_index,
+                status.period.total_seconds(),
+                status.retransmissions["count"],
+                status.retransmissions["interval"].total_seconds(),
+            )
 
 
 class GatewayConfigurationCommand(
@@ -948,6 +1019,7 @@ class MeshCommandLine(*application_mixins, Application):
         GatewayConfigurationCommand,
         GatewayPacketsCommand,
         AclCommand,
+        PublicationCommand,
     ]
 
     COMPANY_ID = 0xFEE5

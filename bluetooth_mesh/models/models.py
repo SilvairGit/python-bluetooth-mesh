@@ -24,6 +24,7 @@ This module implements mesh models, both clients and servers.
 """
 import inspect
 import itertools
+from datetime import timedelta
 from functools import partial
 from typing import Any, Dict, Iterable, NamedTuple, Optional, Sequence, Tuple, Type
 
@@ -34,6 +35,7 @@ from bluetooth_mesh.messages.config import (
     CompositionData,
     ConfigOpcode,
     PublishFriendshipCredentialsFlag,
+    PublishPeriodStepResolution,
     SecureNetworkBeacon,
     StatusCode,
 )
@@ -101,7 +103,15 @@ ModelSubscriptionList = NamedTuple(
 
 ModelPublicationStatus = NamedTuple(
     "ModelSubscriptionStatus",
-    [("element_address", int), ("publication_address", int), ("model", Type[Model]),],
+    [
+        ("element_address", int),
+        ("publication_address", int),
+        ("ttl", int),
+        ("app_key_index", int),
+        ("period", timedelta),
+        ("retransmissions", Any),
+        ("model", Type[Model]),
+    ],
 )
 
 
@@ -638,7 +648,49 @@ class ConfigClient(Model):
             status["params"]["element_address"], model, status["params"]["addresses"],
         )
 
-    async def add_publication(
+    async def get_publication(
+        self, destination: int, net_index: int, element_address: int, model: Type[Model]
+    ) -> ModelPublicationStatus:
+        status = self.expect_dev(
+            destination,
+            net_index=net_index,
+            opcode=ConfigOpcode.MODEL_PUBLICATION_STATUS,
+            params=dict(),
+        )
+
+        request = partial(
+            self.send_dev,
+            destination,
+            net_index=net_index,
+            opcode=ConfigOpcode.MODEL_PUBLICATION_GET,
+            params=dict(
+                element_address=element_address, model=self._get_model_id(model)
+            ),
+        )
+
+        status = await self.query(request, status)
+
+        period = (
+            status["params"]["publish_period"]["step_resolution"].multiplier
+            * status["params"]["publish_period"]["number_of_steps"]
+        )
+
+        retransmissions = dict(
+            count=status["params"]["retransmit"]["count"],
+            interval=timedelta(milliseconds=status["params"]["retransmit"]["interval"]),
+        )
+
+        return ModelPublicationStatus(
+            status["params"]["element_address"],
+            status["params"]["publish_address"],
+            status["params"]["TTL"],
+            status["params"]["app_key_index"],
+            period,
+            retransmissions,
+            model,
+        )
+
+    async def set_publication(
         self,
         destination: int,
         net_index: int,
@@ -647,7 +699,7 @@ class ConfigClient(Model):
         app_key_index: int,
         model: Type[Model],
         TTL: int = 8,
-        publish_step_resolution: int = 2,
+        publish_step_resolution: PublishPeriodStepResolution = PublishPeriodStepResolution.RESOLUTION_10_S,
         publish_number_of_steps: int = 6,  # 60seconds
         retransmit_count: int = 0,
         retransmit_interval: int = 50,
@@ -700,9 +752,23 @@ class ConfigClient(Model):
         if status["params"]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add subscription", status)
 
+        period = (
+            status["params"]["publish_period"]["step_resolution"].multiplier
+            * status["params"]["publish_period"]["number_of_steps"]
+        )
+
+        retransmissions = dict(
+            count=status["params"]["retransmit"]["count"],
+            interval=timedelta(milliseconds=status["params"]["retransmit"]["interval"]),
+        )
+
         return ModelPublicationStatus(
             status["params"]["element_address"],
             status["params"]["publish_address"],
+            status["params"]["TTL"],
+            status["params"]["app_key_index"],
+            period,
+            retransmissions,
             model,
         )
 

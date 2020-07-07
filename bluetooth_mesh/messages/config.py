@@ -22,6 +22,7 @@
 # pylint: disable=W0223
 
 import enum
+from datetime import timedelta
 
 from construct import (
     Adapter,
@@ -682,6 +683,20 @@ class PublishPeriodStepResolution(enum.IntEnum):
     RESOLUTION_1_S = 0x1
     RESOLUTION_10_S = 0x2
     RESOLUTION_10_MIN = 0x3
+
+    @property
+    def multiplier(self):
+        if self == PublishPeriodStepResolution.RESOLUTION_100_MS:
+            return timedelta(milliseconds=100)
+
+        if self == PublishPeriodStepResolution.RESOLUTION_1_S:
+            return timedelta(seconds=1)
+
+        if self == PublishPeriodStepResolution.RESOLUTION_10_S:
+            return timedelta(seconds=10)
+
+        if self == PublishPeriodStepResolution.RESOLUTION_10_MIN:
+            return timedelta(minutes=10)
 
 
 # fmt: off
