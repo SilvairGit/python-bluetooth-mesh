@@ -33,7 +33,6 @@ import asyncio
 import logging
 import os
 import socket
-import os
 from collections import defaultdict
 from contextlib import suppress
 from datetime import timedelta
@@ -41,7 +40,7 @@ from enum import Enum
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 from uuid import UUID
 
-from dbus_next import DBusError, Variant
+from dbus_next import DBusError, MessageFlag, Variant
 from dbus_next.service import PropertyAccess, ServiceInterface, dbus_property, method
 
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
@@ -433,7 +432,13 @@ class NodeInterface:
     async def send(
         self, element_path: str, destination: int, key_index: int, data: bytes
     ) -> None:
-        await self._interface.call_send(element_path, destination, key_index, data)
+        await self._interface.call_send(
+            element_path,
+            destination,
+            key_index,
+            data,
+            flags=MessageFlag.NO_REPLY_EXPECTED,
+        )
 
     async def dev_key_send(
         self,
@@ -444,7 +449,12 @@ class NodeInterface:
         data: bytes,
     ) -> None:
         await self._interface.call_dev_key_send(
-            element_path, destination, remote, net_index, data
+            element_path,
+            destination,
+            remote,
+            net_index,
+            data,
+            flags=MessageFlag.NO_REPLY_EXPECTED,
         )
 
     async def add_net_key(
