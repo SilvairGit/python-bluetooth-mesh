@@ -96,6 +96,7 @@ def app_sar_message():
     payload = bytes.fromhex("510c00000000020b0c1f00efcdab071b1c")
     return AccessMessage(src=1234, dst=4321, ttl=1, payload=payload)
 
+
 @fixture
 def proxy_solicitation_message():
     return SolicitationMessage(src=0x0031, dst=0x0100)

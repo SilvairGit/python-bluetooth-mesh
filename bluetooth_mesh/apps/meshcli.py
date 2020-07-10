@@ -419,19 +419,22 @@ class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
             group = application.network.get_node_group(node)
             element_index = int(arguments["--element"])
 
-            if arguments['--key-index'] is not None:
-                interval = int(timedelta(seconds=float(arguments['--interval'])).total_seconds() * 1000)
+            if arguments["--key-index"] is not None:
+                interval = int(
+                    timedelta(seconds=float(arguments["--interval"])).total_seconds()
+                    * 1000
+                )
 
                 status = await model.set_publication(
                     address,
                     0,
                     element_address=address + element_index,
-                    publication_address=int(arguments['--address'], 16),
-                    app_key_index=int(arguments['--key-index']),
-                    TTL=int(arguments['--ttl']),
+                    publication_address=int(arguments["--address"], 16),
+                    app_key_index=int(arguments["--key-index"]),
+                    TTL=int(arguments["--ttl"]),
                     publish_step_resolution=PublishPeriodStepResolution.RESOLUTION_10_S,
                     publish_number_of_steps=6,
-                    retransmit_count=int(arguments['--count']),
+                    retransmit_count=int(arguments["--count"]),
                     retransmit_interval=interval,
                     model=getattr(models, arguments["--model"]),
                 )
@@ -1045,7 +1048,7 @@ class MeshCommandLine(*application_mixins, Application):
         self._tid = 0
 
     def get_cache_args(self):
-        return (f"{self.config_dir}/cache", ), {}
+        return (f"{self.config_dir}/cache",), {}
 
     @property
     @lru_cache(maxsize=1)

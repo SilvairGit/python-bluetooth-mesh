@@ -43,7 +43,11 @@ from construct import (
 )
 
 from bluetooth_mesh.messages.config import DoubleKeyIndex, EmbeddedBitStruct
-from bluetooth_mesh.messages.properties import DefaultCountValidator, PropertyValue, PropertyDict
+from bluetooth_mesh.messages.properties import (
+    DefaultCountValidator,
+    PropertyValue,
+    PropertyDict,
+)
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode, OpcodeMessage
 
 

@@ -194,7 +194,7 @@ def EmbeddedBitStruct(name, *args, reversed=False):
 
 
 class Opcode(Construct):
-    def __init__(self, type = int):
+    def __init__(self, type=int):
         super().__init__()
         self.type = type
 
@@ -202,7 +202,7 @@ class Opcode(Construct):
         try:
             opcode = stream_read(stream, 1)[0]
 
-            if opcode == 0x7f:
+            if opcode == 0x7F:
                 raise ValidationError
 
             len = opcode >> 7
@@ -227,12 +227,12 @@ class Opcode(Construct):
             raise ValidationError
 
     def _build(self, obj, stream, context, path):
-        if obj > 0xffff:
-            stream_write(stream, obj.to_bytes(3, byteorder='big'))
-        elif obj > 0xff:
-            stream_write(stream, obj.to_bytes(2, byteorder='big'))
+        if obj > 0xFFFF:
+            stream_write(stream, obj.to_bytes(3, byteorder="big"))
+        elif obj > 0xFF:
+            stream_write(stream, obj.to_bytes(2, byteorder="big"))
         else:
-            stream_write(stream, obj.to_bytes(1, byteorder='big'))
+            stream_write(stream, obj.to_bytes(1, byteorder="big"))
 
         return self.type(obj)
 
