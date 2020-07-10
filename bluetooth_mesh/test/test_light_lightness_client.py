@@ -45,7 +45,7 @@ def light_lightness_client(element_path) -> LightLightnessClient:
 @pytest.mark.asyncio
 @asynctest.patch("asyncio.sleep", new=asynctest.CoroutineMock())
 async def test_sending_scene_recall_repeated_6_times_with_intervals_by_default(
-        light_lightness_client, destination, app_index
+    light_lightness_client, destination, app_index
 ):
     light_lightness_client.repeat = asynctest.CoroutineMock()
 
@@ -62,7 +62,7 @@ async def test_sending_scene_recall_repeated_6_times_with_intervals_by_default(
 @pytest.mark.asyncio
 @asynctest.patch("asyncio.sleep", new=asynctest.CoroutineMock())
 async def test_scene_recall_calls_node_interface_with_appropriate_arguments(
-        light_lightness_client, destination, app_index, element_path
+    light_lightness_client, destination, app_index, element_path
 ):
     light_lightness_client._node_interface.send = asynctest.CoroutineMock()
 
@@ -70,13 +70,12 @@ async def test_scene_recall_calls_node_interface_with_appropriate_arguments(
         destination=destination, app_index=app_index, min_lightness=0, max_lightness=100
     )
 
-    data = LightLightnessSetupMessage.build({
-        "opcode": LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
-        "params": {
-            "range_min": 0,
-            "range_max": 100,
+    data = LightLightnessSetupMessage.build(
+        {
+            "opcode": LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
+            "params": {"range_min": 0, "range_max": 100,},
         }
-    })
+    )
     light_lightness_client._node_interface.send.assert_awaited_with(
         element_path, destination, app_index, data
     )

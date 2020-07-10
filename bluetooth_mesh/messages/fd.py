@@ -40,6 +40,7 @@ class FdMessageType(IntEnum):
     APPKEY = 1
 
 
+# fmt: off
 NetKeyMessageElements = Struct(
     "net_index" / Int16ul,
     "remote" / Flag,
@@ -67,3 +68,4 @@ FdMessage = Struct(
     ),
     "data" / GreedyBytes,
 )
+# fmt: on

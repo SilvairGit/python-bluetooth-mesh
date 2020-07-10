@@ -319,7 +319,7 @@ class NetworkInterface:
     ) -> Tuple[
         str,
         Dict[int, Dict[Tuple[Optional[int], int], Mapping[str, Any]]],
-        socket.socket
+        socket.socket,
     ]:
         path, configuration, fd = await self._interface.call_attach_fd(
             app_defined_root, token
