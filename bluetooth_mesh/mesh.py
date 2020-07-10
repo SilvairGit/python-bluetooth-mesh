@@ -222,10 +222,10 @@ class Segment:
     def get_opcode(self, application_key):
         raise NotImplementedError
 
-    def _segments(self, application_key, seq, payload, szmic):
+    def _segments(self, application_key, seq, payload, szmic, seg):
         opcode = self.get_opcode(application_key)
         seq_zero = seq & 0x1FFF
-        seg = len(payload) > self.MAX_TRANSPORT_PDU
+        seg = seg or len(payload) > self.MAX_TRANSPORT_PDU
 
         if seg:
             segments = list(
@@ -259,7 +259,7 @@ class AccessMessage(Segment):
         aid = application_key.aid
         return bitstring.pack("uint:1, uint:6", akf, aid)
 
-    def segments(self, application_key, seq, iv_index, szmic=False):
+    def segments(self, application_key, seq, iv_index, szmic=False, seg=False):
         short_mic_len = len(self.payload) + 4
         long_mic_len = len(self.payload) + 8
 
@@ -280,7 +280,7 @@ class AccessMessage(Segment):
         )
 
         yield from super()._segments(
-            application_key, seq, payload=upper_transport_pdu, szmic=szmic
+            application_key, seq, payload=upper_transport_pdu, szmic=szmic, seg=seg,
         )
 
     @classmethod
@@ -311,9 +311,15 @@ class ControlMessage(Segment):
     def get_opcode(self, application_key):
         return bitstring.pack("uint:7", self.opcode)
 
-    def segments(self, application_key, seq, iv_index, szmic=False):
+    def segments(self, application_key, seq, iv_index, szmic=False, seg=False):
+        if szmic:
+            raise NotImplementedError("Control messages do not support long MIC")
+
+        if seg:
+            raise NotImplementedError("Control messages do not support segmentation")
+
         yield from super()._segments(
-            application_key, seq, payload=self.payload, szmic=False
+            application_key, seq, payload=self.payload, szmic=False, seg=False
         )
 
     @classmethod
@@ -335,9 +341,9 @@ class ProxyConfigMessage(Segment):
     def get_opcode(self, application_key):
         return bitstring.pack("uint:7", self.opcode)
 
-    def segments(self, application_key, seq, iv_index, szmic=False):
+    def segments(self, application_key, seq, iv_index, szmic=False, seg=False):
         yield from super()._segments(
-            application_key, seq, payload=self.payload, szmic=False
+            application_key, seq, payload=self.payload, szmic=False, seg=seg
         )
 
     @classmethod
@@ -355,7 +361,7 @@ class SolicitationMessage(Segment):
     def get_opcode(self, application_key):
         return bitstring.BitString()
 
-    def segments(self, application_key, seq, iv_index, szmic=False):
+    def segments(self, application_key, seq, iv_index, szmic=False, seg=False):
         yield bytes()
 
     @classmethod
@@ -392,6 +398,7 @@ class NetworkMessage:
         *,
         transport_seq=None,
         skip_segments=(),
+        seg=False,
     ):
         nid, encryption_key, privacy_key = network_key.encryption_keys
 
@@ -401,12 +408,10 @@ class NetworkMessage:
             transport_seq = seq
 
         # remove segments that were ack-ed and encrypt with new network sequence
-        segments = [
-            segment
-            for segment in self.message.segments(
-                application_key, transport_seq, iv_index
-            )
-        ]
+        segments = list(
+            self.message.segments(application_key, transport_seq, iv_index, seg=seg)
+        )
+
         for index in sorted(skip_segments, reverse=True):
             segments.pop(index)
 
