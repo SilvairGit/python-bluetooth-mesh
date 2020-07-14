@@ -45,7 +45,7 @@ setup(
         'construct>=2.9.45,<2.9.46',
         'cryptography>=2.3.1',
         'crc==0.3.0',
-        'dbus-next==0.1.3',
+        'dbus-next>=0.1.3',
         'ecdsa==0.15',
         'pluggy>=0.13.1',
         'marshmallow>=3.0.1,<4.0',
