@@ -986,25 +986,25 @@ class Element(LocationMixin):
         return self._models[model_class]
 
     @property
-    def models(self) -> List[int]:
+    def models(self) -> List[Tuple[int, bool, bool]]:
         """
         Used by :py:class:`bluetooth_mesh.interfaces.ApplicationInterface` to expose a
         list of supported SIG models via D-Bus.
         """
         return [
-            model.MODEL_ID[1]
+            (model.MODEL_ID[1], model.PUBLISH, model.SUBSCRIBE)
             for model in self._models.values()
             if model.MODEL_ID[0] is None
         ]
 
     @property
-    def vendor_models(self) -> List[Tuple[int, int]]:
+    def vendor_models(self) -> List[Tuple[Tuple[int, int], bool, bool]]:
         """
         Used by :py:class:`bluetooth_mesh.interfaces.ApplicationInterface` to expose a
         list of supported vendor models via D-Bus.
         """
         return [
-            model.MODEL_ID
+            (model.MODEL_ID, model.PUBLISH, model.SUBSCRIBE)
             for model in self._models.values()
             if model.MODEL_ID[0] is not None
         ]

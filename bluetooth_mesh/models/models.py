@@ -824,6 +824,8 @@ class HealthServer(Model):
         HealthOpcode.ATTENTION_SET,
         HealthOpcode.ATTENTION_SET_UNACKNOWLEDGED,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
 
 class HealthClient(Model):
@@ -834,6 +836,8 @@ class HealthClient(Model):
         HealthOpcode.PERIOD_STATUS,
         HealthOpcode.ATTENTION_STATUS,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
     async def attention(self, destination: int, app_index: int, attention: int) -> int:
         status = self.expect_app(
@@ -872,6 +876,8 @@ class DebugServer(Model):
     OPCODES = {
         DebugOpcode.OPCODE,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
 
 class DebugClient(Model):
@@ -879,6 +885,8 @@ class DebugClient(Model):
     OPCODES = {
         DebugOpcode.OPCODE,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
     async def get_param(
         self,
@@ -1059,6 +1067,8 @@ class NetworkDiagnosticClient(Model):
     OPCODES = {
         NetworkDiagnosticServerOpcode.OPCODE,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
 
 class NetworkDiagnosticSetupClient(Model):
@@ -1066,6 +1076,7 @@ class NetworkDiagnosticSetupClient(Model):
     OPCODES = {
         NetworkDiagnosticSetupServerOpcode.OPCODE,
     }
+    PUBLISH = True
 
 
 class GenericOnOffServer(Model):
@@ -1075,6 +1086,8 @@ class GenericOnOffServer(Model):
         GenericOnOffOpcode.ONOFF_SET,
         GenericOnOffOpcode.ONOFF_SET_UNACKNOWLEDGED,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
 
 class GenericOnOffClient(Model):
@@ -1082,6 +1095,8 @@ class GenericOnOffClient(Model):
     OPCODES = {
         GenericOnOffOpcode.ONOFF_STATUS,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
     _tid = 0
 
     @property
@@ -1222,6 +1237,8 @@ class SceneClient(Model):
         SceneOpcode.SCENE_DELETE,
         SceneOpcode.SCENE_DELETE_UNACKNOWLEDGED,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
     def __init__(self, element: "Element"):
         super().__init__(element)
@@ -1269,6 +1286,8 @@ class GenericLevelClient(Model):
         GenericLevelOpcode.MOVE_SET,
         GenericLevelOpcode.MOVE_SET_UNACKNOWLEDGED,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
     def __init__(self, element: "Element"):
         super().__init__(element)
@@ -1319,6 +1338,8 @@ class LightLightnessServer(Model):
         LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
         LightLightnessOpcode.LIGHTNESS_STATUS,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
 
 class LightLightnessSetupServer(Model):
@@ -1329,6 +1350,7 @@ class LightLightnessSetupServer(Model):
         LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET,
         LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
     }
+    SUBSCRIBE = True
 
 
 class LightLightnessClient(Model):
@@ -1340,6 +1362,8 @@ class LightLightnessClient(Model):
         LightLightnessOpcode.LIGHTNESS_STATUS,
         LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
     _tid = 0
 
     @property
@@ -1468,6 +1492,8 @@ class SensorClient(Model):
         SensorOpcode.SENSOR_GET,
         SensorOpcode.SENSOR_STATUS,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
 
 class LightCTLClient(Model):
@@ -1486,6 +1512,8 @@ class LightCTLClient(Model):
         LightCTLOpcode.CTL_TEMPERATURE_DEFAULT_GET,
         LightCTLOpcode.CTL_TEMPERATURE_DEFAULT_STATUS,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
     _tid = 0
 
     @property
@@ -1586,6 +1614,8 @@ class GatewayConfigServer(Model):
     OPCODES = {
         GatewayConfigServerOpcode.OPCODE,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
     def send_configuration_status(
         self,
@@ -1647,6 +1677,8 @@ class GatewayConfigClient(Model):
     OPCODES = {
         GatewayConfigServerOpcode.OPCODE,
     }
+    PUBLISH = True
+    SUBSCRIBE = True
 
     async def configuration_get(self, destination: int, net_index: int):
         request = partial(
