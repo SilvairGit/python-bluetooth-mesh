@@ -31,7 +31,6 @@ They are not meant to be used directly. See :py:mod:`bluetooth_mesh.application`
 
 import asyncio
 import logging
-import os
 import socket
 import os
 from collections import defaultdict
@@ -138,12 +137,38 @@ class ElementInterface(ServiceInterface):
         super().__init__(name="org.bluez.mesh.Element1")
 
     @dbus_property(name="Models", access=PropertyAccess.READ)
-    def get_models(self) -> "aq":
-        return self.element.models
+    def get_models(self) -> "a(qa{sv})":
+        models = []
+
+        for model_id, publish, subscribe in self.element.models:
+            models.append(
+                [
+                    model_id,
+                    {
+                        "Publish": Variant("b", publish),
+                        "Subscribe": Variant("b", subscribe),
+                    },
+                ]
+            )
+
+        return models
 
     @dbus_property(name="VendorModels", access=PropertyAccess.READ)
-    def get_vendor_models(self) -> "a(qq)":
-        return [list(model_id) for model_id in self.element.vendor_models]
+    def get_vendor_models(self) -> "a(qqa{sv})":
+        models = []
+
+        for model_id, publish, subscribe in self.element.vendor_models:
+            models.append(
+                [
+                    *model_id,
+                    {
+                        "Publish": Variant("b", publish),
+                        "Subscribe": Variant("b", subscribe),
+                    },
+                ]
+            )
+
+        return models
 
     @method(name="MessageReceived")
     def message_received(

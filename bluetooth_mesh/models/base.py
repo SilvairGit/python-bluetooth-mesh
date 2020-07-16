@@ -32,7 +32,6 @@ from typing import (
     Hashable,
     List,
     Mapping,
-    NamedTuple,
     Optional,
     Sequence,
     Set,
@@ -63,6 +62,8 @@ class Model:
 
     MODEL_ID = (None, None)  # type: Tuple[Optional[int], int]
     OPCODES = []  # type: List[int]
+    PUBLISH = False  # type: bool
+    SUBSCRIBE = False  # type: bool
 
     def __init__(self, element: "Element"):
         self.element = element
