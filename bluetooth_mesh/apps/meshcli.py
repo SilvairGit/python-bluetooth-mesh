@@ -119,6 +119,28 @@ class Command:
         return self.CMD < other.CMD
 
 
+class NodeSelectionCommandMixin:
+    USAGE = """
+    Usage:
+        %(cmd)s <uuid>...
+        %(cmd)s -g <groups>...
+
+    Options:
+        -g --groups
+    """
+
+    @staticmethod
+    def get_addresses(application, arguments):
+        uuids = arguments.get("<uuid>", [])
+        groups = arguments.get("<groups>", [])
+        return [
+            node.address
+            for node in application.network.nodes
+            if node.uuid.hex[:4] in uuids
+            or application.network.get_node_group(node) in groups
+        ]
+
+
 class LsCommand(Command):
     USAGE = """
     Usage:
@@ -210,11 +232,13 @@ class AttentionCommand(ModelCommandMixin, Command):
         return asyncio.gather(*tasks)
 
 
-class RecallSceneCommand(ModelCommandMixin, Command):
+class SceneCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
     USAGE = """
     Usage:
-        %(cmd)s [options] <uuid>...
-        %(cmd)s [options] -g <groups>...
+        %(cmd)s <uuid>...
+        %(cmd)s -g <groups>...
+        %(cmd)s -c <scene> [options] <uuid>...
+        %(cmd)s -c <scene> [options] -g <groups>...
 
     Options:
         -c --scene=SCENE    Number of scene to recall.
@@ -223,11 +247,9 @@ class RecallSceneCommand(ModelCommandMixin, Command):
     """
     ELEMENT = 0
     MODEL = SceneClient
-    CMD = "recall_scene"
+    CMD = "scene"
 
-    async def __call__(self, application, arguments):
-        model = application.elements[0][SceneClient]
-
+    async def recall(self, model, application, arguments):
         scene_number = int(arguments["--scene"])
         transition_time = int(arguments["--transition-time"])
 
@@ -255,29 +277,26 @@ class RecallSceneCommand(ModelCommandMixin, Command):
                 for name in arguments["<groups>"]
             ]
 
-        await asyncio.gather(*tasks)
+        for i in await asyncio.gather(*tasks):
+            yield i
 
+    async def get(self, model, application, arguments):
+        addresses = self.get_addresses(application, arguments)
+        results = await model.get_scene(nodes=addresses, app_index=0)
 
-class NodeSelectionCommandMixin:
-    USAGE = """
-    Usage:
-        %(cmd)s <uuid>...
-        %(cmd)s -g <groups>...
+        for address, data in results.items():
+            node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
 
-    Options:
-        -g --groups
-    """
+            param = str(data["current_scene"]) if data is not None else None
+            yield "{} | {}: {}".format(group, node.name, param)
 
-    @staticmethod
-    def get_addresses(application, arguments):
-        uuids = arguments.get("<uuid>", [])
-        groups = arguments.get("<groups>", [])
-        return [
-            node.address
-            for node in application.network.nodes
-            if node.uuid.hex[:4] in uuids
-            or application.network.get_node_group(node) in groups
-        ]
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        method = self.get if arguments["--scene"] is None else self.recall
+
+        async for i in method(model, application, arguments):
+            yield i or ''
 
 
 class ModelGetCommandMixin(ModelCommandMixin, NodeSelectionCommandMixin):
@@ -1003,7 +1022,7 @@ class MeshCommandLine(*application_mixins, Application):
         HelpCommand,
         LsCommand,
         AttentionCommand,
-        RecallSceneCommand,
+        SceneCommand,
         UptimeCommand,
         FaultCommand,
         VersionCommand,

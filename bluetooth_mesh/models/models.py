@@ -1274,6 +1274,48 @@ class SceneClient(Model):
             request, retransmissions=6, send_interval=values["send_interval"]
         )
 
+    async def get_scene(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ):
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=SceneOpcode.SCENE_GET,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
+                destination=None,
+                opcode=SceneOpcode.SCENE_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout or len(nodes) * 0.5,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }
+
 
 class GenericLevelClient(Model):
     MODEL_ID = (None, 0x1003)
