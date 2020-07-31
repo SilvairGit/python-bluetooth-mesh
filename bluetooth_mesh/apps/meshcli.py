@@ -26,12 +26,11 @@ import logging
 import os
 import shlex
 import traceback
-from functools import lru_cache
 from collections import defaultdict
 from concurrent import futures
 from contextlib import suppress
 from datetime import timedelta
-from functools import partial
+from functools import lru_cache, partial
 from uuid import UUID
 
 from docopt import DocoptExit, docopt

@@ -3,8 +3,8 @@ from construct import (
     Container,
     GreedyBytes,
     Select,
-    Struct,
     SizeofError,
+    Struct,
     stream_read_entire,
     stream_write,
 )
