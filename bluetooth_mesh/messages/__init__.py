@@ -33,6 +33,10 @@ from .silvair.gateway_config_server import (
     GatewayConfigMessage,
     GatewayConfigServerOpcode,
 )
+from .silvair.light_extended_controller import (
+    LightExtendedControllerMessage,
+    LightExtendedControllerOpcode,
+)
 from .silvair.network_diagnostic_server import (
     NetworkDiagnosticServerMessage,
     NetworkDiagnosticServerOpcode,
@@ -60,6 +64,7 @@ class _AccessMessage(Construct):
         SceneOpcode: SceneMessage,
         SensorOpcode: SensorMessage,
         SensorSetupOpcode: SensorSetupMessage,
+        LightExtendedControllerOpcode: LightExtendedControllerMessage,
     }
 
     def __init__(self):

@@ -55,6 +55,12 @@ from bluetooth_mesh.messages.silvair.gateway_config_server import (
     GatewayConfigServerOpcode,
     GatewayConfigServerSubOpcode,
 )
+from bluetooth_mesh.messages.silvair.light_extended_controller import (
+    LightExtendedControllerMessage,
+    LightExtendedControllerOpcode,
+    LightExtendedControllerProperty,
+    LightExtendedControllerSubOpcode,
+)
 from bluetooth_mesh.messages.silvair.network_diagnostic_server import (
     NetworkDiagnosticServerOpcode,
     NetworkDiagnosticSetupServerOpcode,
@@ -81,6 +87,7 @@ __all__ = [
     "LightCTLClient",
     "GatewayConfigServer",
     "GatewayConfigClient",
+    "LightExtendedControllerSetupClient",
 ]
 
 AppKeyStatus = NamedTuple(
@@ -2022,3 +2029,97 @@ class GatewayConfigClient(Model):
             ),
         )
         return await self.query(request, status, timeout=1.0)
+
+
+class LightExtendedControllerSetupClient(Model):
+    MODEL_ID = (0x0136, 0x0012)
+    OPCODES = {
+        LightExtendedControllerOpcode.OPCODE,
+    }
+    PUBLISH = False
+    SUBSCRIBE = True
+
+    async def get_property(
+        self,
+        nodes: Iterable[int],
+        net_index: int,
+        property_id: int,
+        *,
+        send_interval: float = 1.0,
+        progress_callback: Optional[ProgressCallback] = None,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_dev,
+                node + 1,
+                net_index=net_index,
+                opcode=LightExtendedControllerOpcode.OPCODE,
+                params=dict(
+                    subopcode=LightExtendedControllerSubOpcode.PROPERTY_GET,
+                    payload=dict(id=property_id),
+                ),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_dev(
+                node + 1,
+                net_index=net_index,
+                opcode=LightExtendedControllerOpcode.OPCODE,
+                params=dict(
+                    subopcode=LightExtendedControllerSubOpcode.PROPERTY_STATUS,
+                    payload=dict(id=property_id),
+                )
+            )
+            for node in nodes
+        }
+
+        async def _progress_callback(address, result, done, total):
+            if isinstance(result, TimeoutError):
+                self.logger.warning("Callback timeout for addr %s", address)
+                return
+
+            try:
+                aw = progress_callback(address, result["params"]["data"], done, total)
+
+                if inspect.isawaitable(aw):
+                    await aw
+            except Exception as ex:
+                self.logger.warning("Callback failed for addr %s: %s", address, ex)
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout,
+            progress_callback=_progress_callback if progress_callback else None,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]["payload"]["value"]
+            for node, result in results.items()
+        }
+
+    async def get_auto_resume_mode(
+        self, nodes: Sequence[int], net_index: int
+    ) -> Dict[int, Optional[Any]]:
+        return await self.get_property(
+            nodes,
+            net_index,
+            LightExtendedControllerProperty.AUTO_RESUME_MODE,
+            send_interval=0.1,
+            timeout=len(nodes) * 0.5,
+        )
+
+    async def get_auto_resume_timer(
+        self, nodes: Sequence[int], net_index: int
+    ) -> Dict[int, Optional[Any]]:
+        return await self.get_property(
+            nodes,
+            net_index,
+            LightExtendedControllerProperty.AUTO_RESUME_TIMER,
+            send_interval=0.1,
+            timeout=len(nodes) * 0.5,
+        )
