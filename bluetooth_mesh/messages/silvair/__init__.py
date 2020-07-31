@@ -15,3 +15,4 @@ from .network_diagnostic_server import (
     NetworkDiagnosticSetupServerMessage,
     NetworkDiagnosticSetupServerSubOpcode,
 )
+from .light_extended_controller import LightExtendedControllerMessage, LightExtendedControllerSubOpcode

@@ -56,6 +56,7 @@ from bluetooth_mesh.models import (
     GenericOnOffClient,
     HealthClient,
     LightCTLClient,
+    LightExtendedControllerSetupClient,
     LightLightnessClient,
     NetworkDiagnosticClient,
     NetworkDiagnosticSetupClient,
@@ -984,6 +985,37 @@ class MorseCommand(ModelCommandMixin, Command):
             await set_unack(level=-32768)
 
 
+class LightExtendedControllerCommand(
+    ModelCommandMixin, NodeSelectionCommandMixin, Command
+):
+    USAGE = """
+    Usage:
+        %(cmd)s <uuid>...
+        %(cmd)s -g <groups>...
+    """
+    ELEMENT = 0
+    MODEL = LightExtendedControllerSetupClient
+    CMD = "lec"
+
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+
+        auto_resume = await model.get_auto_resume_mode(nodes=addresses, net_index=0)
+        auto_timer = await model.get_auto_resume_timer(nodes=addresses, net_index=0)
+
+        results = {
+            k: (auto_resume.get(k), auto_timer.get(k))
+            for k in {*auto_resume.keys(), *auto_timer.keys()}
+        }
+
+        for address, (resume, timer) in results.items():
+            node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
+
+            yield "{} | {}: resume={}, timer={}".format(group, node.name, resume, timer)
+
+
 class HelpCommand(Command):
     CMD = "help"
 
@@ -1008,6 +1040,7 @@ class PrimaryElement(Element):
         SceneClient,
         NetworkDiagnosticClient,
         NetworkDiagnosticSetupClient,
+        LightExtendedControllerSetupClient,
     ]
 
 
@@ -1015,7 +1048,7 @@ application_mixins = itertools.chain(*get_plugin_manager().hook.application_mixi
 
 
 class MeshCommandLine(*application_mixins, Application):
-    PATH = "/com/silvair/meshcli/v6"
+    PATH = "/com/silvair/meshcli/v7"
 
     COMMANDS = [
         HelpCommand,
@@ -1041,6 +1074,7 @@ class MeshCommandLine(*application_mixins, Application):
         GatewayPacketsCommand,
         AclCommand,
         PublicationCommand,
+        LightExtendedControllerCommand,
     ]
 
     COMPANY_ID = 0xFEE5
