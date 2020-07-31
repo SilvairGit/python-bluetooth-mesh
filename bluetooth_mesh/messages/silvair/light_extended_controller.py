@@ -45,7 +45,14 @@ class LightExtendedControllerOpcode(IntEnum):
 class LightExtendedControllerSubOpcode(IntEnum):
     PROPERTY_GET = 0x00
     PROPERTY_SET = 0x01
+    PROPERTY_SET_UNACKNOWLEDGED = 0x01
     PROPERTY_STATUS = 0x03
+    BULK_LC_PROPERTY_SET = 0x04
+    BULK_LC_PROPERTY_STATUS = 0x05
+    BULK_LEC_PROPERTY_SET = 0x06
+    BULK_LEC_PROPERTY_STATUS = 0x06
+    SYNC_INTEGRAL_GET = 0x08
+    SYNC_INTEGRAL_STATUS = 0x09
 
 
 class LightExtendedControllerProperty(IntEnum):
@@ -84,6 +91,10 @@ LightExtendedControllerPropertyStatus = Struct(
     "value" / LightExtendedControllerPropertyValue,
 )
 
+LightExtendedControllerSyncIntegralStatus = Struct(
+    "sync_integral" / Int16ul,
+)
+
 LightExtendedControllerPayload = Struct(
     "subopcode" / EnumAdapter(Int8ul, LightExtendedControllerSubOpcode),
     "payload" / Default(Switch(
@@ -91,7 +102,9 @@ LightExtendedControllerPayload = Struct(
         {
             LightExtendedControllerSubOpcode.PROPERTY_GET: LightExtendedControllerPropertyGet,
             LightExtendedControllerSubOpcode.PROPERTY_SET: LightExtendedControllerPropertySet,
+            LightExtendedControllerSubOpcode.PROPERTY_SET_UNACKNOWLEDGED: LightExtendedControllerPropertySet,
             LightExtendedControllerSubOpcode.PROPERTY_STATUS: LightExtendedControllerPropertyStatus,
+            LightExtendedControllerSubOpcode.SYNC_INTEGRAL_STATUS: LightExtendedControllerSyncIntegralStatus,
         },
     ), None)
 )
