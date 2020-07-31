@@ -913,7 +913,7 @@ class DebugClient(Model):
         statuses = {
             node: self.expect_dev(
                 node,
-                net_index=0,
+                net_index=net_index,
                 opcode=DebugOpcode.OPCODE,
                 params=dict(subopcode=status),
             )
