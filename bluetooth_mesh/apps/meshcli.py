@@ -127,18 +127,33 @@ class NodeSelectionCommandMixin:
 
     Options:
         -g --groups
+
+    Use <group>.<index> or <uuid>.<index> to talk to non-primary elements.
     """
 
     @staticmethod
     def get_addresses(application, arguments):
-        uuids = arguments.get("<uuid>", [])
-        groups = arguments.get("<groups>", [])
-        return [
-            node.address
-            for node in application.network.nodes
-            if node.uuid.hex[:4] in uuids
-            or application.network.get_node_group(node) in groups
-        ]
+        uuids = {}
+        for uuid_element in arguments.get("<uuid>", []):
+            uuid, *element = uuid_element.split('.', maxsplit=1)
+            uuids[uuid] = int(element[0]) if element else 0
+
+        groups = {}
+        for group_element in arguments.get("<groups>", []):
+            group, *element = group_element.split('.', maxsplit=1)
+            groups[group] = int(element[0]) if element else 0
+
+        nodes = []
+        for node in application.network.nodes:
+            offset = uuids.get(node.uuid.hex[:4])
+            if offset is not None:
+                nodes.append(node.address + offset)
+
+            offset = groups.get(application.network.get_node_group(node))
+            if offset is not None:
+                nodes.append(node.address + offset)
+
+        return nodes
 
 
 class LsCommand(Command):

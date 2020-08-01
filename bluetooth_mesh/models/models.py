@@ -2052,7 +2052,7 @@ class LightExtendedControllerSetupClient(Model):
         requests = {
             node: partial(
                 self.send_dev,
-                node + 1,
+                node,
                 net_index=net_index,
                 opcode=LightExtendedControllerOpcode.OPCODE,
                 params=dict(
@@ -2065,7 +2065,7 @@ class LightExtendedControllerSetupClient(Model):
 
         statuses = {
             node: self.expect_dev(
-                node + 1,
+                node,
                 net_index=net_index,
                 opcode=LightExtendedControllerOpcode.OPCODE,
                 params=dict(
