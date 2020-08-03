@@ -237,7 +237,7 @@ class AttentionCommand(ModelCommandMixin, Command):
         elif arguments["<groups>"]:
             tasks = [
                 model.attention_unack(
-                    application.network.get_group_address(name, self.MODEL),
+                    application.network.get_group_address(self.MODEL, name=name),
                     app_index=0,
                     attention=attention,
                 )
@@ -284,7 +284,7 @@ class SceneCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
         elif arguments["<groups>"]:
             tasks = [
                 model.recall_scene_unack(
-                    application.network.get_group_address(name, self.MODEL),
+                    application.network.get_group_address(self.MODEL, name=name),
                     app_index=0,
                     scene_number=scene_number,
                     transition_time=transition_time,
@@ -875,7 +875,7 @@ class GenericOnOffCommand(ModelCommandMixin, Command):
             command = getattr(model, "{}_unack".format(self.PARAMETER))
             tasks = [
                 command(
-                    application.network.get_group_address(name, self.MODEL),
+                    application.network.get_group_address(self.MODEL, name=name),
                     app_index=0,
                     onoff=self.TARGET,
                 )
@@ -960,7 +960,7 @@ class MorseCommand(ModelCommandMixin, Command):
         model = self.get_model(application)
 
         destination = application.network.get_group_address(
-            name=arguments["<group>"], model=self.MODEL
+            self.MODEL, name=arguments["<group>"]
         )
 
         send_interval = 0.01
