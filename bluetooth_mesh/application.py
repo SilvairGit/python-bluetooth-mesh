@@ -593,7 +593,7 @@ class Application(
 
     async def add_net_key(self, net_key_index: int, net_key: NetworkKey) -> Any:
         """
-        Imports an application key into daemon's keyring.
+        Imports a network key into daemon's keyring.
 
         :param net_key_index: Index of the network key
         :param net_key: Value of the new network key
@@ -605,6 +605,57 @@ class Application(
             net_index=self.primary_net_key[0],
             net_key_index=net_key_index,
             net_key=net_key,
+        )
+
+    async def delete_net_key(self, net_key_index: int) -> Any:
+        """
+        Removes a network key from daemon's keyring.
+
+        :param net_key_index: Index of the network key
+        :param net_key: Value of the new network key
+        """
+        client = self.elements[0][ConfigClient]
+
+        return await client.delete_net_key(
+            self.addr, net_index=self.primary_net_key[0], net_key_index=net_key_index,
+        )
+
+    async def add_app_key(
+        self, net_key_index: int, app_key_index: int, app_key: ApplicationKey
+    ) -> "AppKeyStatus":
+        """
+        Imports an application key into daemon's keyring.
+
+        :param net_key_index: Index of the network key the new application key is bound to
+        :param app_key_index: Index of the new application key
+        :param app_key: Value of the new application key
+        """
+        client = self.elements[0][ConfigClient]
+
+        return await client.add_app_key(
+            self.addr,
+            net_index=self.primary_net_key[0],
+            app_key_index=app_key_index,
+            net_key_index=net_key_index,
+            app_key=app_key,
+        )
+
+    async def delete_app_key(
+        self, net_key_index: int, app_key_index: int
+    ) -> "AppKeyStatus":
+        """
+        Removes an application key from daemon's keyring.
+
+        :param net_key_index: Index of the network key the deleted application key is bound to
+        :param app_key_index: Index of the deleted application key
+        """
+        client = self.elements[0][ConfigClient]
+
+        return await client.delete_app_key(
+            self.addr,
+            net_index=self.primary_net_key[0],
+            app_key_index=app_key_index,
+            net_key_index=net_key_index,
         )
 
     async def add_app_key(

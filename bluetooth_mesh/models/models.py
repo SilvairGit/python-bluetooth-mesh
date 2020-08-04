@@ -330,6 +330,33 @@ class ConfigClient(Model):
         if status["params"]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add net key", status)
 
+        return NetKeyStatus(net_key_index=net_key_index)
+
+    async def delete_net_key(
+        self, destination: int, net_index: int, net_key_index: int
+    ) -> NetKeyStatus:
+        status = self.expect_dev(
+            destination,
+            net_index=net_index,
+            opcode=ConfigOpcode.NETKEY_STATUS,
+            params=dict(net_key_index=net_key_index, status=StatusCode.SUCCESS,),
+        )
+
+        request = partial(
+            self.send_dev,
+            destination,
+            net_index=net_index,
+            opcode=ConfigOpcode.NETKEY_DELETE,
+            params=dict(net_key_index=net_key_index,),
+        )
+
+        status = await self.query(request, status)
+
+        if status["params"]["status"] != StatusCode.SUCCESS:
+            raise ModelOperationError("Cannot delete net key", status)
+
+        return NetKeyStatus(net_key_index=net_key_index)
+
     async def add_app_key(
         self,
         destination: int,
@@ -361,6 +388,33 @@ class ConfigClient(Model):
 
         if status["params"]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add app key", status)
+
+        return AppKeyStatus(
+            status["params"]["net_key_index"], status["params"]["app_key_index"]
+        )
+
+    async def delete_app_key(
+        self, destination: int, net_index: int, app_key_index: int, net_key_index: int,
+    ) -> AppKeyStatus:
+        status = self.expect_dev(
+            destination,
+            net_index=net_index,
+            opcode=ConfigOpcode.APPKEY_STATUS,
+            params=dict(net_key_index=net_key_index, app_key_index=app_key_index,),
+        )
+
+        request = partial(
+            self.send_dev,
+            destination,
+            net_index=net_index,
+            opcode=ConfigOpcode.APPKEY_DELETE,
+            params=dict(net_key_index=net_key_index, app_key_index=app_key_index,),
+        )
+
+        status = await self.query(request, status)
+
+        if status["params"]["status"] != StatusCode.SUCCESS:
+            raise ModelOperationError("Cannot delete app key", status)
 
         return AppKeyStatus(
             status["params"]["net_key_index"], status["params"]["app_key_index"]
