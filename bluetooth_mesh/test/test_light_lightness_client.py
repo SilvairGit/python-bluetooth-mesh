@@ -21,9 +21,9 @@
 #
 # pylint: disable=redefined-outer-name, invalid-name
 import asynctest
-from asynctest import mock, ANY
+from asynctest import ANY, mock
 
-from bluetooth_mesh import LightLightnessClient, Element
+from bluetooth_mesh import Element, LightLightnessClient
 from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
 from bluetooth_mesh.messages.generic import LightLightnessSetupMessage
 from bluetooth_mesh.messages.generic.light import LightLightnessSetupOpcode

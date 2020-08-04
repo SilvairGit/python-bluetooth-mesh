@@ -1,17 +1,39 @@
-from typing import List, Tuple, Any, Callable
+from typing import Any, Callable, List, Tuple
 
+from construct import (
+    Adapter,
+    Array,
+    BitsInteger,
+    Bytes,
+    BytesInteger,
+    Computed,
+    Const,
+    Default,
+    Embedded,
+    Enum,
+    FixedSized,
+    Flag,
+    FormatField,
+    GreedyBytes,
+    GreedyRange,
+    NullStripped,
+    Padded,
+    Pass,
+    Rebuild,
+    Renamed,
+    Restreamed,
+    Select,
+    StringEncoded,
+    Struct,
+    Switch,
+    Transformed,
+)
 from docutils import nodes
 from sphinx.ext.autodoc import DataDocumenter, members_option
 from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
 
-from construct import (
-    Select, Struct, Switch, Const, FormatField, BytesInteger, BitsInteger, Flag,
-    Bytes, GreedyBytes, GreedyRange, Array, Pass, StringEncoded, Enum,
-    Renamed, Transformed, Const, Adapter, Restreamed, Default, Rebuild, Padded,
-    FixedSized, NullStripped, Computed, Embedded,
-)
 
 def level_option(arg):
     return int(arg)

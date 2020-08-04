@@ -5,9 +5,9 @@ from contextlib import suppress
 from docopt import docopt
 
 from bluetooth_mesh.application import Application, Element
-from bluetooth_mesh.models import ConfigClient, HealthClient
-from bluetooth_mesh.messages.config import GATTNamespaceDescriptor, StatusCode
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
+from bluetooth_mesh.messages.config import GATTNamespaceDescriptor, StatusCode
+from bluetooth_mesh.models import ConfigClient, HealthClient
 
 
 class MainElement(Element):

@@ -2125,7 +2125,7 @@ class LightExtendedControllerSetupClient(Model):
                 params=dict(
                     subopcode=LightExtendedControllerSubOpcode.PROPERTY_STATUS,
                     payload=dict(id=property_id),
-                )
+                ),
             )
             for node in nodes
         }
@@ -2152,7 +2152,9 @@ class LightExtendedControllerSetupClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]["payload"]["value"]
+            node: None
+            if isinstance(result, Exception)
+            else result["params"]["payload"]["value"]
             for node, result in results.items()
         }
 

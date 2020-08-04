@@ -135,12 +135,12 @@ class NodeSelectionCommandMixin:
     def get_addresses(application, arguments):
         uuids = {}
         for uuid_element in arguments.get("<uuid>", []):
-            uuid, *element = uuid_element.split('.', maxsplit=1)
+            uuid, *element = uuid_element.split(".", maxsplit=1)
             uuids[uuid] = int(element[0]) if element else 0
 
         groups = {}
         for group_element in arguments.get("<groups>", []):
-            group, *element = group_element.split('.', maxsplit=1)
+            group, *element = group_element.split(".", maxsplit=1)
             groups[group] = int(element[0]) if element else 0
 
         nodes = []
@@ -311,7 +311,7 @@ class SceneCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
         method = self.get if arguments["--scene"] is None else self.recall
 
         async for i in method(model, application, arguments):
-            yield i or ''
+            yield i or ""
 
 
 class ModelGetCommandMixin(ModelCommandMixin, NodeSelectionCommandMixin):

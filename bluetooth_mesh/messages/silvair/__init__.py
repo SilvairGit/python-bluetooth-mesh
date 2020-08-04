@@ -9,10 +9,13 @@ by `Silvair Lighting Firmware`_.
 
 from .debug import DebugMessage, DebugSubOpcode
 from .gateway_config_server import GatewayConfigMessage, GatewayConfigServerSubOpcode
+from .light_extended_controller import (
+    LightExtendedControllerMessage,
+    LightExtendedControllerSubOpcode,
+)
 from .network_diagnostic_server import (
     NetworkDiagnosticServerMessage,
     NetworkDiagnosticServerSubOpcode,
     NetworkDiagnosticSetupServerMessage,
     NetworkDiagnosticSetupServerSubOpcode,
 )
-from .light_extended_controller import LightExtendedControllerMessage, LightExtendedControllerSubOpcode

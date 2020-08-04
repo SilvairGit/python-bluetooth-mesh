@@ -26,6 +26,8 @@ from construct import (
     BitsInteger,
     Byte,
     Const,
+    Construct,
+    Container,
     Embedded,
     ExprAdapter,
     GreedyRange,
@@ -34,19 +36,17 @@ from construct import (
     Select,
     Struct,
     Switch,
-    Construct,
-    Container,
+    obj_,
     stream_read,
     stream_write,
-    obj_,
     this,
 )
 
 from bluetooth_mesh.messages.config import DoubleKeyIndex, EmbeddedBitStruct
 from bluetooth_mesh.messages.properties import (
     DefaultCountValidator,
-    PropertyValue,
     PropertyDict,
+    PropertyValue,
 )
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode, OpcodeMessage
 

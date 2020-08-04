@@ -1,8 +1,8 @@
-from typing import Mapping, Any, Union
+from typing import Any, Mapping, Union
 from uuid import UUID
 
-from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.application import Element
+from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.models import Model
 
 
