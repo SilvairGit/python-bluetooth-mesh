@@ -32,8 +32,8 @@ from bluetooth_mesh.mesh import (
     ProxyConfigMessage,
     SecureNetworkBeacon,
     SegmentAckMessage,
-    UnprovisionedDeviceBeacon,
     SolicitationMessage,
+    UnprovisionedDeviceBeacon,
 )
 
 

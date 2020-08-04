@@ -21,16 +21,7 @@
 #
 from enum import IntEnum
 
-from construct import (
-    Flag,
-    GreedyBytes,
-    Int8ul,
-    Int16ul,
-    Struct,
-    Switch,
-    Padding,
-    this,
-)
+from construct import Flag, GreedyBytes, Int8ul, Int16ul, Padding, Struct, Switch, this
 
 from bluetooth_mesh.messages.util import EnumAdapter
 

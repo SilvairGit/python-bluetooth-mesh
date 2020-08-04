@@ -31,8 +31,8 @@ They are not meant to be used directly. See :py:mod:`bluetooth_mesh.application`
 
 import asyncio
 import logging
-import socket
 import os
+import socket
 from collections import defaultdict
 from contextlib import suppress
 from datetime import timedelta
