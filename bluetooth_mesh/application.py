@@ -954,12 +954,6 @@ class Element(LocationMixin):
             model_class: model_class(self) for model_class in self.MODELS
         }  # type: Dict[Type["Model"], "Model"]
 
-    def _parse_message(self, message: bytes) -> Optional[ParsedMeshMessage]:
-        try:
-            return AccessMessage.parse(message)
-        except construct.ConstructError as ex:
-            self.logger.error("Cannot parse access message: %s", ex)
-
     def message_received(
         self, source: int, app_index: int, destination: Union[int, UUID], data: bytes
     ):
@@ -972,15 +966,16 @@ class Element(LocationMixin):
         :func:`~bluetooth_mesh.models.Model.message_received`.
 
         """
-        message = self._parse_message(data)
-
-        if message is None:
-            self.logger.error(
-                "App message parse error: %04x [app_index %d, destination %04x]: %s",
+        try:
+            message = AccessMessage.parse(data)
+        except construct.ConstructError as ex:
+            self.logger.warning(
+                "App message parse error [source %04x, app_index %d, destination %04x, data %s]: %s",
                 source,
                 app_index,
                 destination,
                 data.hex(),
+                ex
             )
             return
 
@@ -1001,14 +996,15 @@ class Element(LocationMixin):
         :py:func:`bluetooth_mesh.models.Model.dev_key_message_received`.
         """
 
-        message = self._parse_message(data)
-
-        if message is None:
-            self.logger.error(
-                "Dev message parse error: %04x [net_index %d]: %s",
+        try:
+            message = AccessMessage.parse(data)
+        except construct.ConstructError as ex:
+            self.logger.warning(
+                "Dev message parse error [source %04x, net_index %d, data %s]: %s",
                 source,
                 net_index,
                 data.hex(),
+                ex
             )
             return
 
