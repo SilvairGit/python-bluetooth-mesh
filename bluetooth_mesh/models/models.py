@@ -1495,6 +1495,49 @@ class LightLightnessClient(Model):
             request, retransmissions=retransmissions, send_interval=send_interval
         )
 
+    async def get_lightness_range(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.075,
+        timeout: Optional[float] = None,
+    ) -> None:
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=LightLightnessOpcode.LIGHTNESS_RANGE_GET,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=app_index,
+                destination=None,
+                opcode=LightLightnessOpcode.LIGHTNESS_RANGE_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout or len(nodes) * 0.5,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }
+
+
     async def get_lightness(
         self,
         nodes: Sequence[int],

@@ -770,6 +770,24 @@ class LightCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
             print("{}: {}".format(node.name, param))
 
 
+class LightRangeCommand(ModelGetCommandMixin, NodeSelectionCommandMixin, Command):
+    USAGE = """
+        Usage:
+            %(cmd)s <uuid>...
+            %(cmd)s -g <groups>...
+
+        Options:
+            -g --groups
+        """
+    ELEMENT = 0
+    CMD = "light_range"
+    MODEL = LightLightnessClient
+    PARAMETER = "lightness_range"
+
+    def format(self, data):
+        return "min={}, max={}".format(data["range_min"], data["range_max"])
+
+
 class NetworkTransmissionCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
     USAGE = """
         Usage:
@@ -1090,6 +1108,7 @@ class MeshCommandLine(*application_mixins, Application):
         AclCommand,
         PublicationCommand,
         LightExtendedControllerCommand,
+        LightRangeCommand,
     ]
 
     COMPANY_ID = 0xFEE5
