@@ -1459,11 +1459,8 @@ class LightLightnessSetupServer(Model):
 class LightLightnessClient(Model):
     MODEL_ID = (None, 0x1302)
     OPCODES = {
-        LightLightnessOpcode.LIGHTNESS_GET,
-        LightLightnessOpcode.LIGHTNESS_SET,
-        LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
         LightLightnessOpcode.LIGHTNESS_STATUS,
-        LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
+        LightLightnessOpcode.LIGHTNESS_RANGE_STATUS,
     }
     PUBLISH = True
     SUBSCRIBE = True
