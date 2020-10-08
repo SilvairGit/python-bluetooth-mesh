@@ -437,10 +437,25 @@ class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
         -a --address=ADDRESS
         -k --key-index=KEY_INDEX
         -t --ttl=TTL
+        -r --resolution=RESOLUTION
+        -s --steps=STEP
         -c --count=COUNT
         -i --interval=INTERVAL
         -m --model=MODEL
+
+    Resolution is one of: 100ms 1s, 10s, 10m
     """
+
+    def _get_resolution(self, arguments):
+        RESOLUTIONS = {
+            "100ms": PublishPeriodStepResolution.RESOLUTION_100_MS,
+            "1s": PublishPeriodStepResolution.RESOLUTION_1_S,
+            "10s": PublishPeriodStepResolution.RESOLUTION_10_S,
+            "10m": PublishPeriodStepResolution.RESOLUTION_10_MIN,
+        }
+        resolution = arguments.get("--resolution", None)
+
+        return RESOLUTIONS[resolution] if resolution is not None else None
 
     async def __call__(self, application, arguments):
         from bluetooth_mesh import models
@@ -459,6 +474,9 @@ class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
                     * 1000
                 )
 
+                resolution = self._get_resolution(arguments) or PublishPeriodStepResolution.RESOLUTION_10_S
+                steps = int(arguments.get("--steps", 6))
+
                 status = await model.set_publication(
                     address,
                     0,
@@ -466,8 +484,8 @@ class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
                     publication_address=int(arguments["--address"], 16),
                     app_key_index=int(arguments["--key-index"]),
                     TTL=int(arguments["--ttl"]),
-                    publish_step_resolution=PublishPeriodStepResolution.RESOLUTION_10_S,
-                    publish_number_of_steps=6,
+                    publish_step_resolution=resolution,
+                    publish_number_of_steps=steps,
                     retransmit_count=int(arguments["--count"]),
                     retransmit_interval=interval,
                     model=getattr(models, arguments["--model"]),
