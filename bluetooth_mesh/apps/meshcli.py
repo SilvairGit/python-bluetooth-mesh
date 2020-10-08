@@ -1273,10 +1273,15 @@ def main():
         Options:
             -l --login <login>             User login to platform service (email)
             -p --password <password>       User password to platform service (!unsecured!)
-            -n --project <project>         Project name to be loaded from platform
+            -n --project <project>         Project name or id to be loaded from platform
 
             --partner <partner>            Partner identifier [default: silvair]
             --env <environment>            Environment: dev,preprod or prod [default: preprod]
+
+            --auth0-client-id <client_id>  Auth0 client id
+            --auth0-secret <secret>        Auth0 secret (!unsecured!)
+            --auth0-domain <domain>        Auth0 domain name
+            --serial-number <serial_num>   Gateway serial number
 
             -d --debug
             -h --help                      Show this help message and exit
