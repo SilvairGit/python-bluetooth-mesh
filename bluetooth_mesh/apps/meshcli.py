@@ -512,6 +512,55 @@ class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
             )
 
 
+class SubscribeCommand(Command):
+    CMD = "subscribe"
+    USAGE = """
+    Usage:
+        %(cmd)s -e ELEMENT -m MODEL -a ADDRESS
+
+    Options:
+        -e --element=ELEMENT
+        -m --model=MODEL
+        -a --address=ADDRESS
+    """
+
+    async def __call__(self, application: Application, arguments):
+        from bluetooth_mesh import models
+
+        def on_message(source, destination, app_index, message):
+            print(f"{source:04x} -> {destination:04x}: {message!r}")
+
+        model = application.get_model_instance(
+            int(arguments["--element"]), getattr(models, arguments["--model"])
+        )
+
+        await model.subscribe(
+            application.app_keys, int(arguments["--address"], 16), on_message,
+        )
+
+
+class UnsubscribeCommand(Command):
+    CMD = "unsubscribe"
+    USAGE = """
+    Usage:
+        %(cmd)s -e ELEMENT -m MODEL -a ADDRESS
+
+    Options:
+        -e --element=ELEMENT
+        -m --model=MODEL
+        -a --address=ADDRESS
+    """
+
+    async def __call__(self, application: Application, arguments):
+        from bluetooth_mesh import models
+
+        model = application.get_model_instance(
+            int(arguments["--element"]), getattr(models, arguments["--model"])
+        )
+
+        await model.unsubscribe(int(arguments["--address"], 16),)
+
+
 class GatewayConfigurationCommand(
     ModelCommandMixin, NodeSelectionCommandMixin, Command
 ):
@@ -1125,6 +1174,8 @@ class MeshCommandLine(*application_mixins, Application):
         GatewayPacketsCommand,
         AclCommand,
         PublicationCommand,
+        SubscribeCommand,
+        UnsubscribeCommand,
         LightExtendedControllerCommand,
         LightRangeCommand,
     ]
