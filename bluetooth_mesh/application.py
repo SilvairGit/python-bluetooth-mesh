@@ -551,7 +551,7 @@ class Application(
 
     async def connect(
         self,
-        addr: Union[int, Callable[[], int], Awaitable[int]],
+        addr: Union[int, Callable[[], int], Callable[[], Awaitable[int]]],
         iv_index: int = 0,
         **kwargs,
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
@@ -570,16 +570,18 @@ class Application(
             configuration = await self.attach(**kwargs)
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
-            if isinstance(addr, Awaitable):
-                mesh_address = await addr
-            elif isinstance(addr, Callable):
+
+            if isinstance(addr, Callable):
                 mesh_address = addr()
-            elif isinstance(addr, int):
-                mesh_address = addr
-            else:
+
+                if isinstance(mesh_address, Awaitable):
+                    mesh_address = await mesh_address
+
+            if not isinstance(mesh_address, int):
                 raise TypeError(
                     "Address not given as a value or an acceptable callback."
                 )
+
             await self.import_node(addr=mesh_address, iv_index=iv_index)
             configuration = await self.attach(**kwargs)
 
