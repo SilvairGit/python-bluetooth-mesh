@@ -15,7 +15,7 @@ matrix:
   - python: 3.7
     env: TOX_ENV=pylint
 install:
-- pip install tox
+- pip install tox keyring==21.4.0
 script:
 - tox -e $TOX_ENV
 after_success:
