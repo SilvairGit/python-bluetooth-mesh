@@ -6,8 +6,6 @@ matrix:
     env: TOX_ENV=py36
   - python: 3.7
     env: TOX_ENV=py37
-  - python: pypy3
-    env: TOX_ENV=pypy3
   - python: 3.7
     env: TOX_ENV=black
   - python: 3.7
