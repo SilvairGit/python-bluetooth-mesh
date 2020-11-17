@@ -581,7 +581,7 @@ class Application(
                 )
 
             if isinstance(addr, Awaitable):
-                mesh_address = await addr
+                mesh_address = await mesh_address
 
             await self.import_node(addr=mesh_address, iv_index=iv_index)
             configuration = await self.attach(**kwargs)
