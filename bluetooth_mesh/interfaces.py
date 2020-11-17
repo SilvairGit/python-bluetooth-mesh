@@ -666,3 +666,28 @@ class ConnectionStatInterface:
 
     async def last_received_msg_timestamp(self) -> int:
         return self._interface.last_received_msg_timestamp
+
+
+class AmqpInterface:
+    def __init__(self, node_service):
+        self._interface = node_service.get_interface(
+            "org.bluez.mesh.Amqp1"
+        )
+
+    async def get_url(self) -> str:
+        return await self._interface.get_url()
+
+    async def set_url(self, url: str) -> None:
+        await self._interface.set_url(url)
+
+    async def get_exchange(self) -> str:
+        return await self._interface.get_exchange()
+
+    async def set_exchange(self, exchange: str) -> None:
+        await self._interface.set_exchange(exchange)
+
+    async def get_routing_key(self) -> str:
+        return await self._interface.get_routing_key()
+
+    async def set_routing_key(self, routing_key:str) -> None:
+        await self._interface.set_routing_key(exchange)

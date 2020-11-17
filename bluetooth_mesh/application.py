@@ -52,6 +52,7 @@ import dbus_next
 from bluetooth_mesh.crypto import ApplicationKey, DeviceKey, NetworkKey
 from bluetooth_mesh.interfaces import (
     AclInterface,
+    AmqpInterface,
     ApplicationInterface,
     DBusInterface,
     DBusService,
@@ -510,6 +511,7 @@ class Application(
 
         self.network_interface = NetworkInterface(service)
         self.node_interface = None
+        self.amqp_interface = None
         self.management_interface = None
 
         self._register()
@@ -519,6 +521,7 @@ class Application(
 
         self.management_interface = None
         self.node_interface = None
+        self.amqp_interface = None
         self.network_interface = None
 
         super().dbus_disconnected(owner)
@@ -824,6 +827,7 @@ class Application(
         node_service = self.bus.get_proxy_object(MeshService.NAME, path, introspection)
 
         self.node_interface = NodeInterface(node_service)
+        self.amqp_interface = AmqpInterface(node_service)
         self.management_interface = ManagementInterface(node_service)
 
         self.addr = await self.node_interface.address()

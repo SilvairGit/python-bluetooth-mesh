@@ -59,6 +59,9 @@ def dbus(monkeypatch, node, application):
         async def get_addresses(self):
             return [1]
 
+    class MockAmqpInterface(MockInterface):
+        pass
+
     class MockManagementInterface(MockInterface):
         async def call_import_remote_node(self, primary, count, device_key):
             pass
@@ -89,6 +92,7 @@ def dbus(monkeypatch, node, application):
         INTERFACES = {
             "org.freedesktop.DBus.Properties": MockPropertiesInterface,
             "org.bluez.mesh.Node1": MockNodeInterface,
+            "org.bluez.mesh.Amqp1": MockAmqpInterface,
             "org.bluez.mesh.Management1": MockManagementInterface,
         }
 
