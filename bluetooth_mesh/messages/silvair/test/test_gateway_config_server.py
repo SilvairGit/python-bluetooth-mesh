@@ -286,7 +286,7 @@ valid = [
             total_eth_tx_errors=512,
             bandwidth=59395,
             connection_state=dict(
-                conn_state=ConnState.ETHERNET_CONNECTED,
+                conn_state=ConnState.ETHERNET_HANDSHAKE,
                 link_status=LinkStatus.LINK_UP,
                 last_error=LastError.ERROR_ENODEV,
             ),
