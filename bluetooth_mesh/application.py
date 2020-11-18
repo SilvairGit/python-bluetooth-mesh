@@ -576,6 +576,8 @@ class Application(
 
                 if isinstance(mesh_address, Awaitable):
                     mesh_address = await mesh_address
+            else:
+                mesh_address = addr
 
             if not isinstance(mesh_address, int):
                 raise TypeError(
