@@ -29,7 +29,7 @@ import traceback
 from collections import defaultdict
 from concurrent import futures
 from contextlib import suppress
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import lru_cache, partial
 from uuid import UUID
 
@@ -474,7 +474,10 @@ class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
                     * 1000
                 )
 
-                resolution = self._get_resolution(arguments) or PublishPeriodStepResolution.RESOLUTION_10_S
+                resolution = (
+                    self._get_resolution(arguments)
+                    or PublishPeriodStepResolution.RESOLUTION_10_S
+                )
                 steps = int(arguments.get("--steps", 6))
 
                 status = await model.set_publication(
@@ -527,17 +530,19 @@ class SubscribeCommand(Command):
     async def __call__(self, application: Application, arguments):
         from bluetooth_mesh import models
 
-        def on_message(source, destination, app_index, message):
-            print(f"{source:04x} -> {destination:04x}: {message!r}")
 
         model = application.get_model_instance(
             int(arguments["--element"]), getattr(models, arguments["--model"])
         )
 
         await model.subscribe(
-            application.app_keys, int(arguments["--address"], 16), on_message,
+            application.app_keys, int(arguments["--address"], 16), SubscribeCommand.on_message,
         )
 
+    @staticmethod
+    def on_message(source, destination, app_index, message):
+        timestamp = datetime.now().strftime("%Y-%m-%d %T.%f")
+        print(f"{timestamp} {source:04x} -> {destination:04x}: {message!r}")
 
 class UnsubscribeCommand(Command):
     CMD = "unsubscribe"
@@ -558,7 +563,7 @@ class UnsubscribeCommand(Command):
             int(arguments["--element"]), getattr(models, arguments["--model"])
         )
 
-        await model.unsubscribe(int(arguments["--address"], 16),)
+        await model.unsubscribe(int(arguments["--address"], 16), SubscribeCommand.on_message)
 
 
 class GatewayConfigurationCommand(
