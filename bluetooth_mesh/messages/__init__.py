@@ -1,7 +1,11 @@
+import json
+from enum import Enum
+
 from construct import (
     Construct,
     Container,
     GreedyBytes,
+    ListContainer,
     Select,
     SizeofError,
     Struct,
@@ -101,6 +105,21 @@ class _AccessMessage(Construct):
 
     def _sizeof(self, context, path):
         raise SizeofError
+
+    @classmethod
+    def to_json(cls, value):
+        if isinstance(value, Container):
+            return {
+                k: cls.to_json(v) for k, v in value.items() if not k.startswith("_")
+            }
+
+        if isinstance(value, ListContainer):
+            return [cls.to_json(i) for i in value]
+
+        if isinstance(value, Enum):
+            return value.name
+
+        return value
 
 
 AccessMessage = _AccessMessage()
