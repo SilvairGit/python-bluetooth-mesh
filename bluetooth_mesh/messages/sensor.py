@@ -46,6 +46,7 @@ from bluetooth_mesh.messages.config import DoubleKeyIndex, EmbeddedBitStruct
 from bluetooth_mesh.messages.properties import (
     DefaultCountValidator,
     PropertyDict,
+    PropertyID,
     PropertyValue,
 )
 from bluetooth_mesh.messages.util import EnumAdapter, Opcode, OpcodeMessage
@@ -135,7 +136,7 @@ SensorSettingsStatus = Struct(
 )
 
 SensorDescriptor = Struct(
-    "sensor_property_id" / Int16ul,
+    "sensor_property_id" / Select(EnumAdapter(Int16ul, PropertyID), Int16ul),
     *DoubleKeyIndex("sensor_negative_tolerance", "sensor_positive_tolerance"),
     "sensor_sampling_funcion" / Int8ul,
     "sensor_measurement_period" / Int8ul,
@@ -162,6 +163,11 @@ class _SensorData(Construct):
             sensor_setting_property_id = property_id[1] | property_id[2] << 8
             sensor_setting_raw = list(stream_read(stream, length))
 
+            try:
+                sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+            except ValueError:
+                pass
+
             return Container(
                 format=1,
                 length=length,
@@ -172,6 +178,11 @@ class _SensorData(Construct):
             length = ((property_id[0] >> 1) & 0b1111) + 1
             sensor_setting_property_id = (property_id[0] >> 5 & 0b111) | property_id[1] << 3
             sensor_setting_raw = PropertyDict[sensor_setting_property_id]._parse(stream, context, path)
+
+            try:
+                sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+            except ValueError:
+                pass
 
             return Container(
                 format=0,
