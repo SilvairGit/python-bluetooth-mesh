@@ -163,6 +163,7 @@ class PropertyID(IntEnum):
     TOTAL_DEVICE_RUNTIME = 0x006E
     TOTAL_LIGHT_EXPOSURE_TIME = 0x006F
     TOTAL_LUMINOUS_ENERGY = 0x0070
+    PRECISE_TOTAL_DEVICE_ENERGY_USE = 0x0072
 
     def __repr__(self):
         return str(self.value)
@@ -290,6 +291,11 @@ RelativeValueInAVoltageRange = Struct(
 Energy = Struct(
     "energy" / DefaultCountValidator(Int24ul)
 )
+
+PreciseEnergy = Struct(
+    "energy" / DefaultCountValidator(Int32ul)
+)
+
 
 EnergyInAPeriodOfDay = Struct(
     "energy_value" / DefaultCountValidator(Int24ul),
@@ -582,6 +588,7 @@ PropertyDict = {
     PropertyID.TOTAL_DEVICE_RUNTIME: TimeHour24,
     PropertyID.TOTAL_LIGHT_EXPOSURE_TIME: TimeHour24,
     PropertyID.TOTAL_LUMINOUS_ENERGY: LuminousEnergy,
+    PropertyID.PRECISE_TOTAL_DEVICE_ENERGY_USE: PreciseEnergy,
 }
 
 PropertyValue = Switch(
