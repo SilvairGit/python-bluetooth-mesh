@@ -979,7 +979,7 @@ class Element(LocationMixin):
                 app_index,
                 destination,
                 data.hex(),
-                ex
+                ex,
             )
             return
 
@@ -1008,7 +1008,7 @@ class Element(LocationMixin):
                 source,
                 net_index,
                 data.hex(),
-                ex
+                ex,
             )
             return
 

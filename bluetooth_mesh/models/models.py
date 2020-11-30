@@ -1537,7 +1537,6 @@ class LightLightnessClient(Model):
             for node, result in results.items()
         }
 
-
     async def get_lightness(
         self,
         nodes: Sequence[int],
