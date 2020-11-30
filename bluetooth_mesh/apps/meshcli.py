@@ -31,6 +31,7 @@ from concurrent import futures
 from contextlib import suppress
 from datetime import datetime, timedelta
 from functools import lru_cache, partial
+from itertools import cycle
 from uuid import UUID
 
 from docopt import DocoptExit, docopt
@@ -1315,28 +1316,29 @@ class MeshCommandLine(*application_mixins, Application):
             await debug_client.bind(index)
             await health_client.bind(index)
 
-    async def run(self, command):
+    async def run(self, commands):
         addr, self.network = await self.get_network()
 
         async with self:
-            await self._run(addr, command)
+            await self._run(addr, commands)
 
-    async def _run(self, addr, command):
+    async def _run(self, addr, commands):
         await self.connect(addr, socket_path=f"{self.config_dir}/{self.uuid}.socket")
         await self.add_keys()
         self.logger.info(
             "Loaded network %s, %d nodes", self.network, len(self.network.nodes)
         )
 
-        while True:
-            if command is not None:
-                self.logger.info("Running command: %s", command)
-                line = command
-            else:
+        commands = commands or cycle([None])
+
+        for line in commands:
+            if line is None:
                 line = await self.session.prompt("{}> ".format(self.uuid), async_=True)
 
                 if not line.strip():
                     continue
+            else:
+                self.logger.info("Running command: %s", line)
 
             cmd, *argv = shlex.split(line)
 
@@ -1364,6 +1366,7 @@ class MeshCommandLine(*application_mixins, Application):
 
                 if lines:
                     print("\n".join(lines))
+
             except Exception as ex:
                 print(traceback.format_exc())
             except futures.TimeoutError:
@@ -1373,16 +1376,13 @@ class MeshCommandLine(*application_mixins, Application):
             except DocoptExit:
                 print(usage.strip("\n").rstrip())
 
-            if command:
-                break
-
 
 def main():
     doc = """
         Mesh CLI
 
         Usage:
-            meshcli [options] [<command>]
+            meshcli [options] [<command>...]
             meshcli -h | --help | --version
 
         Options:
