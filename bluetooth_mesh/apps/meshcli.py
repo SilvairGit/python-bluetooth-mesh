@@ -47,6 +47,7 @@ from bluetooth_mesh.messages.config import (
     GATTNamespaceDescriptor,
     PublishPeriodStepResolution,
 )
+from bluetooth_mesh.messages.properties import PropertyID
 from bluetooth_mesh.models import (
     ConfigClient,
     ConfigServer,
@@ -61,6 +62,7 @@ from bluetooth_mesh.models import (
     NetworkDiagnosticClient,
     NetworkDiagnosticSetupClient,
     SceneClient,
+    SensorClient,
 )
 
 plugin_manager = get_plugin_manager()
@@ -1125,6 +1127,57 @@ class LightExtendedControllerCommand(
             yield "{} | {}: resume={}, timer={}".format(group, node.name, resume, timer)
 
 
+class SensorCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    USAGE = """
+    Usage:
+        %(cmd)s [options] <uuid>...
+        %(cmd)s [options] -g <groups>...
+
+    Options:
+        -d --descriptor
+        -p --property=PROPERTY
+    """
+    CMD = "sensor"
+    MODEL = SensorClient
+    ELEMENT = 0
+
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+
+        if arguments.get("--descriptor"):
+            results = await model.get_descriptor(addresses, app_index=0)
+
+            for address, descriptor in results.items():
+                node = application.network.get_node(address=address)
+                group = application.network.get_node_group(node)
+
+                yield "{} | {}:\n{}".format(group, node.name, descriptor)
+
+            return
+
+        property = arguments.get("--property")
+        if property:
+            try:
+                property_id = getattr(PropertyID, property)
+            except AttributeError:
+                property_id = PropertyID(int(property, 16))
+
+            results = await model.get_sensor(
+                addresses, app_index=0, property_id=property_id
+            )
+
+            for address, status in results.items():
+                node = application.network.get_node(address=address)
+                group = application.network.get_node_group(node)
+
+                yield "{} | {}: {!r}".format(group, node.name, status)
+
+            return
+
+        raise DocoptExit
+
+
 class HelpCommand(Command):
     CMD = "help"
 
@@ -1150,6 +1203,7 @@ class PrimaryElement(Element):
         NetworkDiagnosticClient,
         NetworkDiagnosticSetupClient,
         LightExtendedControllerSetupClient,
+        SensorClient,
     ]
 
 
@@ -1157,7 +1211,7 @@ application_mixins = itertools.chain(*get_plugin_manager().hook.application_mixi
 
 
 class MeshCommandLine(*application_mixins, Application):
-    PATH = "/com/silvair/meshcli/v7"
+    PATH = "/com/silvair/meshcli/v8"
 
     COMMANDS = [
         HelpCommand,
@@ -1187,6 +1241,7 @@ class MeshCommandLine(*application_mixins, Application):
         UnsubscribeCommand,
         LightExtendedControllerCommand,
         LightRangeCommand,
+        SensorCommand,
     ]
 
     COMPANY_ID = 0xFEE5

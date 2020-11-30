@@ -65,6 +65,7 @@ from bluetooth_mesh.messages.silvair.network_diagnostic_server import (
     NetworkDiagnosticServerOpcode,
     NetworkDiagnosticSetupServerOpcode,
 )
+from bluetooth_mesh.messages.properties import PropertyID
 from bluetooth_mesh.models.base import Model
 from bluetooth_mesh.utils import ModelOperationError, ProgressCallback
 
@@ -1636,6 +1637,91 @@ class SensorClient(Model):
     }
     PUBLISH = True
     SUBSCRIBE = True
+
+    async def get_descriptor(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=SensorOpcode.SENSOR_DESCRIPTOR_GET,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
+                destination=None,
+                opcode=SensorOpcode.SENSOR_DESCRIPTOR_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout or len(nodes) * 0.5,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }
+
+    async def get_sensor(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        property_id: PropertyID,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=SensorOpcode.SENSOR_GET,
+                params=dict(property_id=property_id),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
+                destination=None,
+                opcode=SensorOpcode.SENSOR_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout or len(nodes) * 0.5,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }
 
 
 class LightCTLClient(Model):
