@@ -530,19 +530,21 @@ class SubscribeCommand(Command):
     async def __call__(self, application: Application, arguments):
         from bluetooth_mesh import models
 
-
         model = application.get_model_instance(
             int(arguments["--element"]), getattr(models, arguments["--model"])
         )
 
         await model.subscribe(
-            application.app_keys, int(arguments["--address"], 16), SubscribeCommand.on_message,
+            application.app_keys,
+            int(arguments["--address"], 16),
+            SubscribeCommand.on_message,
         )
 
     @staticmethod
     def on_message(source, destination, app_index, message):
         timestamp = datetime.now().strftime("%Y-%m-%d %T.%f")
         print(f"{timestamp} {source:04x} -> {destination:04x}: {message!r}")
+
 
 class UnsubscribeCommand(Command):
     CMD = "unsubscribe"
@@ -563,7 +565,9 @@ class UnsubscribeCommand(Command):
             int(arguments["--element"]), getattr(models, arguments["--model"])
         )
 
-        await model.unsubscribe(int(arguments["--address"], 16), SubscribeCommand.on_message)
+        await model.unsubscribe(
+            int(arguments["--address"], 16), SubscribeCommand.on_message
+        )
 
 
 class GatewayConfigurationCommand(
