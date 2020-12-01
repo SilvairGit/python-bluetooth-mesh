@@ -91,7 +91,11 @@ class _AccessMessage(Construct):
         opcode = obj["opcode"]
 
         try:
-            opcode, message = self._opcodes[opcode]
+            if isinstance(opcode, str):
+                opcode, message = next(v for k, v in self._opcodes.items() if v[0].name == opcode)
+                obj["opcode"] = opcode
+            else:
+                opcode, message = self._opcodes[opcode]
         except KeyError:
             Opcode()._build(opcode, stream, context, path)
             stream_write(stream, obj["params"])
