@@ -97,12 +97,16 @@ class SensorSetupOpcode(IntEnum):
     def __repr__(self):
         return str(self.value)
 
+SensorPropertyId = Select(
+    EnumAdapter(Int16ul, PropertyID),
+    Int16ul
+)
 
 # fmt: off
 SensorGetMinimal = Struct()
 
 SensorGetOptional = Struct(
-    "property_id" / Int16ul
+    "property_id" / SensorPropertyId,
 )
 
 SensorGet = Select(
@@ -111,12 +115,12 @@ SensorGet = Select(
 )
 
 SensorSettingsGet = Struct(
-    "sensor_property_id" / Int16ul
+    "sensor_property_id" / SensorPropertyId,
 )
 
 SensorSettingGet = Struct(
     Embedded(SensorSettingsGet),
-    "sensor_setting_property_id" / Int16ul
+    "sensor_setting_property_id" / SensorPropertyId,
 )
 
 SensorSettingSet = Struct(
@@ -132,11 +136,11 @@ SensorSettingStatus = Struct(
 
 SensorSettingsStatus = Struct(
     Embedded(SensorSettingsGet),
-    "sensor_setting_property_ids" / GreedyRange(Int16ul)
+    "sensor_setting_property_ids" / GreedyRange(SensorPropertyId)
 )
 
 SensorDescriptor = Struct(
-    "sensor_property_id" / Select(EnumAdapter(Int16ul, PropertyID), Int16ul),
+    "sensor_property_id" / SensorPropertyId,
     *DoubleKeyIndex("sensor_negative_tolerance", "sensor_positive_tolerance"),
     "sensor_sampling_funcion" / Int8ul,
     "sensor_measurement_period" / Int8ul,
@@ -146,7 +150,7 @@ SensorDescriptor = Struct(
 SensorDescriptorStatus = GreedyRange(
     Select(
         SensorDescriptor,
-        Struct("sensor_property_id" / Int16ul)
+        Struct("sensor_property_id" / SensorPropertyId),
     ),
 )
 
