@@ -110,7 +110,7 @@ def EnumAdapter(subcon, enum):
                 return obj.value
 
             try:
-                return enum(obj)
+                return enum[obj] if isinstance(obj, str) else enum(obj)
             except ValueError:
                 raise ValidationError("object failed validation: %s" % (obj,))
 
