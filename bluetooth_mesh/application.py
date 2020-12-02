@@ -64,7 +64,6 @@ from bluetooth_mesh.interfaces import (
     ProvisionerInterface,
 )
 from bluetooth_mesh.messages import AccessMessage
-from bluetooth_mesh.messages.fd import FdMessage, FdMessageType
 from bluetooth_mesh.models import ConfigClient, ModelConfig
 from bluetooth_mesh.tokenring import TokenRing
 from bluetooth_mesh.utils import MeshError, ParsedMeshMessage
@@ -844,9 +843,17 @@ class Application(
         return configuration
 
     def _add_reader(self, sock: Any) -> Any:
-        HEADER = struct.Struct("<BHB20s")
-        NETKEY_PARAMS = struct.Struct("<H?17x")
-        APPKEY_PARAMS = struct.Struct("<HH16s")
+        HEADER = struct.Struct(
+            "<"
+            "B"  # flags
+            "H"  # source address
+            "H"  # destination address
+            "b"  # element index
+            "H"  # appplication key index
+            "H"  # net key index
+            "B"  # ttl
+            "16s"  # virtual label
+        )
 
         def _read_message() -> Any:
             while True:
@@ -856,17 +863,26 @@ class Application(
                     break
 
                 header, data = line[: HEADER.size], line[HEADER.size :]
-                element, source, type, params = HEADER.unpack(header)
+                (
+                    flags,
+                    source,
+                    destination,
+                    element,
+                    app_index,
+                    net_index,
+                    ttl,
+                    label,
+                ) = HEADER.unpack(header)
 
-                if type == FdMessageType.NETKEY:
-                    net_index, remote = NETKEY_PARAMS.unpack(params)
+                dev_key = bool(flags & 0x01)
+
+                if dev_key:
+                    remote = bool(flags & 0x02)
 
                     self.elements[element].dev_key_message_received(
                         source, remote, net_index, data
                     )
-                elif type == FdMessageType.APPKEY:
-                    app_index, destination, label = APPKEY_PARAMS.unpack(params)
-
+                else:
                     self.elements[element].message_received(
                         source, app_index, destination, data
                     )
