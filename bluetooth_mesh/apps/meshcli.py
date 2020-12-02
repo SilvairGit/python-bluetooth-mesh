@@ -1212,7 +1212,7 @@ application_mixins = itertools.chain(*get_plugin_manager().hook.application_mixi
 
 
 class MeshCommandLine(*application_mixins, Application):
-    PATH = "/com/silvair/meshcli/v8"
+    PATH = "/com/silvair/meshcli/v9"
 
     COMMANDS = [
         HelpCommand,
