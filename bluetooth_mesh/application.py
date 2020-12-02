@@ -848,7 +848,7 @@ class Application(
             "B"  # flags
             "H"  # source address
             "H"  # destination address
-            "b"  # element index
+            "B"  # element index
             "H"  # appplication key index
             "H"  # net key index
             "B"  # ttl
