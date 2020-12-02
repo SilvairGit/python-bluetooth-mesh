@@ -39,7 +39,7 @@ from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 
 class LightExtendedControllerOpcode(IntEnum):
-    OPCODE = 0xF63601
+    SILVAIR_LEC = 0xF63601
 
 
 class LightExtendedControllerSubOpcode(IntEnum):
@@ -110,7 +110,7 @@ LightExtendedControllerPayload = Struct(
 )
 
 LightExtendedControllerMessage = Struct(
-    "opcode" / Const(LightExtendedControllerOpcode.OPCODE, Opcode(LightExtendedControllerOpcode)),
+    "opcode" / Const(LightExtendedControllerOpcode.SILVAIR_LEC, Opcode(LightExtendedControllerOpcode)),
     "params" / LightExtendedControllerPayload
 )
 # fmt: on

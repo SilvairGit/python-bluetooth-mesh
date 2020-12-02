@@ -46,7 +46,7 @@ from bluetooth_mesh.messages.util import DictAdapter, EnumAdapter, Opcode
 
 
 class DebugOpcode(IntEnum):
-    OPCODE = 0xF53601
+    SILVAIR_DEBUG = 0xF53601
 
 
 class DebugSubOpcode(IntEnum):
@@ -208,7 +208,7 @@ DebugPayload = Struct(
 )
 
 DebugMessage = Struct(
-    "opcode" / Const(DebugOpcode.OPCODE, Opcode(DebugOpcode)),
+    "opcode" / Const(DebugOpcode.SILVAIR_DEBUG, Opcode(DebugOpcode)),
     "params" / DebugPayload
 )
 # fmt: on

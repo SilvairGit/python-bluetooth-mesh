@@ -936,7 +936,7 @@ class HealthClient(Model):
 class DebugServer(Model):
     MODEL_ID = (0x0136, 0x0002)
     OPCODES = {
-        DebugOpcode.OPCODE,
+        DebugOpcode.SILVAIR_DEBUG,
     }
     PUBLISH = True
     SUBSCRIBE = True
@@ -945,7 +945,7 @@ class DebugServer(Model):
 class DebugClient(Model):
     MODEL_ID = (0x0136, 0x0016)
     OPCODES = {
-        DebugOpcode.OPCODE,
+        DebugOpcode.SILVAIR_DEBUG,
     }
     PUBLISH = True
     SUBSCRIBE = True
@@ -966,7 +966,7 @@ class DebugClient(Model):
                 self.send_dev,
                 node,
                 net_index=net_index,
-                opcode=DebugOpcode.OPCODE,
+                opcode=DebugOpcode.SILVAIR_DEBUG,
                 params=dict(subopcode=request),
             )
             for node in nodes
@@ -976,7 +976,7 @@ class DebugClient(Model):
             node: self.expect_dev(
                 node,
                 net_index=net_index,
-                opcode=DebugOpcode.OPCODE,
+                opcode=DebugOpcode.SILVAIR_DEBUG,
                 params=dict(subopcode=status),
             )
             for node in nodes
@@ -1092,7 +1092,7 @@ class DebugClient(Model):
                 self.send_dev,
                 node,
                 net_index=app_index,
-                opcode=DebugOpcode.OPCODE,
+                opcode=DebugOpcode.SILVAIR_DEBUG,
                 params=dict(
                     subopcode=DebugSubOpcode.ARAP_LIST_CONTENT_GET, data=dict(page=0),
                 ),
@@ -1104,7 +1104,7 @@ class DebugClient(Model):
             node: self.expect_dev(
                 node,
                 net_index=0,
-                opcode=DebugOpcode.OPCODE,
+                opcode=DebugOpcode.SILVAIR_DEBUG,
                 params=dict(subopcode=DebugSubOpcode.ARAP_LIST_CONTENT_STATUS),
             )
             for node in nodes
@@ -1127,7 +1127,7 @@ class DebugClient(Model):
 class NetworkDiagnosticClient(Model):
     MODEL_ID = (0x0136, 0x0014)
     OPCODES = {
-        NetworkDiagnosticServerOpcode.OPCODE,
+        NetworkDiagnosticServerOpcode.SILVAIR_NDS,
     }
     PUBLISH = True
     SUBSCRIBE = True
@@ -1136,7 +1136,7 @@ class NetworkDiagnosticClient(Model):
 class NetworkDiagnosticSetupClient(Model):
     MODEL_ID = (0x0136, 0x0015)
     OPCODES = {
-        NetworkDiagnosticSetupServerOpcode.OPCODE,
+        NetworkDiagnosticSetupServerOpcode.SILVAIR_NDS_SETUP,
     }
     PUBLISH = True
 
@@ -1840,7 +1840,7 @@ class LightCTLClient(Model):
 class GatewayConfigServer(Model):
     MODEL_ID = (0x0136, 0x001D)
     OPCODES = {
-        GatewayConfigServerOpcode.OPCODE,
+        GatewayConfigServerOpcode.SILVAIR_GATEWAY,
     }
     PUBLISH = True
     SUBSCRIBE = True
@@ -1877,7 +1877,7 @@ class GatewayConfigServer(Model):
                 flags=dhcp,
             ),
         )
-        self.send_dev(destination, net_index, GatewayConfigServerOpcode.OPCODE, params)
+        self.send_dev(destination, net_index, GatewayConfigServerOpcode.SILVAIR_GATEWAY, params)
 
     def send_packets_status(
         self,
@@ -1897,13 +1897,13 @@ class GatewayConfigServer(Model):
                 connection_state=state,
             ),
         )
-        self.send_dev(destination, net_index, GatewayConfigServerOpcode.OPCODE, params)
+        self.send_dev(destination, net_index, GatewayConfigServerOpcode.SILVAIR_GATEWAY, params)
 
 
 class GatewayConfigClient(Model):
     MODEL_ID = (0x0136, 0x001E)
     OPCODES = {
-        GatewayConfigServerOpcode.OPCODE,
+        GatewayConfigServerOpcode.SILVAIR_GATEWAY,
     }
     PUBLISH = True
     SUBSCRIBE = True
@@ -1913,7 +1913,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_GET,
             ),
@@ -1922,7 +1922,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -1964,7 +1964,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_SET,
                 payload=payload,
@@ -1974,7 +1974,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -1987,14 +1987,14 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_GET,),
         )
 
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS,),
         )
         return await self.query(request, status, timeout=1.0)
@@ -2004,14 +2004,14 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_CLEAR,),
         )
 
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS,
                 payload=...,
@@ -2024,7 +2024,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.MTU_SIZE_SET,
                 payload=dict(mtu_size=mtu),
@@ -2034,7 +2034,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2047,7 +2047,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.ETHERNET_MAC_ADDRESS_SET,
                 payload=dict(mac_address=mac),
@@ -2057,7 +2057,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2072,7 +2072,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.SERVER_ADDRESS_AND_PORT_NUMBER_SET,
                 payload=dict(
@@ -2086,7 +2086,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2099,7 +2099,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.RECONNECT_INTERVAL_SET,
                 payload=dict(reconnect_interval=reconnect),
@@ -2109,7 +2109,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2122,7 +2122,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.DNS_IP_ADDRESS_SET,
                 payload=dict(dns_ip_address=dns),
@@ -2132,7 +2132,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2145,7 +2145,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.IP_ADDRESS_SET,
                 payload=dict(ip_address=ip),
@@ -2155,7 +2155,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2168,7 +2168,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_IP_ADDRESS_SET,
                 payload=dict(gateway_ip_address=gateway),
@@ -2178,7 +2178,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2191,7 +2191,7 @@ class GatewayConfigClient(Model):
             self.send_dev,
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.NETMASK_SET,
                 payload=dict(netmask=netmask),
@@ -2201,7 +2201,7 @@ class GatewayConfigClient(Model):
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=GatewayConfigServerOpcode.OPCODE,
+            opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
             params=dict(
                 subopcode=GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS,
                 payload=...,
@@ -2213,7 +2213,7 @@ class GatewayConfigClient(Model):
 class LightExtendedControllerSetupClient(Model):
     MODEL_ID = (0x0136, 0x0012)
     OPCODES = {
-        LightExtendedControllerOpcode.OPCODE,
+        LightExtendedControllerOpcode.SILVAIR_LEC,
     }
     PUBLISH = False
     SUBSCRIBE = True
@@ -2233,7 +2233,7 @@ class LightExtendedControllerSetupClient(Model):
                 self.send_dev,
                 node,
                 net_index=net_index,
-                opcode=LightExtendedControllerOpcode.OPCODE,
+                opcode=LightExtendedControllerOpcode.SILVAIR_LEC,
                 params=dict(
                     subopcode=LightExtendedControllerSubOpcode.PROPERTY_GET,
                     payload=dict(id=property_id),
@@ -2246,7 +2246,7 @@ class LightExtendedControllerSetupClient(Model):
             node: self.expect_dev(
                 node,
                 net_index=net_index,
-                opcode=LightExtendedControllerOpcode.OPCODE,
+                opcode=LightExtendedControllerOpcode.SILVAIR_LEC,
                 params=dict(
                     subopcode=LightExtendedControllerSubOpcode.PROPERTY_STATUS,
                     payload=dict(id=property_id),
