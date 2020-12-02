@@ -10,7 +10,7 @@ async def get_uptime(self, nodes, net_index):
             self.send_dev,
             node,
             net_index=net_index,
-            opcode=DebugOpcode.OPCODE,
+            opcode=DebugOpcode.SILVAIR_DEBUG,
             params=dict(subopcode=DebugSubOpcode.UPTIME_GET)
         ) for node in nodes
     }
@@ -20,7 +20,7 @@ async def get_uptime(self, nodes, net_index):
         node: self.expect_dev(
             node,
             net_index=0,
-            opcode=DebugOpcode.OPCODE,
+            opcode=DebugOpcode.SILVAIR_DEBUG,
             params=dict(subopcode=DebugSubOpcode.UPTIME_STATUS)
         ) for node in nodes
     }

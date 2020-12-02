@@ -48,7 +48,7 @@ MAX_RECORD_COUNT = 32
 
 
 class NetworkDiagnosticServerOpcode(IntEnum):
-    OPCODE = 0xFC3601
+    SILVAIR_NDS = 0xFC3601
 
 
 class NetworkDiagnosticServerSubOpcode(IntEnum):
@@ -62,7 +62,7 @@ class NetworkDiagnosticServerSubOpcode(IntEnum):
 
 
 class NetworkDiagnosticSetupServerOpcode(IntEnum):
-    OPCODE = 0xFD3601
+    SILVAIR_NDS_SETUP = 0xFD3601
 
 
 class NetworkDiagnosticSetupServerSubOpcode(IntEnum):
@@ -126,12 +126,12 @@ NetworkDiagnosticSetupServerPayload = Struct(
 )
 
 NetworkDiagnosticServerMessage = Struct(
-    "opcode" / Const(NetworkDiagnosticServerOpcode.OPCODE, Opcode(NetworkDiagnosticServerOpcode)),
+    "opcode" / Const(NetworkDiagnosticServerOpcode.SILVAIR_NDS, Opcode(NetworkDiagnosticServerOpcode)),
     "params" / NetworkDiagnosticServerPayload
 )
 
 NetworkDiagnosticSetupServerMessage = Struct(
-    "opcode" / Const(NetworkDiagnosticSetupServerOpcode.OPCODE, Opcode(NetworkDiagnosticSetupServerOpcode)),
+    "opcode" / Const(NetworkDiagnosticSetupServerOpcode.SILVAIR_NDS_SETUP, Opcode(NetworkDiagnosticSetupServerOpcode)),
     "params" / NetworkDiagnosticSetupServerPayload
 )
 # fmt: on

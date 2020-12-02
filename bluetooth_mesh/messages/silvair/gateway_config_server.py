@@ -46,7 +46,7 @@ from bluetooth_mesh.messages.util import (
 
 
 class GatewayConfigServerOpcode(IntEnum):
-    OPCODE = 0xF03601
+    SILVAIR_GATEWAY = 0xF03601
 
 
 class GatewayConfigServerSubOpcode(IntEnum):
@@ -229,7 +229,7 @@ GatewayConfigPayload = Struct(
 )
 
 GatewayConfigMessage = Struct(
-    "opcode" / Const(GatewayConfigServerOpcode.OPCODE, Opcode(GatewayConfigServerOpcode)),
+    "opcode" / Const(GatewayConfigServerOpcode.SILVAIR_GATEWAY, Opcode(GatewayConfigServerOpcode)),
     "params" / GatewayConfigPayload
 )
 # fmt: on
