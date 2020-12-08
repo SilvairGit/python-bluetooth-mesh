@@ -114,6 +114,9 @@ def dbus(monkeypatch, node, application):
         def export(self, object_path, interface):
             pass
 
+        def unexport(self, object_path):
+            pass
+
         def get_proxy_object(self, service_name, object_path, introspection):
             logger.debug("get proxy object for %s:%s", service_name, object_path)
 

@@ -263,6 +263,7 @@ class DBusMixin:
     async def dbus_disconnect(self) -> None:
         self.dbus_interface.off_name_owner_changed(self._name_owner_changed)
         self.bus.disconnect()
+        self.dbus_disconnected(None)
 
     async def dbus_connected(self, owner) -> None:
         pass
