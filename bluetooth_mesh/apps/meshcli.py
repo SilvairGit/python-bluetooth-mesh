@@ -49,6 +49,7 @@ from bluetooth_mesh.messages.config import (
     PublishPeriodStepResolution,
 )
 from bluetooth_mesh.messages.properties import PropertyID
+from bluetooth_mesh.messages.time import TimeRole, UNCERTAINTY_MS, CURRENT_TAI_UTC_DELTA
 from bluetooth_mesh.models import (
     ConfigClient,
     ConfigServer,
@@ -65,6 +66,7 @@ from bluetooth_mesh.models import (
     SceneClient,
     SensorClient,
 )
+from bluetooth_mesh.models.models import TimeClient
 
 plugin_manager = get_plugin_manager()
 
@@ -1179,6 +1181,135 @@ class SensorCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
         raise DocoptExit
 
 
+class TimeGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    USAGE = """
+    Usage:
+        %(cmd)s [options] <uuid>...
+        %(cmd)s [options] -g <groups>...
+
+    Options:
+        -g --groups
+
+    """
+    CMD = "time_get"
+    MODEL = TimeClient
+    ELEMENT = 0
+
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+
+        results = await model.get_time(nodes=addresses, app_index=0)
+
+        for address, pkt_time in results.items():
+            if pkt_time is None:
+                yield f"{address} | Time Status not received"
+            node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
+            if pkt_time is None:
+                yield f"{address} | Time Status not received"
+            elif pkt_time["date"] is None:
+                yield f"{address} | Time is not set!"
+            else:
+                yield "{} | {}:\n{} +- {} s".format(group, node.name,
+                                                    pkt_time["date"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
+                                                    pkt_time["uncertainty"].total_seconds())
+
+
+class TimeCurrentSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    USAGE = """
+    Usage:
+        %(cmd)s [options] <uuid>...
+
+    Options:
+        -g --groups <group>
+        -o --offset <seconds>
+
+    """
+    CMD = "time_set_current_time"
+    MODEL = TimeClient
+    ELEMENT = 0
+
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+        offset_seconds = int(arguments["--offset"]) if arguments["--offset"] is not None else 0
+        results = await model.set_time(addresses, 0,
+                                       date=(datetime.now().astimezone() + timedelta(seconds=offset_seconds)),
+                                       uncertainty=timedelta(milliseconds=UNCERTAINTY_MS),
+                                       tai_utc_delta=timedelta(seconds=CURRENT_TAI_UTC_DELTA), time_authority=True)
+
+        for address, pkt_time in results.items():
+            node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
+            if pkt_time is None:
+                yield f"{address} | Time Status not received"
+            elif pkt_time["date"] is None:
+                yield f"{address} | Time is not set!"
+            else:
+                yield "{} | {}:\n{} +- {} s".format(group, node.name,
+                                                    pkt_time["date"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
+                                                    pkt_time["uncertainty"].total_seconds())
+
+
+class TimeRoleGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    USAGE = """
+    Usage:
+        %(cmd)s [options] <uuid>...
+        %(cmd)s [options] -g <groups>...
+
+    Options:
+        -g --groups
+
+    """
+    CMD = "time_role_get"
+    MODEL = TimeClient
+    ELEMENT = 0
+
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+
+        results = await model.get_time_role(nodes=addresses, app_index=0)
+
+        for address, pkt_time in results.items():
+            if pkt_time is None:
+                yield f"{address} | Time Role Status not received"
+            node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
+
+            yield f"{group} | {node.name}:\nTime Role: " + str(TimeRole(pkt_time["time_role"]))
+
+
+class TimeRoleSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    USAGE = """
+    Usage:
+        %(cmd)s [options] <uuid>...
+
+    Options:
+        -g --groups <groups>
+        -r --role <role>
+
+    """
+    CMD = "time_role_set"
+    MODEL = TimeClient
+    ELEMENT = 0
+
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+        time_role = TimeRole(int(arguments.get("--role"))) if arguments.get(
+            "--role") is not None else TimeRole.TIME_ROLE_TIME_CLIENT
+
+        results = await model.set_time_role(addresses, 0, time_role)
+        for address, pkt_time in results.items():
+            if pkt_time is None:
+                yield f"{address} | Time Role Status not received"
+            node = application.network.get_node(address=address)
+            group = application.network.get_node_group(node)
+            yield f"{group} | {node.name}:\nTime Role: " + str(TimeRole(pkt_time["time_role"]))
+
+
 class HelpCommand(Command):
     CMD = "help"
 
@@ -1205,6 +1336,7 @@ class PrimaryElement(Element):
         NetworkDiagnosticSetupClient,
         LightExtendedControllerSetupClient,
         SensorClient,
+        TimeClient
     ]
 
 
@@ -1212,7 +1344,7 @@ application_mixins = itertools.chain(*get_plugin_manager().hook.application_mixi
 
 
 class MeshCommandLine(*application_mixins, Application):
-    PATH = "/com/silvair/meshcli/v9"
+    PATH = "/com/silvair/meshcli/v10"
 
     COMMANDS = [
         HelpCommand,
@@ -1243,6 +1375,10 @@ class MeshCommandLine(*application_mixins, Application):
         LightExtendedControllerCommand,
         LightRangeCommand,
         SensorCommand,
+        TimeGetCommand,
+        TimeCurrentSetCommand,
+        TimeRoleGetCommand,
+        TimeRoleSetCommand
     ]
 
     COMPANY_ID = 0xFEE5
@@ -1311,10 +1447,12 @@ class MeshCommandLine(*application_mixins, Application):
 
         debug_client = self.get_model_instance(element=0, model=DebugClient)
         health_client = self.get_model_instance(element=0, model=HealthClient)
+        time_client = self.get_model_instance(element=0, model=TimeClient)
 
         for index, *_ in self.app_keys:
             await debug_client.bind(index)
             await health_client.bind(index)
+            await time_client.bind(index)
 
     async def run(self, commands):
         addr, self.network = await self.get_network()

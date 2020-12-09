@@ -24,7 +24,7 @@ This module implements mesh models, both clients and servers.
 """
 import inspect
 import itertools
-from datetime import timedelta
+from datetime import timedelta, datetime
 from functools import partial
 from typing import Any, Dict, Iterable, NamedTuple, Optional, Sequence, Tuple, Type
 
@@ -66,6 +66,7 @@ from bluetooth_mesh.messages.silvair.network_diagnostic_server import (
     NetworkDiagnosticSetupServerOpcode,
 )
 from bluetooth_mesh.messages.properties import PropertyID
+from bluetooth_mesh.messages.time import TimeOpcode, TimeRole
 from bluetooth_mesh.models.base import Model
 from bluetooth_mesh.utils import ModelOperationError, ProgressCallback
 
@@ -2304,3 +2305,181 @@ class LightExtendedControllerSetupClient(Model):
             send_interval=0.1,
             timeout=len(nodes) * 0.5,
         )
+
+
+class TimeClient(Model):
+    MODEL_ID = (None, 0x1200)
+    OPCODES = {
+        TimeOpcode.TIME_GET,
+        TimeOpcode.TIME_SET,
+        TimeOpcode.TIME_STATUS,
+        TimeOpcode.TIME_ZONE_GET,
+        TimeOpcode.TIME_ZONE_SET,
+        TimeOpcode.TIME_ZONE_STATUS,
+        TimeOpcode.TAI_UTC_DELTA_GET,
+        TimeOpcode.TAI_UTC_DELTA_SET,
+        TimeOpcode.TAI_UTC_DELTA_STATUS,
+        TimeOpcode.TIME_ROLE_GET,
+        TimeOpcode.TIME_ROLE_SET,
+        TimeOpcode.TIME_ROLE_STATUS,
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+    async def get_time(
+            self,
+            nodes: Sequence[int],
+            app_index: int,
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=TimeOpcode.TIME_GET,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
+                destination=None,
+                opcode=TimeOpcode.TIME_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }
+
+    async def get_time_role(
+            self,
+            nodes: Sequence[int],
+            app_index: int,
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=TimeOpcode.TIME_ROLE_GET,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
+                destination=None,
+                opcode=TimeOpcode.TIME_ROLE_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }
+
+    async def set_time(
+            self,
+            nodes: Sequence[int],
+            app_index: int,
+            date: datetime,
+            tai_utc_delta: timedelta,
+            uncertainty: timedelta,
+            time_authority: bool
+    ):
+        values = dict(date=date, uncertainty=uncertainty, time_authority=time_authority,
+                      tai_utc_delta=tai_utc_delta)
+
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=TimeOpcode.TIME_SET,
+                params=values,
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
+                destination=None,
+                opcode=TimeOpcode.TIME_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }
+
+    async def set_time_role(
+            self,
+            nodes: Sequence[int],
+            app_index: int,
+            time_role: TimeRole
+    ):
+        values = dict(time_role=time_role)
+
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=TimeOpcode.TIME_ROLE_SET,
+                params=values,
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
+                destination=None,
+                opcode=TimeOpcode.TIME_ROLE_STATUS,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+        )
+
+        return {
+            node: None if isinstance(result, Exception) else result["params"]
+            for node, result in results.items()
+        }

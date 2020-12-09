@@ -43,6 +43,7 @@ from .silvair.network_diagnostic_server import (
     NetworkDiagnosticSetupServerMessage,
     NetworkDiagnosticSetupServerOpcode,
 )
+from .time import TimeOpcode, TimeMessage
 from .util import Opcode
 
 
@@ -65,6 +66,7 @@ class _AccessMessage(Construct):
         SensorOpcode: SensorMessage,
         SensorSetupOpcode: SensorSetupMessage,
         LightExtendedControllerOpcode: LightExtendedControllerMessage,
+        TimeOpcode: TimeMessage
     }
 
     def __init__(self):
