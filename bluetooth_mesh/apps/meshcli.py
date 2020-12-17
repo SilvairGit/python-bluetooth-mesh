@@ -551,6 +551,84 @@ class SubscribeCommand(Command):
         print(f"{timestamp} {source:04x} -> {destination:04x}: {message!r}")
 
 
+class AddSubscriptionCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    ELEMENT = 0
+    MODEL = ConfigClient
+    CMD = "add_subscription"
+    USAGE = """
+    Usage:
+        %(cmd)s -a=ADDRESS -m MODEL [options] <uuid>...
+        %(cmd)s -a=ADDRESS -m MODEL [options] -g <groups>...
+
+    Options:
+        -e --element=ELEMENT [default: 0]
+        -a --address=ADDRESS
+        -m --model=MODEL
+    """
+
+    async def __call__(self, application, arguments):
+        from bluetooth_mesh import models
+
+        model = self.get_model(application)
+        destinations = self.get_addresses(application, arguments)
+
+        element = int(arguments["--element"]) if arguments["--element"] is not None else 0
+        address = int(arguments["--address"], 16) if arguments["--address"] is not None else 0
+        if not destinations:
+            yield "invalid uuid!"
+        for dst in destinations:
+            element_address = dst + element
+
+            results = await model.add_subscription(
+                dst, 0, element_address, address, model=getattr(models, arguments["--model"])
+            )
+
+            node = application.network.get_node(address=dst)
+            if results is None:
+                yield f"{dst} | Subscription Status not received"
+            else:
+                yield f"{dst} | {node.name}:\n{results}"
+
+
+class BindAppKeyCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    ELEMENT = 0
+    MODEL = ConfigClient
+    CMD = "bind_appkey"
+    USAGE = """
+    Usage:
+        %(cmd)s -m MODEL [options] <uuid>...
+        %(cmd)s -m MODEL [options] -g <groups>...
+
+    Options:
+        -e --element=ELEMENT [default: 0]
+        -k --keyindex=KEY_INDEX [default: 0]
+        -m --model=MODEL
+    """
+
+    async def __call__(self, application, arguments):
+        from bluetooth_mesh import models
+
+        model = self.get_model(application)
+        destinations = self.get_addresses(application, arguments)
+        if not destinations:
+            yield "invalid uuid!"
+
+        element = int(arguments["--element"]) if arguments["--element"] is not None else 0
+        key_index = int(arguments["--keyindex"]) if arguments["--keyindex"] is not None else 0
+        for dst in destinations:
+            element_address = dst + element
+
+            results = await model.bind_app_key(
+                dst, 0, element_address, key_index, model=getattr(models, arguments["--model"])
+            )
+
+            node = application.network.get_node(address=dst)
+            if results is None:
+                yield f"{dst} | Bind AppKey Status not received"
+            else:
+                yield f"{dst} | {node.name}:\n{results}"
+
+
 class UnsubscribeCommand(Command):
     CMD = "unsubscribe"
     USAGE = """
@@ -1388,6 +1466,8 @@ class MeshCommandLine(*application_mixins, Application):
         AclCommand,
         PublicationCommand,
         SubscribeCommand,
+        AddSubscriptionCommand,
+        BindAppKeyCommand,
         UnsubscribeCommand,
         LightExtendedControllerCommand,
         LightRangeCommand,
