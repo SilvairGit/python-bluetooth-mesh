@@ -66,7 +66,7 @@ class _AccessMessage(Construct):
         SensorOpcode: SensorMessage,
         SensorSetupOpcode: SensorSetupMessage,
         LightExtendedControllerOpcode: LightExtendedControllerMessage,
-        TimeOpcode: TimeMessage
+        TimeOpcode: TimeMessage,
     }
 
     def __init__(self):
@@ -94,7 +94,9 @@ class _AccessMessage(Construct):
 
         try:
             if isinstance(opcode, str):
-                opcode, message = next(v for k, v in self._opcodes.items() if v[0].name == opcode)
+                opcode, message = next(
+                    v for k, v in self._opcodes.items() if v[0].name == opcode
+                )
                 obj["opcode"] = opcode
             else:
                 opcode, message = self._opcodes[opcode]

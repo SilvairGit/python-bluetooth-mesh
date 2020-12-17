@@ -1878,7 +1878,9 @@ class GatewayConfigServer(Model):
                 flags=dhcp,
             ),
         )
-        self.send_dev(destination, net_index, GatewayConfigServerOpcode.SILVAIR_GATEWAY, params)
+        self.send_dev(
+            destination, net_index, GatewayConfigServerOpcode.SILVAIR_GATEWAY, params
+        )
 
     def send_packets_status(
         self,
@@ -1898,7 +1900,9 @@ class GatewayConfigServer(Model):
                 connection_state=state,
             ),
         )
-        self.send_dev(destination, net_index, GatewayConfigServerOpcode.SILVAIR_GATEWAY, params)
+        self.send_dev(
+            destination, net_index, GatewayConfigServerOpcode.SILVAIR_GATEWAY, params
+        )
 
 
 class GatewayConfigClient(Model):
@@ -2327,9 +2331,7 @@ class TimeClient(Model):
     SUBSCRIBE = True
 
     async def get_time(
-            self,
-            nodes: Sequence[int],
-            app_index: int,
+        self, nodes: Sequence[int], app_index: int,
     ) -> Dict[int, Optional[Any]]:
         requests = {
             node: partial(
@@ -2353,10 +2355,7 @@ class TimeClient(Model):
             for node in nodes
         }
 
-        results = await self.bulk_query(
-            requests,
-            statuses
-        )
+        results = await self.bulk_query(requests, statuses)
 
         return {
             node: None if isinstance(result, Exception) else result["params"]
@@ -2364,9 +2363,7 @@ class TimeClient(Model):
         }
 
     async def get_time_role(
-            self,
-            nodes: Sequence[int],
-            app_index: int,
+        self, nodes: Sequence[int], app_index: int,
     ) -> Dict[int, Optional[Any]]:
         requests = {
             node: partial(
@@ -2390,10 +2387,7 @@ class TimeClient(Model):
             for node in nodes
         }
 
-        results = await self.bulk_query(
-            requests,
-            statuses,
-        )
+        results = await self.bulk_query(requests, statuses,)
 
         return {
             node: None if isinstance(result, Exception) else result["params"]
@@ -2401,16 +2395,20 @@ class TimeClient(Model):
         }
 
     async def set_time(
-            self,
-            nodes: Sequence[int],
-            app_index: int,
-            date: datetime,
-            tai_utc_delta: timedelta,
-            uncertainty: timedelta,
-            time_authority: bool
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        date: datetime,
+        tai_utc_delta: timedelta,
+        uncertainty: timedelta,
+        time_authority: bool,
     ):
-        values = dict(date=date, uncertainty=uncertainty, time_authority=time_authority,
-                      tai_utc_delta=tai_utc_delta)
+        values = dict(
+            date=date,
+            uncertainty=uncertainty,
+            time_authority=time_authority,
+            tai_utc_delta=tai_utc_delta,
+        )
 
         requests = {
             node: partial(
@@ -2434,10 +2432,7 @@ class TimeClient(Model):
             for node in nodes
         }
 
-        results = await self.bulk_query(
-            requests,
-            statuses,
-        )
+        results = await self.bulk_query(requests, statuses,)
 
         return {
             node: None if isinstance(result, Exception) else result["params"]
@@ -2445,10 +2440,7 @@ class TimeClient(Model):
         }
 
     async def set_time_role(
-            self,
-            nodes: Sequence[int],
-            app_index: int,
-            time_role: TimeRole
+        self, nodes: Sequence[int], app_index: int, time_role: TimeRole
     ):
         values = dict(time_role=time_role)
 
@@ -2474,10 +2466,7 @@ class TimeClient(Model):
             for node in nodes
         }
 
-        results = await self.bulk_query(
-            requests,
-            statuses,
-        )
+        results = await self.bulk_query(requests, statuses,)
 
         return {
             node: None if isinstance(result, Exception) else result["params"]

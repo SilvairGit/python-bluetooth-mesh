@@ -1211,9 +1211,12 @@ class TimeGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
             elif pkt_time["date"] is None:
                 yield f"{address} | Time is not set!"
             else:
-                yield "{} | {}:\n{} +- {} s".format(group, node.name,
-                                                    pkt_time["date"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
-                                                    pkt_time["uncertainty"].total_seconds())
+                yield "{} | {}:\n{} +- {} s".format(
+                    group,
+                    node.name,
+                    pkt_time["date"].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                    pkt_time["uncertainty"].total_seconds(),
+                )
 
 
 class TimeCurrentSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
@@ -1233,11 +1236,17 @@ class TimeCurrentSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Comman
     async def __call__(self, application, arguments):
         model = self.get_model(application)
         addresses = self.get_addresses(application, arguments)
-        offset_seconds = int(arguments["--offset"]) if arguments["--offset"] is not None else 0
-        results = await model.set_time(addresses, 0,
-                                       date=(datetime.now().astimezone() + timedelta(seconds=offset_seconds)),
-                                       uncertainty=timedelta(milliseconds=UNCERTAINTY_MS),
-                                       tai_utc_delta=timedelta(seconds=CURRENT_TAI_UTC_DELTA), time_authority=True)
+        offset_seconds = (
+            int(arguments["--offset"]) if arguments["--offset"] is not None else 0
+        )
+        results = await model.set_time(
+            addresses,
+            0,
+            date=(datetime.now().astimezone() + timedelta(seconds=offset_seconds)),
+            uncertainty=timedelta(milliseconds=UNCERTAINTY_MS),
+            tai_utc_delta=timedelta(seconds=CURRENT_TAI_UTC_DELTA),
+            time_authority=True,
+        )
 
         for address, pkt_time in results.items():
             node = application.network.get_node(address=address)
@@ -1247,9 +1256,12 @@ class TimeCurrentSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Comman
             elif pkt_time["date"] is None:
                 yield f"{address} | Time is not set!"
             else:
-                yield "{} | {}:\n{} +- {} s".format(group, node.name,
-                                                    pkt_time["date"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
-                                                    pkt_time["uncertainty"].total_seconds())
+                yield "{} | {}:\n{} +- {} s".format(
+                    group,
+                    node.name,
+                    pkt_time["date"].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                    pkt_time["uncertainty"].total_seconds(),
+                )
 
 
 class TimeRoleGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
@@ -1278,7 +1290,9 @@ class TimeRoleGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
             node = application.network.get_node(address=address)
             group = application.network.get_node_group(node)
 
-            yield f"{group} | {node.name}:\nTime Role: " + str(TimeRole(pkt_time["time_role"]))
+            yield f"{group} | {node.name}:\nTime Role: " + str(
+                TimeRole(pkt_time["time_role"])
+            )
 
 
 class TimeRoleSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
@@ -1298,8 +1312,11 @@ class TimeRoleSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
     async def __call__(self, application, arguments):
         model = self.get_model(application)
         addresses = self.get_addresses(application, arguments)
-        time_role = TimeRole(int(arguments.get("--role"))) if arguments.get(
-            "--role") is not None else TimeRole.TIME_ROLE_TIME_CLIENT
+        time_role = (
+            TimeRole(int(arguments.get("--role")))
+            if arguments.get("--role") is not None
+            else TimeRole.TIME_ROLE_TIME_CLIENT
+        )
 
         results = await model.set_time_role(addresses, 0, time_role)
         for address, pkt_time in results.items():
@@ -1307,7 +1324,9 @@ class TimeRoleSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
                 yield f"{address} | Time Role Status not received"
             node = application.network.get_node(address=address)
             group = application.network.get_node_group(node)
-            yield f"{group} | {node.name}:\nTime Role: " + str(TimeRole(pkt_time["time_role"]))
+            yield f"{group} | {node.name}:\nTime Role: " + str(
+                TimeRole(pkt_time["time_role"])
+            )
 
 
 class HelpCommand(Command):
@@ -1336,7 +1355,7 @@ class PrimaryElement(Element):
         NetworkDiagnosticSetupClient,
         LightExtendedControllerSetupClient,
         SensorClient,
-        TimeClient
+        TimeClient,
     ]
 
 
@@ -1378,7 +1397,7 @@ class MeshCommandLine(*application_mixins, Application):
         TimeGetCommand,
         TimeCurrentSetCommand,
         TimeRoleGetCommand,
-        TimeRoleSetCommand
+        TimeRoleSetCommand,
     ]
 
     COMPANY_ID = 0xFEE5

@@ -43,4 +43,3 @@ valid = [
 def test_build(encoded, decoded):
     result = AccessMessage.build(obj=decoded)
     assert result == encoded
-

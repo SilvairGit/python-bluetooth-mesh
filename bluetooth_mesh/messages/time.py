@@ -27,8 +27,17 @@ from datetime import datetime, timezone, timedelta
 from construct import (
     Int8ul,
     Struct,
-    BitsInteger, Padding, BytesInteger, Construct,
-    stream_read, Container, stream_write, Adapter, StopIf, this, Flag,
+    BitsInteger,
+    Padding,
+    BytesInteger,
+    Construct,
+    stream_read,
+    Container,
+    stream_write,
+    Adapter,
+    StopIf,
+    this,
+    Flag,
 )
 
 from .util import EnumAdapter, EmbeddedBitStruct, OpcodeMessage
@@ -38,9 +47,10 @@ UNCERTAINTY_MS = 10
 CURRENT_TAI_UTC_DELTA = 37
 TAI_UTC_DELTA_ZERO = 0xFF
 TIME_ZONE_OFFSET_ZERO = 0x40
-MESH_UNIX_EPOCH_DIFF = calendar.timegm(time.strptime("2000-01-01T00:00:00", "%Y-%m-%dT%H:%M:%S")) - calendar.timegm(
-    time.gmtime(0))
-SECONDS_IN_15_MINUTES = (15 * 60)
+MESH_UNIX_EPOCH_DIFF = calendar.timegm(
+    time.strptime("2000-01-01T00:00:00", "%Y-%m-%dT%H:%M:%S")
+) - calendar.timegm(time.gmtime(0))
+SECONDS_IN_15_MINUTES = 15 * 60
 
 
 # fmt: off

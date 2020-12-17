@@ -23,8 +23,15 @@ from datetime import timedelta, datetime, timezone
 
 import pytest
 
-from bluetooth_mesh.messages.time import TimeOpcode, TimeMessage, TimeRole, MESH_UNIX_EPOCH_DIFF, \
-    mesh_time_zone_offset_to_timedelta, mesh_tai_utc_delta_to_timedelta, subsecond_to_seconds
+from bluetooth_mesh.messages.time import (
+    TimeOpcode,
+    TimeMessage,
+    TimeRole,
+    MESH_UNIX_EPOCH_DIFF,
+    mesh_time_zone_offset_to_timedelta,
+    mesh_tai_utc_delta_to_timedelta,
+    subsecond_to_seconds,
+)
 
 valid = [
     # fmt: off

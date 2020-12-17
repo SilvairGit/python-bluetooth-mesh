@@ -97,10 +97,8 @@ class SensorSetupOpcode(IntEnum):
     def __repr__(self):
         return str(self.value)
 
-SensorPropertyId = Select(
-    EnumAdapter(Int16ul, PropertyID),
-    Int16ul
-)
+
+SensorPropertyId = Select(EnumAdapter(Int16ul, PropertyID), Int16ul)
 
 # fmt: off
 SensorGetMinimal = Struct()
