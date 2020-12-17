@@ -1581,6 +1581,35 @@ class LightLightnessClient(Model):
             for node, result in results.items()
         }
 
+    async def set_lightness_unack(
+            self,
+            destination: int,
+            app_index: int,
+            lightness: int,
+            transition_time: float,
+            *,
+            delay: float = 0.5,
+            retransmissions: int = 6,
+            send_interval: float = 0.075,
+    ) -> None:
+        tid = next(self.__tid)
+        remaining_delay = delay
+
+        async def request():
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
+                params=dict(lightness=lightness, delay=remaining_delay, tid=tid)
+            )
+            remaining_delay = max(0, remaining_delay - send_interval)
+
+            return await ret
+
+        await self.repeat(
+            request, retransmissions=retransmissions, send_interval=send_interval
+        )
+
     async def set_lightness(
         self,
         nodes: Sequence[int],
