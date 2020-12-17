@@ -2341,7 +2341,7 @@ class LightExtendedControllerSetupClient(Model):
 
 
 class TimeClient(Model):
-    MODEL_ID = (None, 0x1200)
+    MODEL_ID = (None, 0x1202)
     OPCODES = {
         TimeOpcode.TIME_GET,
         TimeOpcode.TIME_SET,
