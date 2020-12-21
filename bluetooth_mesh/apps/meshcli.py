@@ -1202,14 +1202,12 @@ class TimeGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
         results = await model.get_time(nodes=addresses, app_index=0)
 
         for address, pkt_time in results.items():
-            if pkt_time is None:
-                yield f"{address} | Time Status not received"
             node = application.network.get_node(address=address)
             group = application.network.get_node_group(node)
             if pkt_time is None:
-                yield f"{address} | Time Status not received"
+                yield f"{group} | {node.name}\nTime Status not received"
             elif pkt_time["date"] is None:
-                yield f"{address} | Time is not set!"
+                yield f"{group} | {node.name}\nTime is not set!"
             else:
                 yield "{} | {}:\n{} +- {} s".format(
                     group,
@@ -1223,9 +1221,9 @@ class TimeCurrentSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Comman
     USAGE = """
     Usage:
         %(cmd)s [options] <uuid>...
+        %(cmd)s [options] -g <groups>...
 
     Options:
-        -g --groups <group>
         -o --offset <seconds>
 
     """
@@ -1252,9 +1250,9 @@ class TimeCurrentSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Comman
             node = application.network.get_node(address=address)
             group = application.network.get_node_group(node)
             if pkt_time is None:
-                yield f"{address} | Time Status not received"
+                yield f"{group} | {node.name}\nTime Status not received"
             elif pkt_time["date"] is None:
-                yield f"{address} | Time is not set!"
+                yield f"{group} | {node.name}\nTime is not set!"
             else:
                 yield "{} | {}:\n{} +- {} s".format(
                     group,
@@ -1269,9 +1267,7 @@ class TimeRoleGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
     Usage:
         %(cmd)s [options] <uuid>...
         %(cmd)s [options] -g <groups>...
-
-    Options:
-        -g --groups
+        %(cmd)s [options] --subnets <subnets>...
 
     """
     CMD = "time_role_get"
@@ -1286,22 +1282,23 @@ class TimeRoleGetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
 
         for address, pkt_time in results.items():
             if pkt_time is None:
-                yield f"{address} | Time Role Status not received"
-            node = application.network.get_node(address=address)
-            group = application.network.get_node_group(node)
+                yield f"{group} | {node.name}:\nTime Role Status not received"
+            else:
+                node = application.network.get_node(address=address)
+                group = application.network.get_node_group(node)
 
-            yield f"{group} | {node.name}:\nTime Role: " + str(
-                TimeRole(pkt_time["time_role"])
-            )
+                yield f"{group} | {node.name}:\nTime Role: " + str(
+                    TimeRole(pkt_time["time_role"])
+                )
 
 
 class TimeRoleSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
     USAGE = """
     Usage:
         %(cmd)s [options] <uuid>...
+        %(cmd)s [options] -g <groups>...
 
     Options:
-        -g --groups <groups>
         -r --role <role>
 
     """
@@ -1315,18 +1312,19 @@ class TimeRoleSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
         time_role = (
             TimeRole(int(arguments.get("--role")))
             if arguments.get("--role") is not None
-            else TimeRole.TIME_ROLE_TIME_CLIENT
+            else TimeRole.TIME_CLIENT
         )
 
         results = await model.set_time_role(addresses, 0, time_role)
         for address, pkt_time in results.items():
-            if pkt_time is None:
-                yield f"{address} | Time Role Status not received"
             node = application.network.get_node(address=address)
             group = application.network.get_node_group(node)
-            yield f"{group} | {node.name}:\nTime Role: " + str(
-                TimeRole(pkt_time["time_role"])
-            )
+            if pkt_time is None:
+                yield f"{group} | {node.name}:\nTime Role Status not received"
+            else:
+                yield f"{group} | {node.name}:\nTime Role: " + str(
+                    TimeRole(pkt_time["time_role"])
+                )
 
 
 class HelpCommand(Command):
@@ -1436,7 +1434,6 @@ class MeshCommandLine(*application_mixins, Application):
 
             with open(f"{self.config_dir}/{self.uuid}.key", "wb") as dev_key:
                 dev_key.write(key.bytes)
-
             return key
 
     async def get_network(
