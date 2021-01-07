@@ -21,9 +21,10 @@
 #
 # pylint: disable=redefined-outer-name, invalid-name
 import asynctest
-from asynctest import ANY, mock
+from asynctest import ANY, mock, call
 
 from bluetooth_mesh import Element, LightLightnessClient
+from bluetooth_mesh.messages import LightLightnessOpcode, LightLightnessMessage
 from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
 from bluetooth_mesh.messages.generic import LightLightnessSetupMessage
 from bluetooth_mesh.messages.generic.light import LightLightnessSetupOpcode
@@ -44,7 +45,7 @@ def light_lightness_client(element_path) -> LightLightnessClient:
 
 @pytest.mark.asyncio
 @asynctest.patch("asyncio.sleep", new=asynctest.CoroutineMock())
-async def test_sending_scene_recall_repeated_6_times_with_intervals_by_default(
+async def test_sending_set_lightness_range_repeated_6_times_with_intervals_by_default(
     light_lightness_client, destination, app_index
 ):
     light_lightness_client.repeat = asynctest.CoroutineMock()
@@ -58,10 +59,26 @@ async def test_sending_scene_recall_repeated_6_times_with_intervals_by_default(
     )
 
 
+@pytest.mark.asyncio
+@asynctest.patch("asyncio.sleep", new=asynctest.CoroutineMock())
+async def test_sending_set_lightness_repeated_6_times_with_intervals_by_default(
+        light_lightness_client, destination, app_index
+):
+    light_lightness_client.repeat = asynctest.CoroutineMock()
+
+    await light_lightness_client.set_lightness_unack(
+        destination=destination, app_index=app_index, transition_time=0, lightness=100
+    )
+
+    light_lightness_client.repeat.assert_awaited_once_with(
+        ANY, retransmissions=6, send_interval=0.075
+    )
+
+
 # pylint: disable=protected-access
 @pytest.mark.asyncio
 @asynctest.patch("asyncio.sleep", new=asynctest.CoroutineMock())
-async def test_scene_recall_calls_node_interface_with_appropriate_arguments(
+async def test_set_lightness_range_calls_node_interface_with_appropriate_arguments(
     light_lightness_client, destination, app_index, element_path
 ):
     light_lightness_client._node_interface.send = asynctest.CoroutineMock()
@@ -79,3 +96,33 @@ async def test_scene_recall_calls_node_interface_with_appropriate_arguments(
     light_lightness_client._node_interface.send.assert_awaited_with(
         element_path, destination, app_index, data
     )
+
+
+# pylint: disable=protected-access
+@pytest.mark.asyncio
+@asynctest.patch("asyncio.sleep", new=asynctest.CoroutineMock())
+async def test_set_lightness_calls_node_interface_with_appropriate_arguments(
+        light_lightness_client, destination, app_index, element_path
+):
+    light_lightness_client._node_interface.send = asynctest.CoroutineMock()
+
+    await light_lightness_client.set_lightness_unack(
+        destination=destination,
+        app_index=app_index,
+        transition_time=0,
+        lightness=0,
+        send_interval=0.05,
+        retransmissions=6,
+    )
+
+    frames = [
+        LightLightnessMessage.build({
+            "opcode": LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
+            "params": dict(lightness=0, tid=0, transition_time=0, delay=d)
+        }) for d in [
+            0.50, 0.45, 0.40, 0.35, 0.30, 0.25
+        ]
+    ]
+    assert light_lightness_client._node_interface.send.await_args_list == [
+        call(element_path, destination, app_index, frame) for frame in frames
+    ]

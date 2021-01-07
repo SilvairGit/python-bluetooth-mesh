@@ -1468,10 +1468,10 @@ class LightLightnessClient(Model):
     SUBSCRIBE = True
     _tid = 0
 
-    @property
     def tid(self) -> int:
+        tid = self._tid
         self._tid = (self._tid + 1) % 255
-        return self._tid
+        return tid
 
     async def set_lightness_range_unack(
         self,
@@ -1592,17 +1592,18 @@ class LightLightnessClient(Model):
             retransmissions: int = 6,
             send_interval: float = 0.075,
     ) -> None:
-        tid = next(self.__tid)
+        tid = self.tid()
         remaining_delay = delay
 
         async def request():
+            nonlocal remaining_delay
             ret = self.send_app(
                 destination,
                 app_index=app_index,
                 opcode=LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
-                params=dict(lightness=lightness, delay=remaining_delay, tid=tid)
+                params=dict(lightness=lightness, delay=remaining_delay, tid=tid, transition_time=transition_time)
             )
-            remaining_delay = max(0, remaining_delay - send_interval)
+            remaining_delay = max(0.0, remaining_delay - send_interval)
 
             return await ret
 
@@ -1620,7 +1621,7 @@ class LightLightnessClient(Model):
         send_interval: float = 0.1,
         timeout: Optional[float] = None,
     ) -> Dict[int, Optional[Any]]:
-        values = dict(delay=delay, send_interval=send_interval, tid=self.tid)
+        values = dict(delay=delay, send_interval=send_interval, tid=self.tid())
 
         requests = {
             node: partial(
