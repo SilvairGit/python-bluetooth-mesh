@@ -114,7 +114,7 @@ ModelSubscriptionList = NamedTuple(
 )
 
 ModelPublicationStatus = NamedTuple(
-    "ModelSubscriptionStatus",
+    "ModelPublicationStatus",
     [
         ("element_address", int),
         ("publication_address", int),
