@@ -2340,6 +2340,34 @@ class LightExtendedControllerSetupClient(Model):
         )
 
 
+class TimeServer(Model):
+    MODEL_ID = (None, 0x1200)
+    OPCODES = {
+        TimeOpcode.TIME_GET,
+        TimeOpcode.TIME_STATUS,
+        TimeOpcode.TIME_ZONE_GET,
+        TimeOpcode.TIME_ZONE_STATUS,
+        TimeOpcode.TAI_UTC_DELTA_GET,
+        TimeOpcode.TAI_UTC_DELTA_STATUS,
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+
+class TimeSetupServer(Model):
+    MODEL_ID = (None, 0x1201)
+    OPCODES = {
+        TimeOpcode.TIME_SET,
+        TimeOpcode.TIME_ZONE_SET,
+        TimeOpcode.TAI_UTC_DELTA_SET,
+        TimeOpcode.TIME_ROLE_SET,
+        TimeOpcode.TIME_ROLE_GET,
+        TimeOpcode.TIME_ROLE_STATUS
+    }
+    PUBLISH = False
+    SUBSCRIBE = False
+
+
 class TimeClient(Model):
     MODEL_ID = (None, 0x1202)
     OPCODES = {
