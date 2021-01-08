@@ -288,10 +288,10 @@ class Model:
         self, destination: int, remote: bool, net_index: int, data: bytes
     ):
         self.logger.debug(
-            "Sending: %s - > %04x [remote %s, net_index %d] %s",
+            "Sending: %s -> %04x [remote %s, net_index %d] %s",
             self.element.path,
-            remote,
             destination,
+            remote,
             net_index,
             data.hex(),
         )
