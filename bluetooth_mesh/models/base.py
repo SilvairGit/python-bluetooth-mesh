@@ -66,6 +66,7 @@ class Model:
     SUBSCRIBE = False  # type: bool
 
     def __init__(self, element: "Element"):
+        self.__tid = 0
         self.element = element
 
         self.logger = self.element.logger.getChild("%s" % type(self).__name__)
@@ -78,6 +79,11 @@ class Model:
 
         assert self.MODEL_ID[1] is not None, "A model has to have ID!"
         self.configuration = ModelConfig(bindings=[], subscriptions=[])
+
+    def tid(self) -> int:
+        tid = self.__tid
+        self.__tid = (tid + 1) % 255
+        return tid
 
     def __str__(self):
         if self.MODEL_ID[0] is None:

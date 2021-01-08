@@ -1160,12 +1160,6 @@ class GenericOnOffClient(Model):
     }
     PUBLISH = True
     SUBSCRIBE = True
-    _tid = 0
-
-    @property
-    def tid(self) -> int:
-        self._tid = (self._tid + 1) % 255
-        return self._tid
 
     async def set_onoff(
         self,
@@ -1175,7 +1169,8 @@ class GenericOnOffClient(Model):
         delay: float = 0.5,
         send_interval: float = 0.07,
     ) -> int:
-        values = dict(delay=delay, send_interval=send_interval, tid=self.tid)
+        current_delay = delay
+        tid = self.tid()
 
         status = self.expect_app(
             destination,
@@ -1186,24 +1181,24 @@ class GenericOnOffClient(Model):
         )
 
         async def request():
+            nonlocal current_delay
             ret = self.send_app(
                 destination,
                 app_index=app_index,
                 opcode=GenericOnOffOpcode.ONOFF_SET,
                 params=dict(
                     onoff=onoff,
-                    tid=values["tid"],
+                    tid=tid,
                     transition_time=0,
-                    delay=values["delay"],
+                    delay=current_delay,
                 ),
             )
-            values["delay"] -= values["send_interval"]
-            values["delay"] = max(0, values["delay"])
+            current_delay = max(0.0, current_delay - send_interval)
 
             return await ret
 
         status = await self.query(
-            request, status, send_interval=values["send_interval"], timeout=1
+            request, status, send_interval=send_interval, timeout=1
         )
 
         return status["params"]["present_onoff"]
@@ -1218,29 +1213,30 @@ class GenericOnOffClient(Model):
         transition_time: float = 0,
         retransmissions: int = 6,
     ):
-        values = dict(delay=delay, send_interval=send_interval, tid=self.tid)
+        current_delay = delay
+        tid = self.tid()
 
         async def request():
+            nonlocal current_delay
             ret = self.send_app(
                 destination,
                 app_index=app_index,
                 opcode=GenericOnOffOpcode.ONOFF_SET_UNACKNOWLEDGED,
                 params=dict(
                     onoff=onoff,
-                    tid=values["tid"],
+                    tid=tid,
                     transition_time=transition_time,
-                    delay=values["delay"],
+                    delay=current_delay,
                 ),
             )
-            values["delay"] -= values["send_interval"]
-            values["delay"] = max(0, values["delay"])
+            current_delay = max(0.0, current_delay - send_interval)
 
             return await ret
 
         await self.repeat(
             request,
             retransmissions=retransmissions,
-            send_interval=values["send_interval"],
+            send_interval=send_interval,
         )
 
     async def get_light_status(
@@ -1303,10 +1299,6 @@ class SceneClient(Model):
     PUBLISH = True
     SUBSCRIBE = True
 
-    def __init__(self, element: "Element"):
-        super().__init__(element)
-        self.__tid = itertools.cycle(range(255))
-
     async def recall_scene_unack(
         self,
         destination: int,
@@ -1314,27 +1306,29 @@ class SceneClient(Model):
         scene_number: int,
         transition_time: float,
     ):
-        values = dict(delay=0.5, send_interval=0.075, tid=next(self.__tid))
+        tid = self.tid()
+        current_delay = 0.5
+        send_interval = 0.075
 
         async def request():
+            nonlocal current_delay
             ret = self.send_app(
                 destination,
                 app_index=app_index,
                 opcode=SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED,
                 params=dict(
                     scene_number=scene_number,
-                    tid=values["tid"],
+                    tid=tid,
                     transition_time=transition_time,
-                    delay=values["delay"],
+                    delay=current_delay,
                 ),
             )
-            values["delay"] -= values["send_interval"]
-            values["delay"] = max(0, values["delay"])
+            current_delay = max(0.0, current_delay - send_interval)
 
             return await ret
 
         await self.repeat(
-            request, retransmissions=6, send_interval=values["send_interval"]
+            request, retransmissions=6, send_interval=send_interval
         )
 
     async def get_scene(
@@ -1394,10 +1388,6 @@ class GenericLevelClient(Model):
     PUBLISH = True
     SUBSCRIBE = True
 
-    def __init__(self, element: "Element"):
-        super().__init__(element)
-        self.__tid = itertools.cycle(range(255))
-
     async def set_level_unack(
         self,
         destination: int,
@@ -1408,30 +1398,30 @@ class GenericLevelClient(Model):
         transition_time: float = 0,
         retransmissions: int = 6,
     ):
-
-        values = dict(delay=delay, send_interval=send_interval, tid=next(self.__tid))
+        tid = self.tid()
+        current_delay = delay
 
         async def request():
+            nonlocal current_delay
             ret = self.send_app(
                 destination,
                 app_index=app_index,
                 opcode=GenericLevelOpcode.LEVEL_SET_UNACKNOWLEDGED,
                 params=dict(
                     level=level,
-                    tid=values["tid"],
+                    tid=tid,
                     transition_time=transition_time,
-                    delay=values["delay"],
+                    delay=current_delay,
                 ),
             )
-            values["delay"] -= values["send_interval"]
-            values["delay"] = max(0, values["delay"])
+            current_delay = max(0.0, current_delay - send_interval)
 
             return await ret
 
         await self.repeat(
             request,
             retransmissions=retransmissions,
-            send_interval=values["send_interval"],
+            send_interval=send_interval,
         )
 
 
@@ -1466,12 +1456,6 @@ class LightLightnessClient(Model):
     }
     PUBLISH = True
     SUBSCRIBE = True
-    _tid = 0
-
-    def tid(self) -> int:
-        tid = self._tid
-        self._tid = (self._tid + 1) % 255
-        return tid
 
     async def set_lightness_range_unack(
         self,
@@ -1621,15 +1605,13 @@ class LightLightnessClient(Model):
         send_interval: float = 0.1,
         timeout: Optional[float] = None,
     ) -> Dict[int, Optional[Any]]:
-        values = dict(delay=delay, send_interval=send_interval, tid=self.tid())
-
         requests = {
             node: partial(
                 self.send_app,
                 node,
                 app_index=app_index,
                 opcode=LightLightnessOpcode.LIGHTNESS_SET,
-                params=dict(lightness=lightness, tid=values["tid"],),
+                params=dict(lightness=lightness, tid=self.tid()),
             )
             for node in nodes
         }
@@ -1773,12 +1755,6 @@ class LightCTLClient(Model):
     }
     PUBLISH = True
     SUBSCRIBE = True
-    _tid = 0
-
-    @property
-    def tid(self) -> int:
-        self._tid = (self._tid + 1) % 255
-        return self._tid
 
     async def get_ctl(
         self,
@@ -1838,7 +1814,7 @@ class LightCTLClient(Model):
                 app_index=app_index,
                 opcode=LightCTLOpcode.CTL_TEMPERATURE_SET,
                 params=dict(
-                    ctl_temperature=ctl_temperature, ctl_delta_uv=0, tid=self.tid
+                    ctl_temperature=ctl_temperature, ctl_delta_uv=0, tid=self.tid()
                 ),
             )
             for node in nodes
@@ -2461,20 +2437,18 @@ class TimeClient(Model):
         uncertainty: timedelta,
         time_authority: bool,
     ):
-        values = dict(
-            date=date,
-            uncertainty=uncertainty,
-            time_authority=time_authority,
-            tai_utc_delta=tai_utc_delta,
-        )
-
         requests = {
             node: partial(
                 self.send_app,
                 node,
                 app_index=app_index,
                 opcode=TimeOpcode.TIME_SET,
-                params=values,
+                params=dict(
+                    date=date,
+                    uncertainty=uncertainty,
+                    time_authority=time_authority,
+                    tai_utc_delta=tai_utc_delta,
+                )
             )
             for node in nodes
         }
@@ -2500,15 +2474,13 @@ class TimeClient(Model):
     async def set_time_role(
         self, nodes: Sequence[int], app_index: int, time_role: TimeRole
     ):
-        values = dict(time_role=time_role)
-
         requests = {
             node: partial(
                 self.send_app,
                 node,
                 app_index=app_index,
                 opcode=TimeOpcode.TIME_ROLE_SET,
-                params=values,
+                params=dict(time_role=time_role),
             )
             for node in nodes
         }
