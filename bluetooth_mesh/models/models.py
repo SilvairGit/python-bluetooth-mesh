@@ -769,7 +769,7 @@ class ConfigClient(Model):
         publish_number_of_steps: int = 6,  # 60seconds
         retransmit_count: int = 0,
         retransmit_interval: int = 50,
-    ) -> ModelSubscriptionStatus:
+    ) -> ModelPublicationStatus:
 
         status = self.expect_dev(
             destination,
