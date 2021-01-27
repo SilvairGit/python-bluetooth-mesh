@@ -30,8 +30,8 @@ import logging
 import socket
 import struct
 from enum import Enum
-from functools import lru_cache
 from os import urandom
+from functools import lru_cache, partial
 from typing import (
     Any,
     Awaitable,
@@ -160,7 +160,6 @@ class MachineUUIDMixin(PathMixin):
             return UUID(machine_id.read().strip())
 
     @property
-    @lru_cache(maxsize=1)
     def uuid(self) -> UUID:
         namespace = self.get_namespace()
         return uuid5(namespace=namespace, name=self.path)
@@ -199,6 +198,24 @@ class NetworkKeyMixin:
         raise NotImplementedError("Getting subnet network keys should be overridden!")
 
 
+class AddressMixin:
+    @property
+    def address(self) -> int:
+        addr = getattr(self, "__address", None)
+
+        if addr is None:
+            raise AttributeError("Application didn't provide an address")
+
+        return addr
+
+    @address.setter
+    def address(self, value: int):
+        if self.node_interface:
+            raise AttributeError("Can't set address once node is provisioned")
+
+        setattr(self, "__address", value)
+
+
 class ApplicationKeyMixin(NetworkKeyMixin):
     @property
     def primary_app_key(self) -> Tuple[int, int, ApplicationKey]:
@@ -223,7 +240,6 @@ class ApplicationKeyMixin(NetworkKeyMixin):
 
 class DeviceKeyMixin:
     @property
-    @lru_cache(maxsize=1)
     def dev_key(self) -> DeviceKey:
         """
         Application's device_key. Used when creating a new node, see
@@ -442,6 +458,7 @@ class Application(
     DBusMixin,
     ProvisioningMixin,
     ProvisionerMixin,
+    AddressMixin,
 ):
     """
     Base class for mesh applications.
@@ -467,7 +484,6 @@ class Application(
         self.network_interface = None
         self.node_interface = None
         self.management_interface = None
-        self.addr = None
 
         self._join_complete = None
 
@@ -549,48 +565,41 @@ class Application(
 
         self.elements = {}
 
+    async def _join_callback(
+        self, token, join_callback: Optional[Callable[[int], Awaitable[int]]] = None
+    ):
+        self.token_ring.token = token
+        if join_callback:
+            return await join_callback(token)
+
     async def connect(
         self,
-        addr: Union[int, Callable[[], int], Callable[[], Awaitable[int]]],
-        iv_index: int = 0,
+        join_callback: Optional[Callable[[int], Awaitable[int]]] = None,
         **kwargs,
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
-        Import() call.
+        Import() call, using self.dev_key, self.primary_net_key and self.address
 
         Returns current node configuration, see documentation for Attach()
         method in mesh-api.txt_.
-
-        One doesn't have to supply `addr` straight away - you may want to get your address only when
-        Attach() call fails. In that case, you can pass a callback for `addr` - a callable or an awaitable
-        that yields a mesh address.
         """
         try:
-            configuration = await self.attach(**kwargs)
+            configuration = await self.attach(self.token_ring.token, **kwargs)
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
 
-            if isinstance(addr, Callable):
-                mesh_address = addr()
-
-                if isinstance(mesh_address, Awaitable):
-                    mesh_address = await mesh_address
-            else:
-                mesh_address = addr
-
-            if not isinstance(mesh_address, int):
-                raise TypeError(
-                    "Address not given as a value or an acceptable callback."
-                )
-
-            await self.import_node(addr=mesh_address, iv_index=iv_index)
-            configuration = await self.attach(**kwargs)
+            token = await self.import_node(
+                iv_index=0,  # FIXME: self.iv_index,
+                address=self.address,
+                join_callback=partial(self._join_callback, join_callback=join_callback),
+            )
+            configuration = await self.attach(token, **kwargs)
 
         # after attaching, explicitly import own device key to enable
         # communication with local Config Server
         await self.management_interface.import_remote_node(
-            self.addr, len(self.ELEMENTS), self.dev_key
+            self.address, len(self.ELEMENTS), self.dev_key
         )
 
         return configuration
@@ -605,7 +614,7 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.add_net_key(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
             net_key_index=net_key_index,
             net_key=net_key,
@@ -621,7 +630,9 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.delete_net_key(
-            self.addr, net_index=self.primary_net_key[0], net_key_index=net_key_index,
+            self.address,
+            net_index=self.primary_net_key[0],
+            net_key_index=net_key_index,
         )
 
     async def add_app_key(
@@ -637,7 +648,7 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.add_app_key(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
             app_key_index=app_key_index,
             net_key_index=net_key_index,
@@ -656,7 +667,7 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.delete_app_key(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
             app_key_index=app_key_index,
             net_key_index=net_key_index,
@@ -675,7 +686,7 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.add_app_key(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
             app_key_index=app_key_index,
             net_key_index=net_key_index,
@@ -691,9 +702,9 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.bind_app_key(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
-            element_address=self.addr + model.element.index,
+            element_address=self.address + model.element.index,
             app_key_index=app_key_index,
             model=type(model),
         )
@@ -707,9 +718,9 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.add_subscription(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
-            element_address=self.addr + model.element.index,
+            element_address=self.address + model.element.index,
             subscription_address=subscription_address,
             model=type(model),
         )
@@ -723,9 +734,9 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.del_subscription(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
-            element_address=self.addr + model.element.index,
+            element_address=self.address + model.element.index,
             subscription_address=subscription_address,
             model=type(model),
         )
@@ -737,9 +748,9 @@ class Application(
         client = self.elements[0][ConfigClient]
 
         return await client.clear_subscriptions(
-            self.addr,
+            self.address,
             net_index=self.primary_net_key[0],
-            element_address=self.addr + model.element.index,
+            element_address=self.address + model.element.index,
             model=type(model),
         )
 
@@ -781,20 +792,13 @@ class Application(
         self.logger.info("Leave")
         await self.network_interface.leave(self.token_ring.token)
 
-    async def attach(
-        self, token: Optional[int] = None, *, socket_pair=False, socket_path: str = None
-    ):
+    async def attach(self, token: int, *, socket_pair=False, socket_path: str = None):
         """
         Attach to existing node using a token.
 
         Returns current node configuration, see documentation for Attach()
         method in mesh-api.txt_.
         """
-        token = token if token is not None else self.token_ring.token
-
-        if token is None:
-            raise ValueError("No token")
-
         self.logger.info(
             "Attach %x (socket_pair=%s, socket_path=%s)",
             token,
@@ -818,15 +822,15 @@ class Application(
         else:
             path, configuration = await self.network_interface.attach("/", token)
 
-        self.token_ring.token = token
-
         introspection = await self.bus.introspect(MeshService.NAME, path)
         node_service = self.bus.get_proxy_object(MeshService.NAME, path, introspection)
 
-        self.node_interface = NodeInterface(node_service)
-        self.management_interface = ManagementInterface(node_service)
+        node_interface = NodeInterface(node_service)
 
-        self.addr = await self.node_interface.address()
+        self.address = await node_interface.address()
+
+        self.node_interface = node_interface
+        self.management_interface = ManagementInterface(node_service)
 
         for element, models_configs in configuration.items():
             for model_id, model_config in models_configs.items():
@@ -837,7 +841,7 @@ class Application(
         self.logger.info(
             "Attached to node %s, address: %04x, configuration: %s",
             path,
-            self.addr,
+            self.address,
             configuration,
         )
 
@@ -892,40 +896,40 @@ class Application(
 
     async def import_node(
         self,
-        dev_key: Optional[DeviceKey] = None,
-        net_key: Optional[Tuple[int, NetworkKey]] = None,
-        iv_index: int = 0,
-        addr: int = None,
+        iv_index: int,
+        address: int,
+        join_callback: Optional[Callable[[int], Awaitable[int]]] = None,
         flags: Optional[Mapping[str, Any]] = None,
     ) -> int:
         """
         Create a self-provisioned node.
         """
-        addr = addr or self.addr
+        net_index, net_key = self.primary_net_key
 
-        net_index, net_key = net_key or self.primary_net_key
-        dev_key = dev_key or self.dev_key
-
-        self.logger.warning("Import %s", self.uuid)
+        self.logger.warning("Import node %s, address %04x", self.uuid.hex, address)
 
         if flags:
             flags = {k: dbus_next.Variant("b", v) for k, v in flags.items()}
 
+        self._join_callback = join_callback
         self._join_complete = asyncio.Future()
         await self.network_interface.import_node(
-            "/", self.uuid, dev_key, net_key, net_index, flags or {}, iv_index, addr
+            "/", self.uuid, self.dev_key, net_key, net_index, flags or {}, iv_index, address
         )
         return await self._join_complete
 
     def join_complete(self, token: int):
-        try:
-            self.token_ring.token = token
-            self._join_complete.set_result(self.token_ring.token)
-        except Exception as ex:
-            self._join_complete.set_exception(ex)
-            raise dbus_next.errors.DBusError(
-                "org.bluez.mesh.Application1", str(ex)
-            ) from None
+        def join_complete_result(f: asyncio.Future):
+            try:
+                self._join_complete.set_result(token)
+            except Exception as ex:
+                self._join_complete.set_exception(ex)
+                raise dbus_next.errors.DBusError(
+                    "org.bluez.mesh.Application1", str(ex)
+                ) from None
+
+        join_task = self.loop.create_task(self._join_callback(token))
+        join_task.add_done_callback(join_complete_result)
 
     def join_failed(self, reason: str):
         self._join_complete.set_exception(MeshError(reason))

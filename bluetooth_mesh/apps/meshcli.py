@@ -615,12 +615,12 @@ class BindAppKeyCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
 
         element = int(arguments["--element"]) if arguments["--element"] is not None else 0
         key_index = int(arguments["--keyindex"]) if arguments["--keyindex"] is not None else 0
+
         for dst in destinations:
             element_address = dst + element
 
             results = await model.bind_app_key(
-                dst, 0, element_address, key_index, model=getattr(models, arguments["--model"])
-            )
+                dst, 0, element_address, key_index, model=getattr(models, arguments["--model"]))
 
             node = application.network.get_node(address=dst)
             if results is None:
@@ -1534,7 +1534,7 @@ class MeshCommandLine(*application_mixins, Application):
 
         for node in self.network.nodes:
             # don't overwrite my own key
-            if node.address in range(self.addr, self.addr + len(self.ELEMENTS)):
+            if node.address in range(self.address, self.address + len(self.ELEMENTS)):
                 continue
 
             await self.management_interface.import_remote_node(
@@ -1551,13 +1551,15 @@ class MeshCommandLine(*application_mixins, Application):
             await time_client.bind(index)
 
     async def run(self, commands):
-        addr, self.network = await self.get_network()
+        self.address, self.network = await self.get_network()
 
         async with self:
-            await self._run(addr, commands)
+            await self._run(commands)
 
-    async def _run(self, addr, commands):
-        await self.connect(addr, socket_path=f"{self.config_dir}/{self.uuid}.socket")
+    async def _run(self, commands):
+        await self.connect(
+            self.token_ring.token, socket_path=f"{self.config_dir}/{self.uuid}.socket"
+        )
         await self.add_keys()
         self.logger.info(
             "Loaded network %s, %d nodes", self.network, len(self.network.nodes)
