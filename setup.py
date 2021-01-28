@@ -33,7 +33,7 @@ setup(
         'Bluetooth mesh for Python'
     ),
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url='http://github.com/silvairgit/python-bluetooth-mesh',
     packages=find_packages(exclude=('test*', )),
     python_requires='>=3.6.0,<3.8.0',
