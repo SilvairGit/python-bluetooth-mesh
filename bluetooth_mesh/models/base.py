@@ -488,7 +488,7 @@ class Model:
             await self.bind(app_index)
 
         if subscription_address in self.configuration.subscriptions:
-            element_address = self.element.application.addr + self.element.index
+            element_address = self.element.application.address + self.element.index
             return ModelSubscriptionStatus(
                 element_address, subscription_address, type(self)
             )
@@ -526,7 +526,7 @@ class Model:
             return
 
         if subscription_address not in self.configuration.subscriptions:
-            element_address = self.element.application.addr + self.element.index
+            element_address = self.element.application.address + self.element.index
             return ModelSubscriptionStatus(
                 element_address, subscription_address, type(self)
             )
