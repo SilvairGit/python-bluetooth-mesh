@@ -216,6 +216,25 @@ class AddressMixin:
         setattr(self, "__address", value)
 
 
+class IvIndexMixin:
+    @property
+    def iv_index(self) -> int:
+        iv = getattr(self, "__iv_index", 0)
+
+        if iv is None:
+            raise AttributeError("Application didn't provide an IV Index")
+
+        return iv
+
+    @iv_index.setter
+    def iv_index(self, value: int):
+        if self.node_interface:
+            raise AttributeError("Can't set IV Index once node is provisioned")
+
+        setattr(self, "__iv_index", value)
+
+
+
 class ApplicationKeyMixin(NetworkKeyMixin):
     @property
     def primary_app_key(self) -> Tuple[int, int, ApplicationKey]:
@@ -459,6 +478,7 @@ class Application(
     ProvisioningMixin,
     ProvisionerMixin,
     AddressMixin,
+    IvIndexMixin,
 ):
     """
     Base class for mesh applications.
@@ -579,7 +599,8 @@ class Application(
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
-        Import() call, using self.dev_key, self.primary_net_key and self.address
+        Import() call, using self.dev_key, self.primary_net_key, self.address
+        and self.iv_index.
 
         Returns current node configuration, see documentation for Attach()
         method in mesh-api.txt_.
@@ -590,8 +611,6 @@ class Application(
             self.logger.error("Attach failed: %s, trying to import node", ex)
 
             token = await self.import_node(
-                iv_index=0,  # FIXME: self.iv_index,
-                address=self.address,
                 join_callback=partial(self._join_callback, join_callback=join_callback),
             )
             configuration = await self.attach(token, **kwargs)
@@ -896,8 +915,6 @@ class Application(
 
     async def import_node(
         self,
-        iv_index: int,
-        address: int,
         join_callback: Optional[Callable[[int], Awaitable[int]]] = None,
         flags: Optional[Mapping[str, Any]] = None,
     ) -> int:
@@ -906,7 +923,7 @@ class Application(
         """
         net_index, net_key = self.primary_net_key
 
-        self.logger.warning("Import node %s, address %04x", self.uuid.hex, address)
+        self.logger.warning("Import node %s, address %04x, iv index %i", self.uuid.hex, self.address, self.iv_index)
 
         if flags:
             flags = {k: dbus_next.Variant("b", v) for k, v in flags.items()}
@@ -914,7 +931,7 @@ class Application(
         self._join_callback = join_callback
         self._join_complete = asyncio.Future()
         await self.network_interface.import_node(
-            "/", self.uuid, self.dev_key, net_key, net_index, flags or {}, iv_index, address
+            "/", self.uuid, self.dev_key, net_key, net_index, flags or {}, self.iv_index, self.address
         )
         return await self._join_complete
 
