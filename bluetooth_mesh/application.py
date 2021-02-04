@@ -877,6 +877,7 @@ class Application(
             "H"  # net key index
             "B"  # ttl
             "16s"  # virtual label
+            "Q"  # timestamp
         )
 
         def _read_message() -> Any:
@@ -896,6 +897,7 @@ class Application(
                     net_index,
                     ttl,
                     label,
+                    _,
                 ) = HEADER.unpack(header)
 
                 dev_key = bool(flags & 0x01)
