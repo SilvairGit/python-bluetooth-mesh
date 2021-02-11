@@ -934,14 +934,39 @@ class LightRangeCommand(ModelGetCommandMixin, NodeSelectionCommandMixin, Command
         Usage:
             %(cmd)s <uuid>...
             %(cmd)s -g <groups>...
+            %(cmd)s -m <max> <uuid>...
+            %(cmd)s -m <max> -g <groups>...
 
         Options:
+            -m --max=MAX Max lightness range
             -g --groups
         """
     ELEMENT = 0
     CMD = "light_range"
     MODEL = LightLightnessClient
     PARAMETER = "lightness_range"
+
+    async def __call__(self, application, arguments):
+        max_lightness_arg = arguments["--max"]
+        if max_lightness_arg is None:
+            async for i in super(LightRangeCommand, self).__call__(application, arguments):
+                yield i
+            return
+
+        min_lightness = 256
+        max_lightness = max(min_lightness, min(65535, int(max_lightness_arg)))
+
+        model: LightLightnessClient = self.get_model(application)
+
+        await asyncio.gather(
+            model.set_lightness_range_unack(
+                app_index=0,
+                destination=address,
+                min_lightness=min_lightness,
+                max_lightness=max_lightness
+            )
+            for address in self.get_addresses(application, arguments)
+        )
 
     def format(self, data):
         return "min={}, max={}".format(data["range_min"], data["range_max"])
