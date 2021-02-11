@@ -233,6 +233,21 @@ class IvIndexMixin:
 
         setattr(self, "__iv_index", value)
 
+    @property
+    def iv_update(self) -> bool:
+        iv = getattr(self, "__iv_update", False)
+
+        if iv is None:
+            raise AttributeError("Application didn't provide an IV Update")
+
+        return iv
+
+    @iv_update.setter
+    def iv_update(self, value: bool):
+        if self.node_interface:
+            raise AttributeError("Can't set IV Update once node is provisioned")
+
+        setattr(self, "__iv_update", value)
 
 
 class ApplicationKeyMixin(NetworkKeyMixin):
@@ -918,22 +933,29 @@ class Application(
     async def import_node(
         self,
         join_callback: Optional[Callable[[int], Awaitable[int]]] = None,
-        flags: Optional[Mapping[str, Any]] = None,
+        key_refresh: bool = False,
     ) -> int:
         """
         Create a self-provisioned node.
         """
         net_index, net_key = self.primary_net_key
 
-        self.logger.warning("Import node %s, address %04x, iv index %i", self.uuid.hex, self.address, self.iv_index)
+        self.logger.warning(
+            f"Import node %s, address %04x, iv index %i{'(updating)' if self.iv_update else ''}",
+            self.uuid.hex,
+            self.address,
+            self.iv_index
+        )
 
-        if flags:
-            flags = {k: dbus_next.Variant("b", v) for k, v in flags.items()}
+        flags = dict(
+            IvUpdate=dbus_next.Variant("b", self.iv_update),
+            KeyRefresh=dbus_next.Variant("b", key_refresh)
+        )
 
         self._join_callback = join_callback
         self._join_complete = asyncio.Future()
         await self.network_interface.import_node(
-            "/", self.uuid, self.dev_key, net_key, net_index, flags or {}, self.iv_index, self.address
+            "/", self.uuid, self.dev_key, net_key, net_index, flags, self.iv_index, self.address
         )
         return await self._join_complete
 
