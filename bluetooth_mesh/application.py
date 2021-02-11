@@ -941,10 +941,11 @@ class Application(
         net_index, net_key = self.primary_net_key
 
         self.logger.warning(
-            f"Import node %s, address %04x, iv index %i{'(updating)' if self.iv_update else ''}",
+            "Import node %s, address %04x, iv index %i%s",
             self.uuid.hex,
             self.address,
-            self.iv_index
+            self.iv_index,
+            "(updating)" if self.iv_update else "",
         )
 
         flags = dict(
