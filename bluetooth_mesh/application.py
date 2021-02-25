@@ -216,7 +216,7 @@ class AddressMixin:
 
     @address.setter
     def address(self, value: int):
-        if self.node_interface:
+        if self.node_interface and getattr(self, "__address", None) != value:
             raise AttributeError("Can't set address once node is provisioned")
 
         setattr(self, "__address", value)
