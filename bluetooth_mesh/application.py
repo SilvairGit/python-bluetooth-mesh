@@ -39,6 +39,7 @@ from typing import (
     Dict,
     List,
     Mapping,
+    NamedTuple,
     Optional,
     Tuple,
     Type,
@@ -72,6 +73,11 @@ __all__ = [
     "Application",
     "Element",
 ]
+
+
+class JoinComplete(NamedTuple):
+    callback: Callable[[int], Awaitable]
+    future: asyncio.Future
 
 
 class Capabilities(Enum):
@@ -626,7 +632,7 @@ class Application(
             self.logger.error("Attach failed: %s, trying to import node", ex)
 
             token = await self.import_node(
-                join_callback=partial(self._join_callback, join_callback=join_callback),
+                join_callback=join_callback,
             )
             configuration = await self.attach(token, **kwargs)
 
@@ -950,27 +956,28 @@ class Application(
 
         flags = dict(
             IvUpdate=dbus_next.Variant("b", self.iv_update),
-            KeyRefresh=dbus_next.Variant("b", key_refresh)
+            KeyRefresh=dbus_next.Variant("b", key_refresh),
         )
 
-        self._join_callback = join_callback
-        self._join_complete = asyncio.Future()
-        await self.network_interface.import_node(
-            "/", self.uuid, self.dev_key, net_key, net_index, flags, self.iv_index, self.address
+        self._join_complete = JoinComplete(
+            partial(self._join_callback, join_callback=join_callback), asyncio.Future()
         )
-        return await self._join_complete
+        await self.network_interface.import_node(
+            "/", self.uuid, self.dev_key, net_key, net_index, flags, self.iv_index, self.address,
+        )
+        return await self._join_complete.future
 
     def join_complete(self, token: int):
         def join_complete_result(f: asyncio.Future):
             try:
-                self._join_complete.set_result(token)
+                self._join_complete.future.set_result(token)
             except Exception as ex:
-                self._join_complete.set_exception(ex)
+                self._join_complete.future.set_exception(ex)
                 raise dbus_next.errors.DBusError(
                     "org.bluez.mesh.Application1", str(ex)
                 ) from None
 
-        join_task = self.loop.create_task(self._join_callback(token))
+        join_task = self.loop.create_task(self._join_complete.callback(token))
         join_task.add_done_callback(join_complete_result)
 
     def join_failed(self, reason: str):
