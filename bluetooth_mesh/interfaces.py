@@ -457,12 +457,18 @@ class NodeInterface:
                 asyncio.ensure_future(sig.emit(val))
 
     async def send(
-        self, element_path: str, destination: int, key_index: int, data: bytes
+        self,
+        element_path: str,
+        destination: int,
+        key_index: int,
+        data: bytes,
+        force_segmented: bool = False,
     ) -> None:
         await self._interface.call_send(
             element_path,
             destination,
             key_index,
+            dict(ForceSegmented=Variant("b", force_segmented)),
             data,
             flags=MessageFlag.NO_REPLY_EXPECTED,
         )
@@ -474,12 +480,14 @@ class NodeInterface:
         remote: bool,
         net_index: int,
         data: bytes,
+        force_segmented: bool = False,
     ) -> None:
         await self._interface.call_dev_key_send(
             element_path,
             destination,
             remote,
             net_index,
+            dict(ForceSegmented=Variant("b", force_segmented)),
             data,
             flags=MessageFlag.NO_REPLY_EXPECTED,
         )
@@ -508,13 +516,20 @@ class NodeInterface:
             element_path, destination, app_index, net_index, update
         )
 
-    async def publish(self, element_path: str, model: int, data: bytes) -> None:
-        await self._interface.call_publish(element_path, model, data)
+    async def publish(
+        self,
+        element_path: str,
+        model: int,
+        data: bytes,
+        force_segmented: bool = False,
+        vendor: Optional[int] = None,
+    ) -> None:
+        options = dict(ForceSegmented=Variant("b", force_segmented))
 
-    async def vendor_publish(
-        self, element_path: str, vendor: int, model_id: int, data: bytes
-    ):
-        await self._interface.call_vendor_publish(element_path, vendor, model_id, data)
+        if vendor:
+            options["Vendor"] = Variant("q", vendor)
+
+        await self._interface.call_publish(element_path, model, options, data)
 
     async def update_sequence_number(self, seq_nr: int) -> int:
         updated_seq_nr = await self._interface.call_update_sequence_number(seq_nr)
