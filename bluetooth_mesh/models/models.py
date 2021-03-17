@@ -1481,6 +1481,41 @@ class LightLightnessClient(Model):
             request, retransmissions=retransmissions, send_interval=send_interval
         )
 
+    async def set_lightness_range(
+            self,
+            destination: int,
+            app_index: int,
+            min_lightness: int,
+            max_lightness: int,
+            *,
+            send_interval: float = 0.1,
+            timeout: Optional[float] = None,
+    ) -> Optional[Any]:
+        request = partial(
+            self.send_app,
+            destination=destination,
+            app_index=app_index,
+            opcode=LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET,
+            params=dict(range_min=min_lightness, range_max=max_lightness, tid=self.tid()),
+        )
+
+        status = self.expect_app(
+            source=destination,
+            app_index=0,
+            destination=None,
+            opcode=LightLightnessOpcode.LIGHTNESS_RANGE_STATUS,
+            params=dict(),
+        )
+
+        result = await self.query(
+            request,
+            status,
+            send_interval=send_interval,
+            timeout=timeout or 2.0,
+        )
+
+        return result["params"]
+
     async def get_lightness_range(
         self,
         nodes: Sequence[int],
