@@ -934,12 +934,13 @@ class LightRangeCommand(ModelGetCommandMixin, NodeSelectionCommandMixin, Command
         Usage:
             %(cmd)s <uuid>...
             %(cmd)s -g <groups>...
-            %(cmd)s -m <max> <uuid>...
+            %(cmd)s [-a] -m <max> <uuid>...
             %(cmd)s -m <max> -g <groups>...
 
         Options:
             -m --max=MAX Max lightness range
             -g --groups
+            -a --ack
         """
     ELEMENT = 0
     CMD = "light_range"
@@ -958,15 +959,32 @@ class LightRangeCommand(ModelGetCommandMixin, NodeSelectionCommandMixin, Command
 
         model: LightLightnessClient = self.get_model(application)
 
-        await asyncio.gather(
-            model.set_lightness_range_unack(
-                app_index=0,
-                destination=address,
-                min_lightness=min_lightness,
-                max_lightness=max_lightness
+        addresses = self.get_addresses(application, arguments)
+        if not arguments["--ack"]:
+            await asyncio.gather(
+                model.set_lightness_range_unack(
+                    app_index=0,
+                    destination=address,
+                    min_lightness=min_lightness,
+                    max_lightness=max_lightness
+                )
+                for address in addresses
             )
-            for address in self.get_addresses(application, arguments)
-        )
+        else:
+            for address in addresses:
+                try:
+                    result = await model.set_lightness_range(
+                        app_index=0,
+                        destination=address,
+                        min_lightness=min_lightness,
+                        max_lightness=max_lightness
+                    )
+                except asyncio.TimeoutError:
+                    result = None
+
+                node = application.network.get_node(address=address)
+                param = self.format(result) if result is not None else None
+                print("{}: {}".format(node.name, param))
 
     def format(self, data):
         return "min={}, max={}".format(data["range_min"], data["range_max"])
