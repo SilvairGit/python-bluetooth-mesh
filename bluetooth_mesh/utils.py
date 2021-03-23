@@ -22,8 +22,11 @@
 import asyncio
 import itertools
 import logging
-from inspect import isawaitable
-from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar
+from asyncio import Future
+from inspect import isawaitable, iscoroutinefunction, iscoroutine
+from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar, Set, Awaitable
+
+from typing_extensions import Protocol
 
 ParsedMeshMessage = Mapping[str, Any]
 MessageDescription = Mapping[str, Any]
@@ -51,13 +54,26 @@ class ModelOperationError(MeshError):
         return "{}({!r})".format(type(self).__name__, self.status)
 
 
+class ParallelCallback(Protocol):
+    def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[Any]:
+        ...
+
 class Signal:
     def __init__(self):
         self.logger = logging.getLogger(type(self).__name__)
         self.callbacks = set()
+        self.parallel_callbacks: Set[ParallelCallback] = set()
+        self.running_task_handles: Set[Awaitable] = set()
+
+    async def wait_for_running(self):
+        await asyncio.gather(*self.running_task_handles)
 
     def connect(self, callback):
         self.callbacks.add(callback)
+
+    def connect_parallel(self, callback: ParallelCallback) -> None:
+        assert iscoroutine(callback), f"Callback {callback} should be a coroutine function"
+        self.parallel_callbacks.add(callback)
 
     def disconnect(self, callback):
         try:
@@ -66,6 +82,9 @@ class Signal:
             pass
 
     async def emit(self, *args, **kwargs):
+        for callback in self.parallel_callbacks:
+            self.running_task_handles.add(asyncio.create_task(callback(*args, **kwargs)))
+
         for callback in list(self.callbacks):
             try:
                 result = callback(*args, **kwargs)
