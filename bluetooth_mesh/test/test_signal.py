@@ -19,6 +19,10 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
+from asyncio import AbstractEventLoop, Task, wait_for
+from functools import partial, wraps
+from typing import Any, Optional, Callable, Awaitable
+
 import pytest
 from asynctest import CoroutineMock, MagicMock, call
 
@@ -93,8 +97,33 @@ async def test_signal_connect_parallel_should_call_all_callbacks():
         assert cb.await_args_list == [call("test msg")]
 
 
-def test_signal_connect_parallel_should_throw_when_sync_callback_used():
-    sig = Signal()
+def parallel_callback(event_loop: AbstractEventLoop, coro):
+    handle: Optional[Task] = None
 
-    with pytest.raises(TypeError, match="should be a coroutine function"):
-        sig.connect_parallel(MagicMock())
+    @wraps(coro)
+    async def exec_as_task(*args: Any, **kwargs: Any) -> Any:
+        nonlocal handle
+        if handle:
+            handle.cancel()
+            await handle
+
+        handle = event_loop.create_task(coro(*args, **kwargs))
+
+    return exec_as_task
+
+
+@pytest.mark.asyncio
+async def test_parallel_callback(event_loop: AbstractEventLoop):
+    sig = Signal()
+    decorator = partial(parallel_callback, event_loop)
+    status = event_loop.create_future()
+
+    @decorator
+    async def set_code(code):
+        status.set_result(code)
+
+    sig.connect(set_code)
+    await sig.emit("ok!")
+
+    result = await wait_for(status, timeout=1)
+    assert result == "ok!"

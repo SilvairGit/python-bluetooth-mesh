@@ -58,6 +58,7 @@ class ParallelCallback(Protocol):
     def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[Any]:
         ...
 
+
 class Signal:
     def __init__(self):
         self.logger = logging.getLogger(type(self).__name__)
