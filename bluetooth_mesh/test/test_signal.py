@@ -19,8 +19,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
+
 import pytest
-from asynctest import CoroutineMock
+from asynctest import CoroutineMock, MagicMock, call
 
 from bluetooth_mesh.utils import Signal
 
@@ -69,24 +70,10 @@ async def test_signal_cb_exception():
 
 
 @pytest.mark.asyncio
-async def test_signal_sync_async_cb():
-    class Mock:
-        def __init__(self):
-            self.async_ret = None
-            self.sync_ret = None
-
-        async def async_cb(self, *args, **kwargs):
-            self.async_ret = args
-
-        def sync_cb(self, *args, **kwargs):
-            self.sync_ret = args
-
-    mocker = Mock()
-
+async def test_signal_sync_cb():
     ts = Signal()
-    ts.connect(mocker.async_cb)
-    ts.connect(mocker.sync_cb)
+    cb = MagicMock()
+    ts.connect(cb)
 
     await ts.emit("test msg")
-    assert mocker.async_ret == ("test msg",)
-    assert mocker.sync_ret == ("test msg",)
+    assert cb.call_args_list == [call("test msg")]
