@@ -22,8 +22,14 @@
 import asyncio
 import itertools
 import logging
+from asyncio.tasks import Task
+from concurrent.futures._base import CancelledError
+from contextlib import suppress
+from functools import wraps
 from inspect import isawaitable
-from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar
+from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar, Awaitable, Dict, Tuple
+
+from typing_extensions import Protocol
 
 ParsedMeshMessage = Mapping[str, Any]
 MessageDescription = Mapping[str, Any]
@@ -141,3 +147,66 @@ def construct_match(received, expected):
         return lhs == rhs
 
     return match(received, expected)
+
+
+class AnyCoroutine(Protocol):
+    def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[Any]:
+        ...
+
+
+class Respawn(Protocol):
+    def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[Task]:
+        ...
+
+
+class TaskGroupKeyFunction(Protocol):
+    def __call__(self, *args: Tuple[Any], **kwargs: Mapping[str, Any]) -> Hashable:
+        ...
+
+
+def tasklet(coro: AnyCoroutine) -> Respawn:
+    """
+    Use case: you need to perform long-running background operations (tasks) that are spawned at random,
+    and additionally, you want only one such operation running at a time for any given task group. If a new task is
+    scheduled in a group, the previous, running one, is cancelled.
+
+    To group tasks, a user-supplied `group_by` function is used. If set to None, all tasks are deemed to be in the same
+    group.
+
+    Example:
+        @tasklet
+        async def set_level(addr, level):
+            result = await send_msg(addr, f"LEVEL={level}")
+            while result != 1:
+                await asyncio.sleep(60)
+                result = await send_msg(addr, f"LEVEL={level}")
+
+        set_level.group_by = lambda addr, level: addr
+
+        levels = Signal()
+        levels.connect(set_level)
+
+        ...
+
+        await levels.emit(0xDEAD, 50)   #  Schedules `set_level` coroutine (group = 0xDEAD)
+        await levels.emit(0xBEEF, 50)   #  Schedules another `set_level` coroutine (group = 0xBEEF)
+
+        await levels.emit(0xDEAD, 100)  #  Cancels running task in group 0xDEAD and schedules another `set_level`
+                                        #  coroutine (group = 0xDEAD). Task scheduled in previous line keeps running.
+
+    """
+    handles: Dict[Hashable, Task] = dict()
+
+    @wraps(coro)
+    async def respawn(*args: Any, **kwargs: Any) -> Task:
+        key = respawn.group_by(*args, **kwargs)
+        with suppress(KeyError, CancelledError):
+            handle = handles.pop(key)
+            handle.cancel()
+            await handle
+
+        return handles.setdefault(key, respawn.loop.create_task(coro(*args, **kwargs)))
+
+    respawn.group_by = lambda *args, **kwargs: 1  # All tasks belong to one group by default
+    respawn.loop = asyncio.get_event_loop()
+    return respawn
