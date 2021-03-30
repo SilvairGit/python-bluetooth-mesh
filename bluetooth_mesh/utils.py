@@ -31,6 +31,12 @@ from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar
 
 from typing_extensions import Protocol
 
+try:
+    from asyncio import create_task
+except ImportError:
+    from asyncio import ensure_future
+    create_task = ensure_future
+
 ParsedMeshMessage = Mapping[str, Any]
 MessageDescription = Mapping[str, Any]
 ProgressCallback = Callable[[Hashable, Any, Mapping, Mapping], None]
@@ -205,8 +211,7 @@ def tasklet(coro: AnyCoroutine) -> Respawn:
             handle.cancel()
             await handle
 
-        return handles.setdefault(key, respawn.loop.create_task(coro(*args, **kwargs)))
+        return handles.setdefault(key, create_task(coro(*args, **kwargs)))
 
     respawn.group_by = lambda *args, **kwargs: 1  # All tasks belong to one group by default
-    respawn.loop = asyncio.get_event_loop()
     return respawn
