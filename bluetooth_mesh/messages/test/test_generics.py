@@ -67,12 +67,12 @@ valid = [
     # fmt: off
     pytest.param(
         b'\x82\x01',
-        GenericOnOffOpcode.ONOFF_GET,
+        GenericOnOffOpcode.GENERIC_ONOFF_GET,
         dict(),
         id="ONOFF_GET"),
     pytest.param(
         b'\x82\x02\x01\x22',
-        GenericOnOffOpcode.ONOFF_SET,
+        GenericOnOffOpcode.GENERIC_ONOFF_SET,
         dict(
             onoff=1,
             tid=34
@@ -80,7 +80,7 @@ valid = [
         id="ONOFF_SET"),
     pytest.param(
         b'\x82\x02\x01\x22',
-        GenericOnOffOpcode.ONOFF_SET,
+        GenericOnOffOpcode.GENERIC_ONOFF_SET,
         dict(
             onoff=1,
             tid=34,
@@ -90,7 +90,7 @@ valid = [
         id="ONOFF_SET_invalid"),
     pytest.param(
         b'\x82\x02\x00\x31\x32\x3c',
-        GenericOnOffOpcode.ONOFF_SET,
+        GenericOnOffOpcode.GENERIC_ONOFF_SET,
         dict(
             onoff=0,
             tid=49,
@@ -100,7 +100,7 @@ valid = [
         id="ONOFF_SET_with_optional"),
     pytest.param(
         b'\x82\x02\x00\x31\xf2\x3c',
-        GenericOnOffOpcode.ONOFF_SET,
+        GenericOnOffOpcode.GENERIC_ONOFF_SET,
         dict(
             onoff=0,
             tid=49,
@@ -110,7 +110,7 @@ valid = [
         id="ONOFF_SET_large_transition_time"),
     pytest.param(
         b'\x82\x04\x00',
-        GenericOnOffOpcode.ONOFF_STATUS,
+        GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
         dict(
             present_onoff=0,
             target_onoff=None,
@@ -120,7 +120,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x04\x00\x01\x4a',
-        GenericOnOffOpcode.ONOFF_STATUS,
+        GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
         dict(
             present_onoff=0,
             target_onoff=1,
@@ -130,7 +130,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x04\x00\x01\xff',
-        GenericOnOffOpcode.ONOFF_STATUS,
+        GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
         dict(
             present_onoff=0,
             target_onoff=1,

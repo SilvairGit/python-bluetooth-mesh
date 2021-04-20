@@ -34,7 +34,7 @@ from bluetooth_mesh.test.fixtures import *  # pylint: disable=W0614, W0401
 
 class MockModel(MagicMock):
     MODEL_ID = (None, 0x1001)
-    OPCODES = {GenericOnOffOpcode.ONOFF_STATUS}
+    OPCODES = {GenericOnOffOpcode.GENERIC_ONOFF_STATUS}
     INSTANCES = []
 
     def __init__(self, *args, **kwargs):
@@ -46,7 +46,7 @@ class MockModel(MagicMock):
 
 class MockVenforModel(MagicMock):
     MODEL_ID = (0x6666, 0x9999)
-    OPCODES = {GenericOnOffOpcode.ONOFF_SET}
+    OPCODES = {GenericOnOffOpcode.GENERIC_ONOFF_SET}
     INSTANCES = []
 
     def __init__(self, *args, **kwargs):

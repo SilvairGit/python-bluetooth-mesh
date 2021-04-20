@@ -34,7 +34,7 @@ valid = [
                 "company_id": 0x0136,
                 "fault_array": [0x03, 0x04, 0x05]
             },
-            "current_status": {
+            "health_current_status": {
                 "test_id": 0,
                 "company_id": 0x0136,
                 "fault_array": [0x03, 0x04, 0x05]
@@ -50,7 +50,7 @@ valid = [
                 "test_id": 1,
                 "company_id": 0x0136
             },
-            "fault_test": {
+            "health_fault_test": {
                 "test_id": 1,
                 "company_id": 0x0136
             }

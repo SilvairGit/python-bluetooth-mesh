@@ -33,30 +33,30 @@ from bluetooth_mesh.messages.util import EnumAdapter, NamedSelect, Opcode, Switc
 
 
 class LightLightnessOpcode(IntEnum):
-    LIGHTNESS_GET = 0x824B
-    LIGHTNESS_SET = 0x824C
-    LIGHTNESS_SET_UNACKNOWLEDGED = 0x824D
-    LIGHTNESS_STATUS = 0x824E
-    LIGHTNESS_LINEAR_GET = 0x824F
-    LIGHTNESS_LINEAR_SET = 0x8250
-    LIGHTNESS_LINEAR_SET_UNACKNOWLEDGED = 0x8251
-    LIGHTNESS_LINEAR_STATUS = 0x8252
-    LIGHTNESS_LAST_GET = 0x8253
-    LIGHTNESS_LAST_STATUS = 0x8254
-    LIGHTNESS_DEFAULT_GET = 0x8255
-    LIGHTNESS_DEFAULT_STATUS = 0x8256
-    LIGHTNESS_RANGE_GET = 0x8257
-    LIGHTNESS_RANGE_STATUS = 0x8258
+    LIGHT_LIGHTNESS_GET = 0x824B
+    LIGHT_LIGHTNESS_SET = 0x824C
+    LIGHT_LIGHTNESS_SET_UNACKNOWLEDGED = 0x824D
+    LIGHT_LIGHTNESS_STATUS = 0x824E
+    LIGHT_LIGHTNESS_LINEAR_GET = 0x824F
+    LIGHT_LIGHTNESS_LINEAR_SET = 0x8250
+    LIGHT_LIGHTNESS_LINEAR_SET_UNACKNOWLEDGED = 0x8251
+    LIGHT_LIGHTNESS_LINEAR_STATUS = 0x8252
+    LIGHT_LIGHTNESS_LAST_GET = 0x8253
+    LIGHT_LIGHTNESS_LAST_STATUS = 0x8254
+    LIGHT_LIGHTNESS_DEFAULT_GET = 0x8255
+    LIGHT_LIGHTNESS_DEFAULT_STATUS = 0x8256
+    LIGHT_LIGHTNESS_RANGE_GET = 0x8257
+    LIGHT_LIGHTNESS_RANGE_STATUS = 0x8258
 
     def __repr__(self):
         return str(self.value)
 
 
 class LightLightnessSetupOpcode(IntEnum):
-    LIGHTNESS_DEFAULT_SET = 0x8259
-    LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED = 0x825A
-    LIGHTNESS_RANGE_SET = 0x825B
-    LIGHTNESS_RANGE_SET_UNACKNOWLEDGED = 0x825C
+    LIGHT_LIGHTNESS_SETUP_DEFAULT_SET = 0x8259
+    LIGHT_LIGHTNESS_SETUP_DEFAULT_SET_UNACKNOWLEDGED = 0x825A
+    LIGHT_LIGHTNESS_SETUP_RANGE_SET = 0x825B
+    LIGHT_LIGHTNESS_SETUP_RANGE_SET_UNACKNOWLEDGED = 0x825C
 
     def __repr__(self):
         return str(self.value)
@@ -114,20 +114,20 @@ LightLightnessMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            LightLightnessOpcode.LIGHTNESS_GET: LightLightnessGet,
-            LightLightnessOpcode.LIGHTNESS_SET: LightLightnessSet,
-            LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED: LightLightnessSet,
-            LightLightnessOpcode.LIGHTNESS_STATUS: LightLightnessStatus,
-            LightLightnessOpcode.LIGHTNESS_LINEAR_GET: LightLightnessGet,
-            LightLightnessOpcode.LIGHTNESS_LINEAR_SET: LightLightnessSet,
-            LightLightnessOpcode.LIGHTNESS_LINEAR_SET_UNACKNOWLEDGED: LightLightnessSet,
-            LightLightnessOpcode.LIGHTNESS_LINEAR_STATUS: LightLightnessStatus,
-            LightLightnessOpcode.LIGHTNESS_LAST_GET: LightLightnessGet,
-            LightLightnessOpcode.LIGHTNESS_LAST_STATUS: LightLightnessDefault,
-            LightLightnessOpcode.LIGHTNESS_DEFAULT_GET: LightLightnessGet,
-            LightLightnessOpcode.LIGHTNESS_DEFAULT_STATUS: LightLightnessDefault,
-            LightLightnessOpcode.LIGHTNESS_RANGE_GET: LightLightnessGet,
-            LightLightnessOpcode.LIGHTNESS_RANGE_STATUS: LightLightnessRangeStatus,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_GET: LightLightnessGet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_SET: LightLightnessSet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_SET_UNACKNOWLEDGED: LightLightnessSet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_STATUS: LightLightnessStatus,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_LINEAR_GET: LightLightnessGet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_LINEAR_SET: LightLightnessSet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_LINEAR_SET_UNACKNOWLEDGED: LightLightnessSet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_LINEAR_STATUS: LightLightnessStatus,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_LAST_GET: LightLightnessGet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_LAST_STATUS: LightLightnessDefault,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_DEFAULT_GET: LightLightnessGet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_DEFAULT_STATUS: LightLightnessDefault,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_RANGE_GET: LightLightnessGet,
+    LightLightnessOpcode.LIGHT_LIGHTNESS_RANGE_STATUS: LightLightnessRangeStatus,
         }
     )
 )
@@ -137,10 +137,10 @@ LightLightnessSetupMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET: LightLightnessDefault,
-            LightLightnessSetupOpcode.LIGHTNESS_DEFAULT_SET_UNACKNOWLEDGED: LightLightnessDefault,
-            LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET: LightLightnessRange,
-            LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED: LightLightnessRange,
+            LightLightnessSetupOpcode.LIGHT_LIGHTNESS_SETUP_DEFAULT_SET: LightLightnessDefault,
+            LightLightnessSetupOpcode.LIGHT_LIGHTNESS_SETUP_DEFAULT_SET_UNACKNOWLEDGED: LightLightnessDefault,
+            LightLightnessSetupOpcode.LIGHT_LIGHTNESS_SETUP_RANGE_SET: LightLightnessRange,
+            LightLightnessSetupOpcode.LIGHT_LIGHTNESS_SETUP_RANGE_SET_UNACKNOWLEDGED: LightLightnessRange,
         }
     )
 )

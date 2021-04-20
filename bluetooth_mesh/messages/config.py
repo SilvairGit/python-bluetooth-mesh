@@ -1040,81 +1040,81 @@ ConfigNetworkTransmitGet = Struct()
 ConfigNetworkTransmitSet = NetworkRetransmit
 
 ConfigNetworkTransmitStatus = ConfigNetworkTransmitSet
+
+
 # fmt: on
-
-
 class ConfigOpcode(enum.IntEnum):
-    APPKEY_ADD = 0x00
-    APPKEY_DELETE = 0x8000
-    APPKEY_GET = 0x8001
-    APPKEY_LIST = 0x8002
-    APPKEY_STATUS = 0x8003
-    APPKEY_UPDATE = 0x01
-    BEACON_GET = 0x8009
-    BEACON_SET = 0x800A
-    BEACON_STATUS = 0x800B
-    COMPOSITION_DATA_GET = 0x8008
-    COMPOSITION_DATA_STATUS = 0x02
-    DEFAULT_TTL_GET = 0x800C
-    DEFAULT_TTL_SET = 0x800D
-    DEFAULT_TTL_STATUS = 0x800E
-    FRIEND_GET = 0x800F
-    FRIEND_SET = 0x8010
-    FRIEND_STATUS = 0x8011
-    GATT_PROXY_GET = 0x8012
-    GATT_PROXY_SET = 0x8013
-    GATT_PROXY_STATUS = 0x8014
-    HEARBEAT_PUBLICATION_GET = 0x8038
-    HEARBEAT_PUBLICATION_SET = 0x8039
-    HEARBEAT_PUBLICATION_STATUS = 0x06
-    HEARBEAT_SUBSCRIPTION_GET = 0x803A
-    HEARBEAT_SUBSCRIPTION_SET = 0x803B
-    HEARBEAT_SUBSCRIPTION_STATUS = 0x803C
-    KEY_REFRESH_PHASE_GET = 0x8015
-    KEY_REFRESH_PHASE_SET = 0x8016
-    KEY_REFRESH_PHASE_STATUS = 0x8017
-    LOW_POWER_NODE_POLLTIMEOUT_GET = 0x802D
-    LOW_POWER_NODE_POLLTIMEOUT_STATUS = 0x802E
-    MODEL_APP_BIND = 0x803D
-    MODEL_APP_STATUS = 0x803E
-    MODEL_APP_UNBIND = 0x803F
-    MODEL_PUBLICATION_GET = 0x8018
-    MODEL_PUBLICATION_SET = 0x03
-    MODEL_PUBLICATION_STATUS = 0x8019
-    MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET = 0x801A
-    MODEL_SUBSCRIPTION_ADD = 0x801B
-    MODEL_SUBSCRIPTION_DELETE = 0x801C
-    MODEL_SUBSCRIPTION_DELETE_ALL = 0x801D
-    MODEL_SUBSCRIPTION_OVERWRITE = 0x801E
-    MODEL_SUBSCRIPTION_STATUS = 0x801F
-    MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD = 0x8020
-    MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE = 0x8021
-    MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE = 0x8022
-    NETKEY_ADD = 0x8040
-    NETKEY_DELETE = 0x8041
-    NETKEY_GET = 0x8042
-    NETKEY_LIST = 0x8043
-    NETKEY_STATUS = 0x8044
-    NETKEY_UPDATE = 0x8045
-    NETWORK_TRANSMIT_GET = 0x8023
-    NETWORK_TRANSMIT_SET = 0x8024
-    NETWORK_TRANSMIT_STATUS = 0x8025
-    NODE_IDENTITY_GET = 0x8046
-    NODE_IDENTITY_SET = 0x8047
-    NODE_IDENTITY_STATUS = 0x8048
-    NODE_RESET = 0x8049
-    NODE_RESET_STATUS = 0x804A
-    RELAY_GET = 0x8026
-    RELAY_SET = 0x8027
-    RELAY_STATUS = 0x8028
-    SIG_MODEL_APP_GET = 0x804B
-    SIG_MODEL_APP_LIST = 0x804C
-    SIG_MODEL_SUBSCRIPTION_GET = 0x8029
-    SIG_MODEL_SUBSCRIPTION_LIST = 0x802A
-    VENDOR_MODEL_APP_GET = 0x804D
-    VENDOR_MODEL_APP_LIST = 0x804E
-    VENDOR_MODEL_SUBSCRIPTION_GET = 0x802B
-    VENDOR_MODEL_SUBSCRIPTION_LIST = 0x802C
+    CONFIG_APPKEY_ADD = 0x00
+    CONFIG_APPKEY_DELETE = 0x8000
+    CONFIG_APPKEY_GET = 0x8001
+    CONFIG_APPKEY_LIST = 0x8002
+    CONFIG_APPKEY_STATUS = 0x8003
+    CONFIG_APPKEY_UPDATE = 0x01
+    CONFIG_BEACON_GET = 0x8009
+    CONFIG_BEACON_SET = 0x800A
+    CONFIG_BEACON_STATUS = 0x800B
+    CONFIG_COMPOSITION_DATA_GET = 0x8008
+    CONFIG_COMPOSITION_DATA_STATUS = 0x02
+    CONFIG_DEFAULT_TTL_GET = 0x800C
+    CONFIG_DEFAULT_TTL_SET = 0x800D
+    CONFIG_DEFAULT_TTL_STATUS = 0x800E
+    CONFIG_FRIEND_GET = 0x800F
+    CONFIG_FRIEND_SET = 0x8010
+    CONFIG_FRIEND_STATUS = 0x8011
+    CONFIG_GATT_PROXY_GET = 0x8012
+    CONFIG_GATT_PROXY_SET = 0x8013
+    CONFIG_GATT_PROXY_STATUS = 0x8014
+    CONFIG_HEARBEAT_PUBLICATION_GET = 0x8038
+    CONFIG_HEARBEAT_PUBLICATION_SET = 0x8039
+    CONFIG_HEARBEAT_PUBLICATION_STATUS = 0x06
+    CONFIG_HEARBEAT_SUBSCRIPTION_GET = 0x803A
+    CONFIG_HEARBEAT_SUBSCRIPTION_SET = 0x803B
+    CONFIG_HEARBEAT_SUBSCRIPTION_STATUS = 0x803C
+    CONFIG_KEY_REFRESH_PHASE_GET = 0x8015
+    CONFIG_KEY_REFRESH_PHASE_SET = 0x8016
+    CONFIG_KEY_REFRESH_PHASE_STATUS = 0x8017
+    CONFIG_LOW_POWER_NODE_POLLTIMEOUT_GET = 0x802D
+    CONFIG_LOW_POWER_NODE_POLLTIMEOUT_STATUS = 0x802E
+    CONFIG_MODEL_APP_BIND = 0x803D
+    CONFIG_MODEL_APP_STATUS = 0x803E
+    CONFIG_MODEL_APP_UNBIND = 0x803F
+    CONFIG_MODEL_PUBLICATION_GET = 0x8018
+    CONFIG_MODEL_PUBLICATION_SET = 0x03
+    CONFIG_MODEL_PUBLICATION_STATUS = 0x8019
+    CONFIG_MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET = 0x801A
+    CONFIG_MODEL_SUBSCRIPTION_ADD = 0x801B
+    CONFIG_MODEL_SUBSCRIPTION_DELETE = 0x801C
+    CONFIG_MODEL_SUBSCRIPTION_DELETE_ALL = 0x801D
+    CONFIG_MODEL_SUBSCRIPTION_OVERWRITE = 0x801E
+    CONFIG_MODEL_SUBSCRIPTION_STATUS = 0x801F
+    CONFIG_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD = 0x8020
+    CONFIG_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE = 0x8021
+    CONFIG_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE = 0x8022
+    CONFIG_NETKEY_ADD = 0x8040
+    CONFIG_NETKEY_DELETE = 0x8041
+    CONFIG_NETKEY_GET = 0x8042
+    CONFIG_NETKEY_LIST = 0x8043
+    CONFIG_NETKEY_STATUS = 0x8044
+    CONFIG_NETKEY_UPDATE = 0x8045
+    CONFIG_NETWORK_TRANSMIT_GET = 0x8023
+    CONFIG_NETWORK_TRANSMIT_SET = 0x8024
+    CONFIG_NETWORK_TRANSMIT_STATUS = 0x8025
+    CONFIG_NODE_IDENTITY_GET = 0x8046
+    CONFIG_NODE_IDENTITY_SET = 0x8047
+    CONFIG_NODE_IDENTITY_STATUS = 0x8048
+    CONFIG_NODE_RESET = 0x8049
+    CONFIG_NODE_RESET_STATUS = 0x804A
+    CONFIG_RELAY_GET = 0x8026
+    CONFIG_RELAY_SET = 0x8027
+    CONFIG_RELAY_STATUS = 0x8028
+    CONFIG_SIG_MODEL_APP_GET = 0x804B
+    CONFIG_SIG_MODEL_APP_LIST = 0x804C
+    CONFIG_SIG_MODEL_SUBSCRIPTION_GET = 0x8029
+    CONFIG_SIG_MODEL_SUBSCRIPTION_LIST = 0x802A
+    CONFIG_VENDOR_MODEL_APP_GET = 0x804D
+    CONFIG_VENDOR_MODEL_APP_LIST = 0x804E
+    CONFIG_VENDOR_MODEL_SUBSCRIPTION_GET = 0x802B
+    CONFIG_VENDOR_MODEL_SUBSCRIPTION_LIST = 0x802C
 
 
 # fmt: off
@@ -1123,77 +1123,77 @@ ConfigMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            ConfigOpcode.APPKEY_ADD: ConfigAppKeyAdd,
-            ConfigOpcode.APPKEY_DELETE: ConfigAppKeyDelete,
-            ConfigOpcode.APPKEY_GET: ConfigAppKeyGet,
-            ConfigOpcode.APPKEY_LIST: ConfigAppKeyList,
-            ConfigOpcode.APPKEY_STATUS: ConfigAppKeyStatus,
-            ConfigOpcode.APPKEY_UPDATE: ConfigAppKeyUpdate,
-            ConfigOpcode.BEACON_GET: ConfigBeaconGet,
-            ConfigOpcode.BEACON_SET: ConfigBeaconSet,
-            ConfigOpcode.BEACON_STATUS: ConfigBeaconStatus,
-            ConfigOpcode.COMPOSITION_DATA_GET: ConfigCompositionDataGet,
-            ConfigOpcode.COMPOSITION_DATA_STATUS: ConfigCompositionDataStatus,
-            ConfigOpcode.DEFAULT_TTL_GET: ConfigDefaultTTLGet,
-            ConfigOpcode.DEFAULT_TTL_SET: ConfigDefaultTTLSet,
-            ConfigOpcode.DEFAULT_TTL_STATUS: ConfigDefaultTTLStatus,
-            ConfigOpcode.FRIEND_GET: ConfigFriendGet,
-            ConfigOpcode.FRIEND_SET: ConfigFriendSet,
-            ConfigOpcode.FRIEND_STATUS: ConfigFriendStatus,
-            ConfigOpcode.GATT_PROXY_GET: ConfigGATTProxyGet,
-            ConfigOpcode.GATT_PROXY_SET: ConfigGATTProxySet,
-            ConfigOpcode.GATT_PROXY_STATUS: ConfigGATTProxyStatus,
-            ConfigOpcode.HEARBEAT_PUBLICATION_GET: ConfigHeartbeatPublicationGet,
-            ConfigOpcode.HEARBEAT_PUBLICATION_SET: ConfigHeartbeatPublicationSet,
-            ConfigOpcode.HEARBEAT_PUBLICATION_STATUS: ConfigHeartbeatPublicationStatus,
-            ConfigOpcode.HEARBEAT_SUBSCRIPTION_GET: ConfigHeartbeatSubscriptionGet,
-            ConfigOpcode.HEARBEAT_SUBSCRIPTION_SET: ConfigHeartbeatSubscriptionSet,
-            ConfigOpcode.HEARBEAT_SUBSCRIPTION_STATUS: ConfigHeartbeatSubscriptionStatus,
-            ConfigOpcode.KEY_REFRESH_PHASE_GET: ConfigKeyRefreshPhaseGet,
-            ConfigOpcode.KEY_REFRESH_PHASE_SET: ConfigKeyRefreshPhaseSet,
-            ConfigOpcode.KEY_REFRESH_PHASE_STATUS: ConfigKeyRefreshPhaseStatus,
-            ConfigOpcode.LOW_POWER_NODE_POLLTIMEOUT_GET: ConfigLowPowerNodePollTimeoutGet,
-            ConfigOpcode.LOW_POWER_NODE_POLLTIMEOUT_STATUS: ConfigLowPowerNodePollTimeoutStatus,
-            ConfigOpcode.MODEL_APP_BIND: ConfigModelAppBind,
-            ConfigOpcode.MODEL_APP_STATUS: ConfigModelAppStatus,
-            ConfigOpcode.MODEL_APP_UNBIND: ConfigModelAppUnbind,
-            ConfigOpcode.MODEL_PUBLICATION_GET: ConfigModelPublicationGet,
-            ConfigOpcode.MODEL_PUBLICATION_SET: ConfigModelPublicationSet,
-            ConfigOpcode.MODEL_PUBLICATION_STATUS: ConfigModelPublicationStatus,
-            ConfigOpcode.MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET: ConfigModelPublicationVASet,
-            ConfigOpcode.MODEL_SUBSCRIPTION_ADD: ConfigModelSubscriptionAdd,
-            ConfigOpcode.MODEL_SUBSCRIPTION_DELETE: ConfigModelSubscriptionDelete,
-            ConfigOpcode.MODEL_SUBSCRIPTION_DELETE_ALL: ConfigModelSubscriptionDeleteAll,
-            ConfigOpcode.MODEL_SUBSCRIPTION_OVERWRITE: ConfigModelSubscriptionOverwrite,
-            ConfigOpcode.MODEL_SUBSCRIPTION_STATUS: ConfigModelSubscriptionStatus,
-            ConfigOpcode.MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD: ConfigModelSubscriptionVAAdd,
-            ConfigOpcode.MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE: ConfigModelSubscriptionVADelete,
-            ConfigOpcode.MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE: ConfigModelSubscriptionVAOverwrite,
-            ConfigOpcode.NETKEY_ADD: ConfigNetKeyAdd,
-            ConfigOpcode.NETKEY_DELETE: ConfigNetKeyDelete,
-            ConfigOpcode.NETKEY_GET: ConfigNetKeyGet,
-            ConfigOpcode.NETKEY_LIST: ConfigNetKeyList,
-            ConfigOpcode.NETKEY_STATUS: ConfigNetKeyStatus,
-            ConfigOpcode.NETKEY_UPDATE: ConfigNetKeyUpdate,
-            ConfigOpcode.NETWORK_TRANSMIT_GET: ConfigNetworkTransmitGet,
-            ConfigOpcode.NETWORK_TRANSMIT_SET: ConfigNetworkTransmitSet,
-            ConfigOpcode.NETWORK_TRANSMIT_STATUS: ConfigNetworkTransmitStatus,
-            ConfigOpcode.NODE_IDENTITY_GET: ConfigNodeIdentityGet,
-            ConfigOpcode.NODE_IDENTITY_SET: ConfigNodeIdentitySet,
-            ConfigOpcode.NODE_IDENTITY_STATUS: ConfigNodeIdentityStatus,
-            ConfigOpcode.NODE_RESET: ConfigNodeReset,
-            ConfigOpcode.NODE_RESET_STATUS: ConfigNodeResetStatus,
-            ConfigOpcode.RELAY_GET: ConfigRelayGet,
-            ConfigOpcode.RELAY_SET: ConfigRelaySet,
-            ConfigOpcode.RELAY_STATUS: ConfigRelayStatus,
-            ConfigOpcode.SIG_MODEL_APP_GET: ConfigSIGModelAppGet,
-            ConfigOpcode.SIG_MODEL_APP_LIST: ConfigSIGModelAppList,
-            ConfigOpcode.SIG_MODEL_SUBSCRIPTION_GET: ConfigSIGModelSubscriptionGet,
-            ConfigOpcode.SIG_MODEL_SUBSCRIPTION_LIST: ConfigSIGModelSubscriptionList,
-            ConfigOpcode.VENDOR_MODEL_APP_GET: ConfigVendorModelAppGet,
-            ConfigOpcode.VENDOR_MODEL_APP_LIST: ConfigVendorModelAppList,
-            ConfigOpcode.VENDOR_MODEL_SUBSCRIPTION_GET: ConfigVendorModelSubscriptionGet,
-            ConfigOpcode.VENDOR_MODEL_SUBSCRIPTION_LIST: ConfigVendorModelSubscriptionList,
+            ConfigOpcode.CONFIG_APPKEY_ADD: ConfigAppKeyAdd,
+            ConfigOpcode.CONFIG_APPKEY_DELETE: ConfigAppKeyDelete,
+            ConfigOpcode.CONFIG_APPKEY_GET: ConfigAppKeyGet,
+            ConfigOpcode.CONFIG_APPKEY_LIST: ConfigAppKeyList,
+            ConfigOpcode.CONFIG_APPKEY_STATUS: ConfigAppKeyStatus,
+            ConfigOpcode.CONFIG_APPKEY_UPDATE: ConfigAppKeyUpdate,
+            ConfigOpcode.CONFIG_BEACON_GET: ConfigBeaconGet,
+            ConfigOpcode.CONFIG_BEACON_SET: ConfigBeaconSet,
+            ConfigOpcode.CONFIG_BEACON_STATUS: ConfigBeaconStatus,
+            ConfigOpcode.CONFIG_COMPOSITION_DATA_GET: ConfigCompositionDataGet,
+            ConfigOpcode.CONFIG_COMPOSITION_DATA_STATUS: ConfigCompositionDataStatus,
+            ConfigOpcode.CONFIG_DEFAULT_TTL_GET: ConfigDefaultTTLGet,
+            ConfigOpcode.CONFIG_DEFAULT_TTL_SET: ConfigDefaultTTLSet,
+            ConfigOpcode.CONFIG_DEFAULT_TTL_STATUS: ConfigDefaultTTLStatus,
+            ConfigOpcode.CONFIG_FRIEND_GET: ConfigFriendGet,
+            ConfigOpcode.CONFIG_FRIEND_SET: ConfigFriendSet,
+            ConfigOpcode.CONFIG_FRIEND_STATUS: ConfigFriendStatus,
+            ConfigOpcode.CONFIG_GATT_PROXY_GET: ConfigGATTProxyGet,
+            ConfigOpcode.CONFIG_GATT_PROXY_SET: ConfigGATTProxySet,
+            ConfigOpcode.CONFIG_GATT_PROXY_STATUS: ConfigGATTProxyStatus,
+            ConfigOpcode.CONFIG_HEARBEAT_PUBLICATION_GET: ConfigHeartbeatPublicationGet,
+            ConfigOpcode.CONFIG_HEARBEAT_PUBLICATION_SET: ConfigHeartbeatPublicationSet,
+            ConfigOpcode.CONFIG_HEARBEAT_PUBLICATION_STATUS: ConfigHeartbeatPublicationStatus,
+            ConfigOpcode.CONFIG_HEARBEAT_SUBSCRIPTION_GET: ConfigHeartbeatSubscriptionGet,
+            ConfigOpcode.CONFIG_HEARBEAT_SUBSCRIPTION_SET: ConfigHeartbeatSubscriptionSet,
+            ConfigOpcode.CONFIG_HEARBEAT_SUBSCRIPTION_STATUS: ConfigHeartbeatSubscriptionStatus,
+            ConfigOpcode.CONFIG_KEY_REFRESH_PHASE_GET: ConfigKeyRefreshPhaseGet,
+            ConfigOpcode.CONFIG_KEY_REFRESH_PHASE_SET: ConfigKeyRefreshPhaseSet,
+            ConfigOpcode.CONFIG_KEY_REFRESH_PHASE_STATUS: ConfigKeyRefreshPhaseStatus,
+            ConfigOpcode.CONFIG_LOW_POWER_NODE_POLLTIMEOUT_GET: ConfigLowPowerNodePollTimeoutGet,
+            ConfigOpcode.CONFIG_LOW_POWER_NODE_POLLTIMEOUT_STATUS: ConfigLowPowerNodePollTimeoutStatus,
+            ConfigOpcode.CONFIG_MODEL_APP_BIND: ConfigModelAppBind,
+            ConfigOpcode.CONFIG_MODEL_APP_STATUS: ConfigModelAppStatus,
+            ConfigOpcode.CONFIG_MODEL_APP_UNBIND: ConfigModelAppUnbind,
+            ConfigOpcode.CONFIG_MODEL_PUBLICATION_GET: ConfigModelPublicationGet,
+            ConfigOpcode.CONFIG_MODEL_PUBLICATION_SET: ConfigModelPublicationSet,
+            ConfigOpcode.CONFIG_MODEL_PUBLICATION_STATUS: ConfigModelPublicationStatus,
+            ConfigOpcode.CONFIG_MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET: ConfigModelPublicationVASet,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_ADD: ConfigModelSubscriptionAdd,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_DELETE: ConfigModelSubscriptionDelete,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_DELETE_ALL: ConfigModelSubscriptionDeleteAll,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_OVERWRITE: ConfigModelSubscriptionOverwrite,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_STATUS: ConfigModelSubscriptionStatus,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD: ConfigModelSubscriptionVAAdd,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE: ConfigModelSubscriptionVADelete,
+            ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE: ConfigModelSubscriptionVAOverwrite,
+            ConfigOpcode.CONFIG_NETKEY_ADD: ConfigNetKeyAdd,
+            ConfigOpcode.CONFIG_NETKEY_DELETE: ConfigNetKeyDelete,
+            ConfigOpcode.CONFIG_NETKEY_GET: ConfigNetKeyGet,
+            ConfigOpcode.CONFIG_NETKEY_LIST: ConfigNetKeyList,
+            ConfigOpcode.CONFIG_NETKEY_STATUS: ConfigNetKeyStatus,
+            ConfigOpcode.CONFIG_NETKEY_UPDATE: ConfigNetKeyUpdate,
+            ConfigOpcode.CONFIG_NETWORK_TRANSMIT_GET: ConfigNetworkTransmitGet,
+            ConfigOpcode.CONFIG_NETWORK_TRANSMIT_SET: ConfigNetworkTransmitSet,
+            ConfigOpcode.CONFIG_NETWORK_TRANSMIT_STATUS: ConfigNetworkTransmitStatus,
+            ConfigOpcode.CONFIG_NODE_IDENTITY_GET: ConfigNodeIdentityGet,
+            ConfigOpcode.CONFIG_NODE_IDENTITY_SET: ConfigNodeIdentitySet,
+            ConfigOpcode.CONFIG_NODE_IDENTITY_STATUS: ConfigNodeIdentityStatus,
+            ConfigOpcode.CONFIG_NODE_RESET: ConfigNodeReset,
+            ConfigOpcode.CONFIG_NODE_RESET_STATUS: ConfigNodeResetStatus,
+            ConfigOpcode.CONFIG_RELAY_GET: ConfigRelayGet,
+            ConfigOpcode.CONFIG_RELAY_SET: ConfigRelaySet,
+            ConfigOpcode.CONFIG_RELAY_STATUS: ConfigRelayStatus,
+            ConfigOpcode.CONFIG_SIG_MODEL_APP_GET: ConfigSIGModelAppGet,
+            ConfigOpcode.CONFIG_SIG_MODEL_APP_LIST: ConfigSIGModelAppList,
+            ConfigOpcode.CONFIG_SIG_MODEL_SUBSCRIPTION_GET: ConfigSIGModelSubscriptionGet,
+            ConfigOpcode.CONFIG_SIG_MODEL_SUBSCRIPTION_LIST: ConfigSIGModelSubscriptionList,
+            ConfigOpcode.CONFIG_VENDOR_MODEL_APP_GET: ConfigVendorModelAppGet,
+            ConfigOpcode.CONFIG_VENDOR_MODEL_APP_LIST: ConfigVendorModelAppList,
+            ConfigOpcode.CONFIG_VENDOR_MODEL_SUBSCRIPTION_GET: ConfigVendorModelSubscriptionGet,
+            ConfigOpcode.CONFIG_VENDOR_MODEL_SUBSCRIPTION_LIST: ConfigVendorModelSubscriptionList,
         }
     )
 )

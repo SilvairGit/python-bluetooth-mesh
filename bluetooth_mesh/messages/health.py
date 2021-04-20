@@ -81,24 +81,25 @@ HealthAttentionGet = Struct()
 HealthAttentionSet = Attention
 
 HealthAttentionStatus = Attention
-# fmt: off
 
+
+# fmt: off
 class HealthOpcode(enum.IntEnum):
-    ATTENTION_GET = 0x8004
-    ATTENTION_SET = 0x8005
-    ATTENTION_SET_UNACKNOWLEDGED = 0x8006
-    ATTENTION_STATUS = 0x8007
-    CURRENT_STATUS = 0x04
-    FAULT_CLEAR = 0x802F
-    FAULT_CLEAR_UNACKNOWLEDGED = 0x8030
-    FAULT_GET = 0x8031
-    FAULT_STATUS = 0x05
-    FAULT_TEST = 0x8032
-    FAULT_TEST_UNACKNOWLEDGED = 0x8033
-    PERIOD_GET = 0x8034
-    PERIOD_SET = 0x8035
-    PERIOD_SET_UNACKNOWLEDGED = 0x8036
-    PERIOD_STATUS = 0x8037
+    HEALTH_ATTENTION_GET = 0x8004
+    HEALTH_ATTENTION_SET = 0x8005
+    HEALTH_ATTENTION_SET_UNACKNOWLEDGED = 0x8006
+    HEALTH_ATTENTION_STATUS = 0x8007
+    HEALTH_CURRENT_STATUS = 0x04
+    HEALTH_FAULT_CLEAR = 0x802F
+    HEALTH_FAULT_CLEAR_UNACKNOWLEDGED = 0x8030
+    HEALTH_FAULT_GET = 0x8031
+    HEALTH_FAULT_STATUS = 0x05
+    HEALTH_FAULT_TEST = 0x8032
+    HEALTH_FAULT_TEST_UNACKNOWLEDGED = 0x8033
+    HEALTH_PERIOD_GET = 0x8034
+    HEALTH_PERIOD_SET = 0x8035
+    HEALTH_PERIOD_SET_UNACKNOWLEDGED = 0x8036
+    HEALTH_PERIOD_STATUS = 0x8037
 
 
 # fmt: off
@@ -107,21 +108,21 @@ HealthMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            HealthOpcode.ATTENTION_GET: HealthAttentionGet,
-            HealthOpcode.ATTENTION_SET: HealthAttentionSet,
-            HealthOpcode.ATTENTION_SET_UNACKNOWLEDGED: HealthAttentionSet,
-            HealthOpcode.ATTENTION_STATUS: HealthAttentionStatus,
-            HealthOpcode.CURRENT_STATUS: HealthCurrentStatus,
-            HealthOpcode.FAULT_CLEAR: HealthFaultClear,
-            HealthOpcode.FAULT_CLEAR_UNACKNOWLEDGED: HealthFaultClear,
-            HealthOpcode.FAULT_GET: HealthFaultGet,
-            HealthOpcode.FAULT_STATUS: HealthCurrentStatus,
-            HealthOpcode.FAULT_TEST: HealthFaultTest,
-            HealthOpcode.FAULT_TEST_UNACKNOWLEDGED: HealthFaultTest,
-            HealthOpcode.PERIOD_GET: HealthPeriodGet,
-            HealthOpcode.PERIOD_SET: HealthPeriodSet,
-            HealthOpcode.PERIOD_SET_UNACKNOWLEDGED: HealthPeriodSet,
-            HealthOpcode.PERIOD_STATUS: HealthPeriodStatus,
+            HealthOpcode.HEALTH_ATTENTION_GET: HealthAttentionGet,
+            HealthOpcode.HEALTH_ATTENTION_SET: HealthAttentionSet,
+            HealthOpcode.HEALTH_ATTENTION_SET_UNACKNOWLEDGED: HealthAttentionSet,
+            HealthOpcode.HEALTH_ATTENTION_STATUS: HealthAttentionStatus,
+            HealthOpcode.HEALTH_CURRENT_STATUS: HealthCurrentStatus,
+            HealthOpcode.HEALTH_FAULT_CLEAR: HealthFaultClear,
+            HealthOpcode.HEALTH_FAULT_CLEAR_UNACKNOWLEDGED: HealthFaultClear,
+            HealthOpcode.HEALTH_FAULT_GET: HealthFaultGet,
+            HealthOpcode.HEALTH_FAULT_STATUS: HealthCurrentStatus,
+            HealthOpcode.HEALTH_FAULT_TEST: HealthFaultTest,
+            HealthOpcode.HEALTH_FAULT_TEST_UNACKNOWLEDGED: HealthFaultTest,
+            HealthOpcode.HEALTH_PERIOD_GET: HealthPeriodGet,
+            HealthOpcode.HEALTH_PERIOD_SET: HealthPeriodSet,
+            HealthOpcode.HEALTH_PERIOD_SET_UNACKNOWLEDGED: HealthPeriodSet,
+            HealthOpcode.HEALTH_PERIOD_STATUS: HealthPeriodStatus,
         }
     )
 )

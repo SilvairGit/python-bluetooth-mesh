@@ -52,7 +52,7 @@ def element_mock(element_path, node_interface):
 def model(element_mock):
     class MockModel(Model):
         MODEL_ID = (None, 0x1001)
-        OPCODES = {GenericOnOffOpcode.ONOFF_STATUS}
+        OPCODES = {GenericOnOffOpcode.GENERIC_ONOFF_STATUS}
 
     return MockModel(element_mock)
 
@@ -302,7 +302,7 @@ async def test_bulk_query_timeout(
         if address == 10:
             assert len(done) == 1
             assert result == {
-                "opcode": GenericOnOffOpcode.ONOFF_STATUS,
+                "opcode": GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
                 "params": {"present_onoff": 0},
             }
         elif address == 20:
