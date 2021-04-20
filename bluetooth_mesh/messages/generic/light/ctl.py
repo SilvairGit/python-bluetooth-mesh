@@ -33,28 +33,28 @@ from bluetooth_mesh.messages.util import EnumAdapter, NamedSelect, Opcode, Switc
 
 
 class LightCTLOpcode(IntEnum):
-    CTL_GET = 0x825D
-    CTL_SET = 0x825E
-    CTL_SET_UNACKNOWLEDGED = 0x825F
-    CTL_STATUS = 0x8260
-    CTL_TEMPERATURE_GET = 0x8261
-    CTL_TEMPERATURE_RANGE_GET = 0x8262
-    CTL_TEMPERATURE_RANGE_STATUS = 0x8263
-    CTL_TEMPERATURE_SET = 0x8264
-    CTL_TEMPERATURE_SET_UNACKNOWLEDGED = 0x8265
-    CTL_TEMPERATURE_STATUS = 0x8266
-    CTL_TEMPERATURE_DEFAULT_GET = 0x8267
-    CTL_TEMPERATURE_DEFAULT_STATUS = 0x8268
+    LIGHT_CTL_GET = 0x825D
+    LIGHT_CTL_SET = 0x825E
+    LIGHT_CTL_SET_UNACKNOWLEDGED = 0x825F
+    LIGHT_CTL_STATUS = 0x8260
+    LIGHT_CTL_TEMPERATURE_GET = 0x8261
+    LIGHT_CTL_TEMPERATURE_RANGE_GET = 0x8262
+    LIGHT_CTL_TEMPERATURE_RANGE_STATUS = 0x8263
+    LIGHT_CTL_TEMPERATURE_SET = 0x8264
+    LIGHT_CTL_TEMPERATURE_SET_UNACKNOWLEDGED = 0x8265
+    LIGHT_CTL_TEMPERATURE_STATUS = 0x8266
+    LIGHT_CTL_TEMPERATURE_DEFAULT_GET = 0x8267
+    LIGHT_CTL_TEMPERATURE_DEFAULT_STATUS = 0x8268
 
     def __repr__(self):
         return str(self.value)
 
 
 class LightCTLSetupOpcode(IntEnum):
-    CTL_TEMPERATURE_DEFAULT_SET = 0x8269
-    CTL_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED = 0x826A
-    CTL_TEMPERATURE_RANGE_SET = 0x826B
-    CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED = 0x826C
+    LIGHT_CTL_SETUP_TEMPERATURE_DEFAULT_SET = 0x8269
+    LIGHT_CTL_SETUP_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED = 0x826A
+    LIGHT_CTL_SETUP_TEMPERATURE_RANGE_SET = 0x826B
+    LIGHT_CTL_SETUP_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED = 0x826C
 
     def __repr__(self):
         return str(self.value)
@@ -150,18 +150,18 @@ LightCTLMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            LightCTLOpcode.CTL_GET: LightCTLGet,
-            LightCTLOpcode.CTL_SET: LightCTLSet,
-            LightCTLOpcode.CTL_SET_UNACKNOWLEDGED: LightCTLSet,
-            LightCTLOpcode.CTL_STATUS: LightCTLStatus,
-            LightCTLOpcode.CTL_TEMPERATURE_GET: LightCTLGet,
-            LightCTLOpcode.CTL_TEMPERATURE_RANGE_GET: LightCTLGet,
-            LightCTLOpcode.CTL_TEMPERATURE_RANGE_STATUS: LightCTLRangeStatus,
-            LightCTLOpcode.CTL_TEMPERATURE_SET: LightCTLTemperatureSet,
-            LightCTLOpcode.CTL_TEMPERATURE_SET_UNACKNOWLEDGED: LightCTLTemperatureSet,
-            LightCTLOpcode.CTL_TEMPERATURE_STATUS: LightCTLTemperatureStatus,
-            LightCTLOpcode.CTL_TEMPERATURE_DEFAULT_GET: LightCTLGet,
-            LightCTLOpcode.CTL_TEMPERATURE_DEFAULT_STATUS: LightCTLDefault,
+            LightCTLOpcode.LIGHT_CTL_GET: LightCTLGet,
+            LightCTLOpcode.LIGHT_CTL_SET: LightCTLSet,
+            LightCTLOpcode.LIGHT_CTL_SET_UNACKNOWLEDGED: LightCTLSet,
+            LightCTLOpcode.LIGHT_CTL_STATUS: LightCTLStatus,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_GET: LightCTLGet,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_RANGE_GET: LightCTLGet,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_RANGE_STATUS: LightCTLRangeStatus,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_SET: LightCTLTemperatureSet,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_SET_UNACKNOWLEDGED: LightCTLTemperatureSet,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_STATUS: LightCTLTemperatureStatus,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_DEFAULT_GET: LightCTLGet,
+            LightCTLOpcode.LIGHT_CTL_TEMPERATURE_DEFAULT_STATUS: LightCTLDefault,
         },
     )
 )
@@ -172,10 +172,10 @@ LightCTLSetupMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            LightCTLSetupOpcode.CTL_TEMPERATURE_DEFAULT_SET: LightCTLDefault,
-            LightCTLSetupOpcode.CTL_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED: LightCTLDefault,
-            LightCTLSetupOpcode.CTL_TEMPERATURE_RANGE_SET: LightCTLRange,
-            LightCTLSetupOpcode.CTL_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED: LightCTLRange,
+            LightCTLSetupOpcode.LIGHT_CTL_SETUP_TEMPERATURE_DEFAULT_SET: LightCTLDefault,
+            LightCTLSetupOpcode.LIGHT_CTL_SETUP_TEMPERATURE_DEFAULT_SET_UNACKNOWLEDGED: LightCTLDefault,
+            LightCTLSetupOpcode.LIGHT_CTL_SETUP_TEMPERATURE_RANGE_SET: LightCTLRange,
+            LightCTLSetupOpcode.LIGHT_CTL_SETUP_TEMPERATURE_RANGE_SET_UNACKNOWLEDGED: LightCTLRange,
         },
     )
 )

@@ -1031,13 +1031,13 @@ def test_build_invalid(message, decoded, exception):
         message.build(obj=decoded)
 
 
-@pytest.mark.parametrize("key", ["params", "appkey_add"])
+@pytest.mark.parametrize("key", ["params", "config_appkey_add"])
 def test_build_config_message(key):
     app_key = bytes.fromhex("deadbeef" * 4)
 
     data = ConfigMessage.build(
         {
-            "opcode": ConfigOpcode.APPKEY_ADD,
+            "opcode": ConfigOpcode.CONFIG_APPKEY_ADD,
             key: dict(
                 app_key_index=1,
                 net_key_index=1,
@@ -1055,13 +1055,13 @@ def test_parse_config_message():
     msg = ConfigMessage.parse(bytes.fromhex("00011000") + key)
 
     assert msg == dict(
-        opcode=ConfigOpcode.APPKEY_ADD,
+        opcode=ConfigOpcode.CONFIG_APPKEY_ADD,
         params=dict(
             app_key_index=1,
             net_key_index=1,
             app_key=key,
         ),
-        appkey_add=dict(
+        config_appkey_add=dict(
             app_key_index=1,
             net_key_index=1,
             app_key=key,

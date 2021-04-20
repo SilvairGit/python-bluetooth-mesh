@@ -89,7 +89,7 @@ async def test_set_lightness_range_calls_node_interface_with_appropriate_argumen
 
     data = LightLightnessSetupMessage.build(
         {
-            "opcode": LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
+            "opcode": LightLightnessSetupOpcode.LIGHT_LIGHTNESS_SETUP_RANGE_SET_UNACKNOWLEDGED,
             "params": {
                 "range_min": 0,
                 "range_max": 100,
@@ -121,7 +121,7 @@ async def test_set_lightness_calls_node_interface_with_appropriate_arguments(
     frames = [
         LightLightnessMessage.build(
             {
-                "opcode": LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
+                "opcode": LightLightnessOpcode.LIGHT_LIGHTNESS_SET_UNACKNOWLEDGED,
                 "params": dict(lightness=0, tid=0, transition_time=0, delay=d),
             }
         )

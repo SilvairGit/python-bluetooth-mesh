@@ -27,13 +27,13 @@ valid = [
     # fmt: off
     pytest.param(
         b'\x82\x23',
-        GenericBatteryOpcode.BATTERY_GET,
+        GenericBatteryOpcode.GENERIC_BATTERY_GET,
         dict(),
-        id="BATTERY_GET"
+        id="GENERIC_BATTERY_GET"
     ),
     pytest.param(
         b'\x82\x24\x32\xb4\x00\x00\xfe\xfe\x00\x62',
-        GenericBatteryOpcode.BATTERY_STATUS,
+        GenericBatteryOpcode.GENERIC_BATTERY_STATUS,
         dict(
             battery_level=50,
             time_to_discharge=0xb4,
@@ -45,11 +45,11 @@ valid = [
                 battery_serviceability_flags=GenericBatteryFlagsServiceability.BATTERY_NOT_REQUIRE_SERVICE
             )
         ),
-        id="BATTERY_STATUS"
+        id="GENERIC_BATTERY_STATUS"
     ),
     pytest.param(
         b'\x82\x24\xff\xbb\xaa\x00\xff\xff\xff\xdb',
-        GenericBatteryOpcode.BATTERY_STATUS,
+        GenericBatteryOpcode.GENERIC_BATTERY_STATUS,
         dict(
             battery_level=None,
             time_to_discharge=0xaabb,
@@ -61,7 +61,7 @@ valid = [
                 battery_serviceability_flags=GenericBatteryFlagsServiceability.BATTERY_SERVICEABILITY_UNKNOWN
             )
         ),
-        id="BATTERY_STATUS"
+        id="GENERIC_BATTERY_STATUS"
     ),
     # fmt: on
 ]

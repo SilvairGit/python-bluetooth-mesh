@@ -34,10 +34,10 @@ from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
 
 class GenericOnOffOpcode(IntEnum):
-    ONOFF_GET = 0x8201
-    ONOFF_SET = 0x8202
-    ONOFF_SET_UNACKNOWLEDGED = 0x8203
-    ONOFF_STATUS = 0x8204
+    GENERIC_ONOFF_GET = 0x8201
+    GENERIC_ONOFF_SET = 0x8202
+    GENERIC_ONOFF_SET_UNACKNOWLEDGED = 0x8203
+    GENERIC_ONOFF_STATUS = 0x8204
 
 
 # fmt: off
@@ -81,11 +81,11 @@ GenericOnOffMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            GenericOnOffOpcode.ONOFF_GET: GenericOnOffGet,
-            GenericOnOffOpcode.ONOFF_SET: GenericOnOffSet,
-            GenericOnOffOpcode.ONOFF_SET_UNACKNOWLEDGED: GenericOnOffSet,
-            GenericOnOffOpcode.ONOFF_STATUS: GenericOnOffStatus,
+            GenericOnOffOpcode.GENERIC_ONOFF_GET: GenericOnOffGet,
+            GenericOnOffOpcode.GENERIC_ONOFF_SET: GenericOnOffSet,
+            GenericOnOffOpcode.GENERIC_ONOFF_SET_UNACKNOWLEDGED: GenericOnOffSet,
+            GenericOnOffOpcode.GENERIC_ONOFF_STATUS: GenericOnOffStatus,
         },
     ),
 )
-# fmt: on
+# fmt: off

@@ -30,13 +30,13 @@ valid = [
     # fmt: off
     pytest.param(
         b'\x82\x05',
-        GenericLevelOpcode.LEVEL_GET,
+        GenericLevelOpcode.GENERIC_LEVEL_GET,
         dict(),
         id="LEVEL_GET"
     ),
     pytest.param(
         b'\x82\x06\xff\x7f\x22',
-        GenericLevelOpcode.LEVEL_SET,
+        GenericLevelOpcode.GENERIC_LEVEL_SET,
         dict(
             level=32767,
             tid=34
@@ -45,7 +45,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x06\x00\x80\x22',
-        GenericLevelOpcode.LEVEL_SET,
+        GenericLevelOpcode.GENERIC_LEVEL_SET,
         dict(
             level=-32768,
             tid=34
@@ -54,7 +54,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x06\x01\x00\x22',
-        GenericLevelOpcode.LEVEL_SET,
+        GenericLevelOpcode.GENERIC_LEVEL_SET,
         dict(
             level=1,
             tid=34,
@@ -65,7 +65,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x06\x00\x00\x31\x32\x3c',
-        GenericLevelOpcode.LEVEL_SET,
+        GenericLevelOpcode.GENERIC_LEVEL_SET,
         dict(
             level=0,
             tid=49,
@@ -76,7 +76,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x07\x00\x00\x31\x32\x3c',
-        GenericLevelOpcode.LEVEL_SET_UNACKNOWLEDGED,
+        GenericLevelOpcode.GENERIC_LEVEL_SET_UNACKNOWLEDGED,
         dict(
             level=0,
             tid=49,
@@ -87,7 +87,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x08\xff\x7f',
-        GenericLevelOpcode.LEVEL_STATUS,
+        GenericLevelOpcode.GENERIC_LEVEL_STATUS,
         dict(
             present_level=32767,
             target_level=None,
@@ -97,7 +97,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x08\x00\x80',
-        GenericLevelOpcode.LEVEL_STATUS,
+        GenericLevelOpcode.GENERIC_LEVEL_STATUS,
         dict(
             present_level=-32768,
             target_level=None,
@@ -107,7 +107,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x08\x00\x00\xff\x00\x4a',
-        GenericLevelOpcode.LEVEL_STATUS,
+        GenericLevelOpcode.GENERIC_LEVEL_STATUS,
         dict(
             present_level=0,
             target_level=255,
@@ -117,7 +117,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x08\x00\x00\x01\x00\xff',
-        GenericLevelOpcode.LEVEL_STATUS,
+        GenericLevelOpcode.GENERIC_LEVEL_STATUS,
         dict(
             present_level=0,
             target_level=1,
@@ -127,7 +127,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x09\xff\xff\xff\x7f\x22',
-        GenericLevelOpcode.DELTA_SET,
+        GenericLevelOpcode.GENERIC_DELTA_SET,
         dict(
             delta_level=2147483647,
             tid=34
@@ -136,7 +136,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x09\x00\x00\x00\x80\x22',
-        GenericLevelOpcode.DELTA_SET,
+        GenericLevelOpcode.GENERIC_DELTA_SET,
         dict(
             delta_level=-2147483648,
             tid=34
@@ -145,7 +145,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x09\x01\x00\x00\x00\x22',
-        GenericLevelOpcode.DELTA_SET,
+        GenericLevelOpcode.GENERIC_DELTA_SET,
         dict(
             delta_level=1,
             tid=34,
@@ -155,7 +155,7 @@ valid = [
         id="DELTA_SET_invalid"),
     pytest.param(
         b'\x82\x09\x00\x00\x00\x00\x31\x32\x3c',
-        GenericLevelOpcode.DELTA_SET,
+        GenericLevelOpcode.GENERIC_DELTA_SET,
         dict(
             delta_level=0,
             tid=49,
@@ -165,7 +165,7 @@ valid = [
         id="DELTA_SET_with_optional"),
     pytest.param(
         b'\x82\x0a\x00\x00\x00\x00\x31\x32\x3c',
-        GenericLevelOpcode.DELTA_SET_UNACKNOWLEDGED,
+        GenericLevelOpcode.GENERIC_DELTA_SET_UNACKNOWLEDGED,
         dict(
             delta_level=0,
             tid=49,
@@ -175,7 +175,7 @@ valid = [
         id="DELTA_SET_UNACKNOWLEDGED"),
     pytest.param(
         b'\x82\x0b\xff\x7f\x22',
-        GenericLevelOpcode.MOVE_SET,
+        GenericLevelOpcode.GENERIC_MOVE_SET,
         dict(
             delta_level=32767,
             tid=34
@@ -184,7 +184,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x0b\x00\x80\x22',
-        GenericLevelOpcode.MOVE_SET,
+        GenericLevelOpcode.GENERIC_MOVE_SET,
         dict(
             delta_level=-32768,
             tid=34
@@ -193,7 +193,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x0b\x01\x00\x22',
-        GenericLevelOpcode.MOVE_SET,
+        GenericLevelOpcode.GENERIC_MOVE_SET,
         dict(
             delta_level=1,
             tid=34,
@@ -204,7 +204,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x0b\x00\x00\x31\x32\x3c',
-        GenericLevelOpcode.MOVE_SET,
+        GenericLevelOpcode.GENERIC_MOVE_SET,
         dict(
             delta_level=0,
             tid=49,
@@ -215,7 +215,7 @@ valid = [
     ),
     pytest.param(
         b'\x82\x0c\x00\x00\x31\x32\x3c',
-        GenericLevelOpcode.MOVE_SET_UNACKNOWLEDGED,
+        GenericLevelOpcode.GENERIC_MOVE_SET_UNACKNOWLEDGED,
         dict(
             delta_level=0,
             tid=49,

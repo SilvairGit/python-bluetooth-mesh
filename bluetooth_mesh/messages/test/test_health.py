@@ -187,11 +187,11 @@ def test_build_invalid(message, decoded, exception):
         message.build(obj=decoded)
 
 
-@pytest.mark.parametrize("key", ["params", "attention_set"])
+@pytest.mark.parametrize("key", ["params", "health_attention_set"])
 def test_build_health_message(key):
     data = HealthMessage.build(
         {
-            "opcode": HealthOpcode.ATTENTION_SET,
+            "opcode": HealthOpcode.HEALTH_ATTENTION_SET,
             key: dict(attention=6),
         }
     )
@@ -203,9 +203,8 @@ def test_parse_health_message():
     msg = HealthMessage.parse(bytes.fromhex("800506"))
 
     assert msg == dict(
-        opcode=HealthOpcode.ATTENTION_SET,
-        params=dict(attention=6),
-        attention_set=dict(attention=6),
+        opcode=HealthOpcode.HEALTH_ATTENTION_SET,
+        health_attention_set=dict(attention=6),
     )
 
 

@@ -34,14 +34,14 @@ from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
 
 class GenericLevelOpcode(IntEnum):
-    LEVEL_GET = 0x8205
-    LEVEL_SET = 0x8206
-    LEVEL_SET_UNACKNOWLEDGED = 0x8207
-    LEVEL_STATUS = 0x8208
-    DELTA_SET = 0x8209
-    DELTA_SET_UNACKNOWLEDGED = 0x820A
-    MOVE_SET = 0x820B
-    MOVE_SET_UNACKNOWLEDGED = 0x820C
+    GENERIC_LEVEL_GET = 0x8205
+    GENERIC_LEVEL_SET = 0x8206
+    GENERIC_LEVEL_SET_UNACKNOWLEDGED = 0x8207
+    GENERIC_LEVEL_STATUS = 0x8208
+    GENERIC_DELTA_SET = 0x8209
+    GENERIC_DELTA_SET_UNACKNOWLEDGED = 0x820A
+    GENERIC_MOVE_SET = 0x820B
+    GENERIC_MOVE_SET_UNACKNOWLEDGED = 0x820C
 
 
 # fmt: off
@@ -112,14 +112,14 @@ GenericLevelMessage = SwitchStruct(
     "params" / Switch(
         this.opcode,
         {
-            GenericLevelOpcode.LEVEL_GET: GenericLevelGet,
-            GenericLevelOpcode.LEVEL_SET: GenericLevelSet,
-            GenericLevelOpcode.LEVEL_SET_UNACKNOWLEDGED: GenericLevelSet,
-            GenericLevelOpcode.LEVEL_STATUS: GenericLevelStatus,
-            GenericLevelOpcode.DELTA_SET: GenericDeltaSet,
-            GenericLevelOpcode.DELTA_SET_UNACKNOWLEDGED: GenericDeltaSet,
-            GenericLevelOpcode.MOVE_SET: GenericMoveSet,
-            GenericLevelOpcode.MOVE_SET_UNACKNOWLEDGED: GenericMoveSet,
+            GenericLevelOpcode.GENERIC_LEVEL_GET: GenericLevelGet,
+            GenericLevelOpcode.GENERIC_LEVEL_SET: GenericLevelSet,
+            GenericLevelOpcode.GENERIC_LEVEL_SET_UNACKNOWLEDGED: GenericLevelSet,
+            GenericLevelOpcode.GENERIC_LEVEL_STATUS: GenericLevelStatus,
+            GenericLevelOpcode.GENERIC_DELTA_SET: GenericDeltaSet,
+            GenericLevelOpcode.GENERIC_DELTA_SET_UNACKNOWLEDGED: GenericDeltaSet,
+            GenericLevelOpcode.GENERIC_MOVE_SET: GenericMoveSet,
+            GenericLevelOpcode.GENERIC_MOVE_SET_UNACKNOWLEDGED: GenericMoveSet,
         },
     )
 )
