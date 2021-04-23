@@ -39,6 +39,7 @@ from construct import (
     Int8ub,
     Int16ub,
     Int24ub,
+    Int32ub,
     Rebuild,
     Restreamed,
     Select,
@@ -212,6 +213,8 @@ def EmbeddedBitStruct(name, *fields, reversed=False):
 
 
 class Opcode(Construct):
+    subcon = Int32ub
+
     def __init__(self, type=int):
         super().__init__()
         self.type = type
