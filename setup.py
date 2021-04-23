@@ -65,6 +65,9 @@ setup(
         tools=[
             'prompt-toolkit==2.0.10',
         ],
+        capnp=[
+            'pycapnp',
+        ],
     ),
     entry_points=dict(
         console_scripts=[
