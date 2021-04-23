@@ -94,8 +94,8 @@ NetworkDiagnosticSetupServerPublicationSetOptional = Struct(
 )
 
 NetworkDiagnosticSetupServerPublicationSet = Select(
-    NetworkDiagnosticSetupServerPublicationSetOptional,
-    NetworkDiagnosticSetupServerPublicationSetMinimal,
+    optional=NetworkDiagnosticSetupServerPublicationSetOptional,
+    minimal=NetworkDiagnosticSetupServerPublicationSetMinimal,
 )
 
 NetworkDiagnosticSetupServerPublicationStatus = NetworkDiagnosticSetupServerPublicationSet

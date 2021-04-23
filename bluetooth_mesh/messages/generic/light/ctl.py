@@ -80,8 +80,8 @@ LightCTLSetOptional = Struct(
 )
 
 LightCTLSet = Select(
-    LightCTLSetOptional,
-    LightCTLSetMinimal
+    optional=LightCTLSetOptional,
+    minimal=LightCTLSetMinimal
 )
 
 LightCTLStatusMinimal = Struct(
@@ -97,8 +97,8 @@ LightCTLStatusOptional = Struct(
 )
 
 LightCTLStatus = Select(
-    LightCTLStatusOptional,
-    LightCTLStatusMinimal
+    optional=LightCTLStatusOptional,
+    minimal=LightCTLStatusMinimal
 )
 
 LightCTLTemperatureStatusMinimal = Struct(
@@ -114,8 +114,8 @@ LightCTLTemperatureStatusOptional = Struct(
 )
 
 LightCTLTemperatureStatus = Select(
-    LightCTLTemperatureStatusOptional,
-    LightCTLTemperatureStatusMinimal
+    optional=LightCTLTemperatureStatusOptional,
+    minimal=LightCTLTemperatureStatusMinimal
 )
 
 LightCTLTemperatureSetMinimal = Struct(
@@ -130,8 +130,8 @@ LightCTLTemperatureSetOptional = Struct(
 )
 
 LightCTLTemperatureSet = Select(
-    LightCTLTemperatureSetOptional,
-    LightCTLTemperatureSetMinimal
+    optional=LightCTLTemperatureSetOptional,
+    minimal=LightCTLTemperatureSetMinimal
 )
 
 LightCTLRange = Struct(

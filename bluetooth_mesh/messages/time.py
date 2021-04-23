@@ -118,8 +118,8 @@ TimeOptional = Struct(
 )
 
 Time = Select(
-    TimeOptional,
-    TimeMinimal,
+    optional=TimeOptional,
+    minimal=TimeMinimal,
 )
 
 

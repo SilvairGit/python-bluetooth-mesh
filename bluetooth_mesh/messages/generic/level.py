@@ -56,8 +56,8 @@ GenericLevelSetOptional = Struct(
 )
 
 GenericLevelSet = Select(
-    GenericLevelSetOptional,
-    GenericLevelSetMinimal
+    optional=GenericLevelSetOptional,
+    minimal=GenericLevelSetMinimal
 )
 
 GenericDeltaSetMinimal = Struct(
@@ -71,8 +71,8 @@ GenericDeltaSetOptional = Struct(
 )
 
 GenericDeltaSet = Select(
-    GenericDeltaSetOptional,
-    GenericDeltaSetMinimal
+    optional=GenericDeltaSetOptional,
+    minimal=GenericDeltaSetMinimal
 )
 
 GenericMoveSetMinimal = Struct(
@@ -86,8 +86,8 @@ GenericMoveSetOptional = Struct(
 )
 
 GenericMoveSet = Select(
-    GenericMoveSetOptional,
-    GenericMoveSetMinimal
+    optional=GenericMoveSetOptional,
+    minimal=GenericMoveSetMinimal
 )
 
 GenericLevelStatusMinimal = Struct(
@@ -101,8 +101,8 @@ GenericLevelStatusOptional = Struct(
 )
 
 GenericLevelStatus = Select(
-    GenericLevelStatusOptional,
-    GenericLevelStatusMinimal
+    optional=GenericLevelStatusOptional,
+    minimal=GenericLevelStatusMinimal
 )
 
 GenericLevelMessage = Struct(

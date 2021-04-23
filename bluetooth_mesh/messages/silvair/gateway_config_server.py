@@ -184,9 +184,9 @@ ConfigurationSetWithOptionalDhcpDisabled = Struct(
 )
 
 ConfigurationSet = Select(
-    ConfigurationSetWithOptionalDhcpDisabled,
-    ConfigurationSetWithOptionalDhcpEnabledWithStaticDns,
-    ConfigurationSetWithoutOptionalAutoDhcpEnabled,
+    static=ConfigurationSetWithOptionalDhcpDisabled,
+    dns=ConfigurationSetWithOptionalDhcpEnabledWithStaticDns,
+    minimal=ConfigurationSetWithoutOptionalAutoDhcpEnabled,
 )
 
 ConfigurationStatus = Struct(
