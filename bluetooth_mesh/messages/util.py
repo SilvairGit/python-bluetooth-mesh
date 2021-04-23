@@ -173,7 +173,19 @@ def RangeValidator(subcon, *, min_value=None, max_value=None):
     return ExprValidator(subcon, validate_range)
 
 
-def EmbeddedBitStruct(name, *args, reversed=False):
+class FieldAdapter(Adapter):
+    def __init__(self, subcon, field):
+        self._subcon = field
+        super().__init__(subcon)
+
+    def _decode(self, obj, content, path):
+        return obj
+
+    def _encode(self, obj, content, path):
+        return obj
+
+
+def EmbeddedBitStruct(name, *fields, reversed=False):
     """
     Emulates BitStruct embedding:
         - for parsing, adds Computed accessor fields to the parent construct,
@@ -181,15 +193,17 @@ def EmbeddedBitStruct(name, *args, reversed=False):
 
     NOTE: This is a hack. Do not use unless you absolutely have to.
     """
-    bit_struct = BitStruct(*args)
+    bit_struct = BitStruct(*fields)
 
     if reversed:
         bit_struct = Reversed(bit_struct)
 
-    bit_struct.__construct_doc__ = Embedded(Struct(*args))
+    bit_struct.__construct_doc__ = Embedded(Struct(*fields))
 
     return (name / Rebuild(bit_struct, dict),) + tuple(
-        i.name / Computed(this[name][i.name]) for i in args if i.name is not None
+        field.name / FieldAdapter(Computed(this[name][field.name]), field)
+        for field in fields
+        if field.name is not None
     )
 
 
