@@ -112,36 +112,40 @@ NetworkDiagnosticServerSubscriptionStatus = Struct(
     "record" / GreedyRange(RegistryRecord)
 )
 
-NetworkDiagnosticServerPayload = Struct(
+NetworkDiagnosticServerPayload = Default(Switch(
+    this.subopcode,
+    {
+        NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET: NetworkDiagnosticServerSubscriptionSet,
+        NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET_UNACK: NetworkDiagnosticServerSubscriptionSet,
+        NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS: NetworkDiagnosticServerSubscriptionStatus
+    }
+), None)
+
+NetworkDiagnosticServerParams = Struct(
     "subopcode" / EnumAdapter(Int8ul, NetworkDiagnosticServerSubOpcode),
-    "payload" / Default(Switch(
-        this.subopcode,
-        {
-            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET: NetworkDiagnosticServerSubscriptionSet,
-            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET_UNACK: NetworkDiagnosticServerSubscriptionSet,
-            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS: NetworkDiagnosticServerSubscriptionStatus
-        }
-    ), None)
+    "payload" / NetworkDiagnosticServerPayload
 )
 
-NetworkDiagnosticSetupServerPayload = Struct(
+NetworkDiagnosticSetupServerPayload = Default(Switch(
+    this.subopcode,
+    {
+        NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET: NetworkDiagnosticSetupServerPublicationSet,
+        NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS: NetworkDiagnosticSetupServerPublicationStatus,
+    }
+), None)
+
+NetworkDiagnosticSetupServerParams = Struct(
     "subopcode" / EnumAdapter(Int8ul, NetworkDiagnosticSetupServerSubOpcode),
-    "payload" / Default(Switch(
-        this.subopcode,
-        {
-            NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET: NetworkDiagnosticSetupServerPublicationSet,
-            NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS: NetworkDiagnosticSetupServerPublicationStatus,
-        }
-    ), None)
+    "payload" / NetworkDiagnosticSetupServerPayload
 )
 
 NetworkDiagnosticServerMessage = Struct(
     "opcode" / Const(NetworkDiagnosticServerOpcode.SILVAIR_NDS, Opcode(NetworkDiagnosticServerOpcode)),
-    "params" / NetworkDiagnosticServerPayload
+    "params" / NetworkDiagnosticServerParams
 )
 
 NetworkDiagnosticSetupServerMessage = Struct(
     "opcode" / Const(NetworkDiagnosticSetupServerOpcode.SILVAIR_NDS_SETUP, Opcode(NetworkDiagnosticSetupServerOpcode)),
-    "params" / NetworkDiagnosticSetupServerPayload
+    "params" / NetworkDiagnosticSetupServerParams
 )
 # fmt: on

@@ -95,22 +95,24 @@ LightExtendedControllerSyncIntegralStatus = Struct(
     "sync_integral" / Int16ul,
 )
 
-LightExtendedControllerPayload = Struct(
+LightExtendedControllerPayload = Default(Switch(
+    this.subopcode,
+    {
+        LightExtendedControllerSubOpcode.PROPERTY_GET: LightExtendedControllerPropertyGet,
+        LightExtendedControllerSubOpcode.PROPERTY_SET: LightExtendedControllerPropertySet,
+        LightExtendedControllerSubOpcode.PROPERTY_SET_UNACKNOWLEDGED: LightExtendedControllerPropertySet,
+        LightExtendedControllerSubOpcode.PROPERTY_STATUS: LightExtendedControllerPropertyStatus,
+        LightExtendedControllerSubOpcode.SYNC_INTEGRAL_STATUS: LightExtendedControllerSyncIntegralStatus,
+    },
+), None)
+
+LightExtendedControllerParams = Struct(
     "subopcode" / EnumAdapter(Int8ul, LightExtendedControllerSubOpcode),
-    "payload" / Default(Switch(
-        this.subopcode,
-        {
-            LightExtendedControllerSubOpcode.PROPERTY_GET: LightExtendedControllerPropertyGet,
-            LightExtendedControllerSubOpcode.PROPERTY_SET: LightExtendedControllerPropertySet,
-            LightExtendedControllerSubOpcode.PROPERTY_SET_UNACKNOWLEDGED: LightExtendedControllerPropertySet,
-            LightExtendedControllerSubOpcode.PROPERTY_STATUS: LightExtendedControllerPropertyStatus,
-            LightExtendedControllerSubOpcode.SYNC_INTEGRAL_STATUS: LightExtendedControllerSyncIntegralStatus,
-        },
-    ), None)
+    "payload" / LightExtendedControllerPayload
 )
 
 LightExtendedControllerMessage = Struct(
     "opcode" / Const(LightExtendedControllerOpcode.SILVAIR_LEC, Opcode(LightExtendedControllerOpcode)),
-    "params" / LightExtendedControllerPayload
+    "params" / LightExtendedControllerParams
 )
 # fmt: on

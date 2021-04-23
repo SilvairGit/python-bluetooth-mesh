@@ -24,7 +24,7 @@ import pytest
 from bluetooth_mesh.messages.silvair.gateway_config_server import (
     ConnState,
     DhcpFlag,
-    GatewayConfigPayload,
+    GatewayConfigParams,
     GatewayConfigServerSubOpcode,
     LastError,
     LinkStatus,
@@ -34,14 +34,14 @@ from bluetooth_mesh.messages.util import IPv4Address
 
 valid = [
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("00"),
         GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_GET,
         None,
         id="ConfigurationGet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("01 B004 ABCDEFABCDEF D204 D007 0B 3139322E3136382E302E31"),
         GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_SET,
         dict(
@@ -55,7 +55,7 @@ valid = [
         id="ConfigurationSetWithoutOptionalAutoDhcpEnabled",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex(
             "01 B004 ABCDEFABCDEF D204 D007 19 7777772E72616E646F6D686F73746E616D652E636F6D2E706C"
         ),
@@ -71,7 +71,7 @@ valid = [
         id="ConfigurationSetWithoutOptionalAutoDhcpEnabledHostname",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex(
             "01 B004 ABCDEFABCDEF D204 D007 0B 3139322E3136382E302E31 0A2A0002"
         ),
@@ -88,7 +88,7 @@ valid = [
         id="ConfigurationSetWithOptionalDhcpEnabledWithStaticDns",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex(
             "01 DE03 ABCDEFABCDEF ABCD 04D2"
             "19 7777772E72616E646F6D686F73746E616D652E636F6D2E706C 0A2A0002"
@@ -106,7 +106,7 @@ valid = [
         id="ConfigurationSetWithOptionalDhcpEnabledWithStaticDnsHostname",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex(
             "01 B004 ABCDEFABCDEF D204 D007 0B 3139322E3136382E302E31 0A2A0002 C0A80002 C0A80001 08"
         ),
@@ -126,7 +126,7 @@ valid = [
         id="ConfigurationSetWithOptionalDhcpDisabled",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex(
             "01 B004 ABCDEFABCDEF D204 D007 19 7777772E72616E646F6D686F73746E616D652E636F6D2E706C"
             "0A2A0002 C0A80002 C0A80001 08"
@@ -147,35 +147,35 @@ valid = [
         id="ConfigurationSetWithOptionalDhcpDisabledHostname",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("02"),
         GatewayConfigServerSubOpcode.GATEWAY_PACKETS_GET,
         None,
         id="PacketsGet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("03"),
         GatewayConfigServerSubOpcode.GATEWAY_PACKETS_CLEAR,
         None,
         id="PacketsClear",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("04 DC05"),
         GatewayConfigServerSubOpcode.MTU_SIZE_SET,
         dict(mtu_size=1500),
         id="mtu_size",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("05 112233445566"),
         GatewayConfigServerSubOpcode.ETHERNET_MAC_ADDRESS_SET,
         dict(mac_address="11:22:33:44:55:66"),
         id="EthernetMacAddressSet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("06 4522 0B 3139322E3136382E302E31"),
         GatewayConfigServerSubOpcode.SERVER_ADDRESS_AND_PORT_NUMBER_SET,
         dict(
@@ -186,7 +186,7 @@ valid = [
         id="ServerAddressAndPortNumberSet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("06 4522 19 7777772E72616E646F6D686F73746E616D652E636F6D2E706C"),
         GatewayConfigServerSubOpcode.SERVER_ADDRESS_AND_PORT_NUMBER_SET,
         dict(
@@ -197,42 +197,42 @@ valid = [
         id="ServerAddressAndPortNumberSetHostname",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("07 E803"),
         GatewayConfigServerSubOpcode.RECONNECT_INTERVAL_SET,
         dict(reconnect_interval=1000),
         id="ReconnectIntervalSet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("08 0A2A0002"),
         GatewayConfigServerSubOpcode.DNS_IP_ADDRESS_SET,
         dict(dns_ip_address=IPv4Address("10.42.0.2")),
         id="DnsIpAddressSet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("09 C0A80001"),
         GatewayConfigServerSubOpcode.IP_ADDRESS_SET,
         dict(ip_address=IPv4Address("192.168.0.1")),
         id="IpAddressSet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("0A C0A80C03"),
         GatewayConfigServerSubOpcode.GATEWAY_IP_ADDRESS_SET,
         dict(gateway_ip_address=IPv4Address("192.168.12.03")),
         id="GatewayIpAddressSet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("0B 08"),
         GatewayConfigServerSubOpcode.NETMASK_SET,
         dict(netmask=8),
         id="NetmaskSet",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex(
             "0C 0A B202 DDDDEFABCDEF 1111 2222 0F 7777772E74657374696E672E636F6D 7B2C0515 C0A80A02 C0A80A01 0A 00 00"
         ),
@@ -255,7 +255,7 @@ valid = [
         id="ConfigurationStatus",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex(
             "0C 0A B202 DDDDEFABCDEF 1111 2222 00 C0A80A02 C0A80A02 C0A80A01 0A 02 00"
         ),
@@ -278,7 +278,7 @@ valid = [
         id="ConfigurationStatusEmptyHostname",
     ),
     pytest.param(
-        GatewayConfigPayload,
+        GatewayConfigParams,
         bytes.fromhex("0D 0000 0002 03E8 92"),
         GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS,
         dict(

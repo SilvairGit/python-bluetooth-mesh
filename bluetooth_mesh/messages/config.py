@@ -431,8 +431,8 @@ VendorModelId = Struct(
 )
 
 ModelId = Select(
-    VendorModelId,
-    SIGModelId
+    vendor=VendorModelId,
+    sig=SIGModelId
 )
 # fmt: on
 
@@ -725,15 +725,17 @@ ConfigCompositionDataGet = Struct(
     "page" / Int8ul,
 )
 
-ConfigCompositionDataStatus = Struct(
-    "page" / Int8ul,
-    "data" / Switch(
+ConfigCompositionData = Switch(
         this.page,
         {
             0: CompositionData,
         },
         default=GreedyBytes
-    ),
+)
+
+ConfigCompositionDataStatus = Struct(
+    "page" / Int8ul,
+    "data" / ConfigCompositionData,
 )
 
 ConfigDefaultTTLGet = Struct()

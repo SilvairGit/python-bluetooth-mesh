@@ -21,7 +21,7 @@
 #
 import pytest
 
-from bluetooth_mesh.messages.silvair.debug import DebugPayload, DebugSubOpcode
+from bluetooth_mesh.messages.silvair.debug import DebugParams, DebugSubOpcode
 
 # fmt: off
 valid = [
@@ -236,11 +236,11 @@ invalid_build = [
 # fmt: on
 
 
-@pytest.mark.parametrize("encoded,subopcode,data", valid + valid_parse)
-def test_parse_valid(encoded, subopcode, data):
-    assert DebugPayload.parse(encoded) == dict(subopcode=subopcode, data=data)
+@pytest.mark.parametrize("encoded,subopcode,payload", valid + valid_parse)
+def test_parse_valid(encoded, subopcode, payload):
+    assert DebugParams.parse(encoded) == dict(subopcode=subopcode, payload=payload)
 
 
-@pytest.mark.parametrize("encoded,subopcode,data", valid + invalid_build)
-def test_build_valid(encoded, subopcode, data):
-    assert DebugPayload.build(dict(subopcode=subopcode, data=data)) == encoded
+@pytest.mark.parametrize("encoded,subopcode,payload", valid + invalid_build)
+def test_build_valid(encoded, subopcode, payload):
+    assert DebugParams.build(dict(subopcode=subopcode, payload=payload)) == encoded

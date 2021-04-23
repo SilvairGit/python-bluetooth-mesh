@@ -196,40 +196,44 @@ ConfigurationStatus = Struct(
     "status_code" / EnumAdapter(Int8ul, StatusCode),
 )
 
+ConnectionState = BitStruct(
+    "conn_state" / EnumAdapter(BitsInteger(3), ConnState),
+    "link_status" / EnumAdapter(BitsInteger(1), LinkStatus),
+    "last_error" / EnumAdapter(BitsInteger(4), LastError)
+)
+
 # GATEWAY PACKETS MSG
 PacketsStatus = Struct(
     "total_eth_rx_errors" / Int16ul,
     "total_eth_tx_errors" / Int16ul,
     "bandwidth" / Int16ul,
-    "connection_state" / BitStruct(
-        "conn_state" / EnumAdapter(BitsInteger(3), ConnState),
-        "link_status" / EnumAdapter(BitsInteger(1), LinkStatus),
-        "last_error" / EnumAdapter(BitsInteger(4), LastError)
-    )
+    "connection_state" / ConnectionState,
 )
 
-GatewayConfigPayload = Struct(
+GatewayConfigPayload = Default(Switch(
+    this.subopcode,
+    {
+        GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_SET: ConfigurationSet,
+        GatewayConfigServerSubOpcode.MTU_SIZE_SET: ConfigurationSetMtu,
+        GatewayConfigServerSubOpcode.ETHERNET_MAC_ADDRESS_SET: ConfigurationSetMacAddr,
+        GatewayConfigServerSubOpcode.SERVER_ADDRESS_AND_PORT_NUMBER_SET: ConfigurationSetServerAddrAndPortNr,
+        GatewayConfigServerSubOpcode.RECONNECT_INTERVAL_SET: ConfigurationSetReconnectInterval,
+        GatewayConfigServerSubOpcode.DNS_IP_ADDRESS_SET: ConfigurationSetDnsIpAddr,
+        GatewayConfigServerSubOpcode.IP_ADDRESS_SET: ConfigurationSetIpAddr,
+        GatewayConfigServerSubOpcode.GATEWAY_IP_ADDRESS_SET: ConfigurationSetGatewayIpAddr,
+        GatewayConfigServerSubOpcode.NETMASK_SET: ConfigurationSetNetmask,
+        GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS: ConfigurationStatus,
+        GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS: PacketsStatus,
+    },
+), None)
+
+GatewayConfigParams = Struct(
     "subopcode" / EnumAdapter(Int8ul, GatewayConfigServerSubOpcode),
-    "payload" / Default(Switch(
-        this.subopcode,
-        {
-            GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_SET: ConfigurationSet,
-            GatewayConfigServerSubOpcode.MTU_SIZE_SET: ConfigurationSetMtu,
-            GatewayConfigServerSubOpcode.ETHERNET_MAC_ADDRESS_SET: ConfigurationSetMacAddr,
-            GatewayConfigServerSubOpcode.SERVER_ADDRESS_AND_PORT_NUMBER_SET: ConfigurationSetServerAddrAndPortNr,
-            GatewayConfigServerSubOpcode.RECONNECT_INTERVAL_SET: ConfigurationSetReconnectInterval,
-            GatewayConfigServerSubOpcode.DNS_IP_ADDRESS_SET: ConfigurationSetDnsIpAddr,
-            GatewayConfigServerSubOpcode.IP_ADDRESS_SET: ConfigurationSetIpAddr,
-            GatewayConfigServerSubOpcode.GATEWAY_IP_ADDRESS_SET: ConfigurationSetGatewayIpAddr,
-            GatewayConfigServerSubOpcode.NETMASK_SET: ConfigurationSetNetmask,
-            GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS: ConfigurationStatus,
-            GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS: PacketsStatus,
-        },
-    ), None)
+    "payload" / GatewayConfigPayload
 )
 
 GatewayConfigMessage = Struct(
     "opcode" / Const(GatewayConfigServerOpcode.SILVAIR_GATEWAY, Opcode(GatewayConfigServerOpcode)),
-    "params" / GatewayConfigPayload
+    "params" / GatewayConfigParams
 )
 # fmt: on
