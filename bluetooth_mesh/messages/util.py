@@ -340,6 +340,7 @@ class OpcodeMessage(Construct):
 
     def __init__(self, opcodes):
         super().__init__()
+        self._subcon = Struct("opcode" / Opcode(), "params" / Switch(this.opcode, opcodes))
         self.opcodes = {k: v.compile() for k, v in opcodes.items()}
 
     def _parse(self, stream, context, path):
