@@ -298,6 +298,4 @@ valid = [
 
 @pytest.mark.parametrize("test, encoded, subopcode, payload", valid)
 def test_parse_valid(test, encoded, subopcode, payload):
-    print(test.parse(encoded))
-    print(dict(subopcode=subopcode, payload=payload))
     assert test.parse(encoded) == dict(subopcode=subopcode, payload=payload)
