@@ -167,6 +167,13 @@ SensorDescriptorStatusItem = Select(
 SensorDescriptorStatus = GreedyRange(SensorDescriptorStatusItem)
 
 class _SensorData(Construct):
+    subcon = Struct(
+        "format" / Int8ul,
+        "length" / Int16ul,
+        "sensor_setting_property_id" / SensorPropertyId,
+        PropertyValue,
+    )
+
     def _parse(self, stream, context, path):
         property_id = stream_read(stream, 2)
 
@@ -181,15 +188,16 @@ class _SensorData(Construct):
 
             try:
                 sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+                sensor_setting_name = sensor_setting_property_id.name.lower()
             except ValueError:
-                pass
+                sensor_setting_name = "raw"
 
-            return Container(
-                format=1,
-                length=length,
-                sensor_setting_property_id=sensor_setting_property_id,
-                sensor_setting_raw=sensor_setting_raw
-            )
+            return Container({
+                "format": 1,
+                "length": length,
+                "sensor_setting_property_id": sensor_setting_property_id,
+                sensor_setting_name: sensor_setting_raw
+                })
         else:
             length = ((property_id[0] >> 1) & 0b1111) + 1
             sensor_setting_property_id = (property_id[0] >> 5 & 0b111) | property_id[1] << 3
@@ -197,21 +205,29 @@ class _SensorData(Construct):
 
             try:
                 sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+                sensor_setting_name = sensor_setting_property_id.name.lower()
             except ValueError:
-                pass
+                sensor_setting_name = "raw"
 
-            return Container(
-                format=0,
-                length=length,
-                sensor_setting_property_id=sensor_setting_property_id,
-                sensor_setting_raw=sensor_setting_raw
-            )
+            return Container({
+                "format": 0,
+                "length": length,
+                "sensor_setting_property_id": sensor_setting_property_id,
+                sensor_setting_name: sensor_setting_raw
+            })
 
     def _build(self, obj, stream, context, path):
         format = obj["format"]
         length = obj["length"]
         sensor_setting_property_id = obj["sensor_setting_property_id"]
-        sensor_setting_raw = obj["sensor_setting_raw"]
+
+        try:
+            sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+            sensor_setting_name = sensor_setting_property_id.name.lower()
+        except ValueError:
+            sensor_setting_name = "raw"
+
+        sensor_setting_raw = obj[sensor_setting_name]
 
         if format:
             stream_write(stream, bytes([(length - 1) << 1 | 0x01]))

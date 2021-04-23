@@ -94,8 +94,7 @@ valid = [
         [dict(sensor_setting_property_id=PropertyID.PRESENT_INPUT_CURRENT,
               length=2,
               format=0,
-              sensor_setting_raw=dict(
-                  current=2.0))],
+              present_input_current=dict(current=2.0))],
         id="SENSOR_STATUS_PRESENT_INPUT_CURRENT"),
     pytest.param(
         b'\x52\x22\x0b\x20\x03',
@@ -103,8 +102,8 @@ valid = [
         [dict(sensor_setting_property_id=PropertyID.PRESENT_INPUT_VOLTAGE,
               length=2,
               format=0,
-              sensor_setting_raw=dict(
-                  voltage=12.5))],
+              present_input_voltage=dict(voltage=12.5))
+        ],
         id="SENSOR_STATUS_PRESENT_INPUT_VOLTAGE"),
     pytest.param(
         b'\x52\x44\x0d\xa2\x44\xff',
@@ -112,8 +111,9 @@ valid = [
         [dict(sensor_setting_property_id=PropertyID.TOTAL_DEVICE_ENERGY_USE,
               length=3,
               format=0,
-              sensor_setting_raw=dict(
-                  energy=0xff44a2))],
+              total_device_energy_use=dict(
+                  energy=0xff44a2))
+        ],
         id="SENSOR_STATUS_TOTAL_DEVICE_ENERGY_USE"),
     pytest.param(
         b'\x52\x09\x90\x40\xa2\x44\xff\x00\x00',
@@ -121,7 +121,8 @@ valid = [
         [dict(sensor_setting_property_id=0x4090,
               length=5,
               format=1,
-              sensor_setting_raw=list(b'\xa2\x44\xff\x00\x00'))],
+              raw=list(b'\xa2\x44\xff\x00\x00'))
+        ],
         id="SENSOR_STATUS_VENDOR_PROPERTY"),
     pytest.param(
         b'\x52\x44\x0d\xa2\x44\xff\x22\x0b\x20\x03',
@@ -129,13 +130,11 @@ valid = [
         [dict(sensor_setting_property_id=PropertyID.TOTAL_DEVICE_ENERGY_USE,
               length=3,
               format=0,
-              sensor_setting_raw=dict(
-                  energy=0xff44a2)),
+              total_device_energy_use=dict(energy=0xff44a2)),
          dict(sensor_setting_property_id=PropertyID.PRESENT_INPUT_VOLTAGE,
               length=2,
               format=0,
-              sensor_setting_raw=dict(
-                  voltage=12.5))
+              present_input_voltage=dict(voltage=12.5))
          ],
         id="SENSOR_STATUS_2_SHORT_PROP"),
     # fmt: on
