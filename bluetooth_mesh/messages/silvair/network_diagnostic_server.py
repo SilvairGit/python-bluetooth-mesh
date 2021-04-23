@@ -24,10 +24,11 @@ from enum import IntEnum
 from construct import (
     Const,
     Default,
+    Embedded,
     GreedyRange,
     Int8ul,
     Int16ul,
-    Optional,
+    Select,
     Struct,
     Switch,
     this,
@@ -79,13 +80,22 @@ RegistryRecord = Struct(
     "max_hops" / ConfigHeartbeatHops
 )
 
-NetworkDiagnosticSetupServerPublicationSet = Struct(
+NetworkDiagnosticSetupServerPublicationSetMinimal = Struct(
     "destination" / UnicastUnassignedGroupAddress,
     "count" / Int16ul,
     "period" / TransitionTime,
     "ttl" / TTL,
     "net_key_index" / Int12ul,
-    "features" / Optional(ConfigHeartbeatPublicationFeatures)
+)
+
+NetworkDiagnosticSetupServerPublicationSetOptional = Struct(
+    Embedded(NetworkDiagnosticSetupServerPublicationSetMinimal),
+    "features" / ConfigHeartbeatPublicationFeatures
+)
+
+NetworkDiagnosticSetupServerPublicationSet = Select(
+    NetworkDiagnosticSetupServerPublicationSetOptional,
+    NetworkDiagnosticSetupServerPublicationSetMinimal,
 )
 
 NetworkDiagnosticSetupServerPublicationStatus = NetworkDiagnosticSetupServerPublicationSet
