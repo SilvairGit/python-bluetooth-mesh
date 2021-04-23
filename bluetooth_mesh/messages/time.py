@@ -22,25 +22,26 @@
 import calendar
 import enum
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from construct import (
-    Int8ul,
-    Struct,
+    Adapter,
     BitsInteger,
-    Padding,
     BytesInteger,
     Construct,
-    stream_read,
     Container,
-    stream_write,
-    Adapter,
-    StopIf,
-    this,
     Flag,
+    Int8ul,
+    Padding,
+    Select,
+    StopIf,
+    Struct,
+    stream_read,
+    stream_write,
+    this,
 )
 
-from bluetooth_mesh.messages.util import EnumAdapter, EmbeddedBitStruct, OpcodeMessage
+from bluetooth_mesh.messages.util import EmbeddedBitStruct, EnumAdapter, OpcodeMessage
 
 MS_IN_UNCERTAINTY_STEP = 10
 UNCERTAINTY_MS = 10
@@ -99,8 +100,11 @@ def subsecond_to_seconds(subsecond: int) -> float:
 def seconds_to_subsecond(seconds: float) -> int:
     return round((seconds - int(seconds)) * 256)
 
+TimeMinimal = Struct(
+    "tai_seconds" / BytesInteger(5, swapped=True),
+)
 
-Time = Struct(
+TimeOptional = Struct(
     "tai_seconds" / BytesInteger(5, swapped=True),
     StopIf(this.tai_seconds == 0),
     "subsecond" / Int8ul,
@@ -111,6 +115,11 @@ Time = Struct(
                        reversed=True
                        ),
     "time_zone_offset" / Int8ul,
+)
+
+Time = Select(
+    TimeOptional,
+    TimeMinimal,
 )
 
 
