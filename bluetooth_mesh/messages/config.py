@@ -47,7 +47,7 @@ from construct import (
     this,
 )
 
-from .util import (
+from bluetooth_mesh.messages.util import (
     BitList,
     EmbeddedBitStruct,
     EnumAdapter,
