@@ -111,15 +111,15 @@ LastFault = Struct(
     "fault" / GreedyString("utf8")
 )
 
+SystemStat = Struct(
+    "name" / PaddedString(8, "utf8"),
+    "high_water_mark" / Int16ul,
+    "rfu" / Padding(4),
+)
+
 SystemStats = Struct(
     "stats" / DictAdapter(
-        GreedyRange(
-            Struct(
-                "name" / PaddedString(8, "utf8"),
-                "high_water_mark" / Int16ul,
-                "rfu" / Padding(4),
-            )
-        ),
+        GreedyRange(SystemStat),
         key=this.name,
         value=this.high_water_mark
     )
@@ -145,70 +145,76 @@ GarbageCollectorCounter = Struct(
     "counter" / Int16ul
 )
 
+ArapSize16 = Struct(
+    "capacity" / Int16ul,
+    "size" / Int16ul
+)
+
+ArapSize8 = Struct(
+    "capacity" / Int8ul,
+    "size" / Int8ul
+)
+
 ArapSize = Select(
-    Struct(
-        "capacity" / Int16ul,
-        "size" / Int16ul
-    ),
-    Struct(
-        "capacity" / Int8ul,
-        "size" / Int8ul
-    )
+    ArapSize16,
+    ArapSize8,
 )
 
 ArapContentGet = Struct(
     "page" / Int8ul
 )
 
+ArapNode = ByteSwapped(
+    BitStruct(
+        "sequence" / Bytewise(Int24ub),
+        "ivi" / BitsInteger(1),
+        "address" / BitsInteger(15),
+    )
+)
+
 ArapContent = Struct(
     "current_page" / Int8ul,
     "last_page" / Int8ul,
     "nodes" / DictAdapter(
-        GreedyRange(
-            ByteSwapped(
-                BitStruct(
-                    "sequence" / Bytewise(Int24ub),
-                    "ivi" / BitsInteger(1),
-                    "address" / BitsInteger(15),
-                )
-            )
-        ),
+        GreedyRange(ArapNode),
         key=this.address,
         value=[this.ivi, this.sequence]
     )
 )
 
-DebugPayload = Struct(
+DebugPayload = Default(Switch(
+    this.subopcode,
+    {
+        DebugSubOpcode.RSSI_THRESHOLD_SET: RssiThreshold,
+        DebugSubOpcode.RSSI_THRESHOLD_STATUS: RssiThreshold,
+        DebugSubOpcode.RADIO_TEST: RadioTest,
+        DebugSubOpcode.TIMESLOT_TX_POWER_SET: TxPower,
+        DebugSubOpcode.TIMESLOT_TX_POWER_STATUS: TxPower,
+        DebugSubOpcode.SOFTDEVICE_TX_POWER_SET: TxPower,
+        DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS: TxPower,
+        DebugSubOpcode.UPTIME_STATUS: UptimeStatus,
+        DebugSubOpcode.LAST_SW_FAULT_STATUS: LastFault,
+        DebugSubOpcode.SYSTEM_STATS_STATUS: SystemStats,
+        DebugSubOpcode.LAST_MALLOC_FAULT_STATUS: LastFault,
+        DebugSubOpcode.LAST_FDS_FAULT_STATUS: LastFault,
+        DebugSubOpcode.BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS: GarbageCollector,
+        DebugSubOpcode.PROVISIONED_APP_VERSION_STATUS: AppVersion,
+        DebugSubOpcode.FULL_FIRMWARE_VERSION_STATUS: FirmwareVersion,
+        DebugSubOpcode.IV_INDEX_STATUS: IvIndex,
+        DebugSubOpcode.GARBAGE_COLLECTOR_COUNTER_STATUS: GarbageCollectorCounter,
+        DebugSubOpcode.ARAP_LIST_SIZE_STATUS: ArapSize,
+        DebugSubOpcode.ARAP_LIST_CONTENT_GET: ArapContentGet,
+        DebugSubOpcode.ARAP_LIST_CONTENT_STATUS: ArapContent,
+    }
+), None)
+
+DebugParams = Struct(
     "subopcode" / EnumAdapter(Int8ul, DebugSubOpcode),
-    "data" / Default(Switch(
-        this.subopcode,
-        {
-            DebugSubOpcode.RSSI_THRESHOLD_SET: RssiThreshold,
-            DebugSubOpcode.RSSI_THRESHOLD_STATUS: RssiThreshold,
-            DebugSubOpcode.RADIO_TEST: RadioTest,
-            DebugSubOpcode.TIMESLOT_TX_POWER_SET: TxPower,
-            DebugSubOpcode.TIMESLOT_TX_POWER_STATUS: TxPower,
-            DebugSubOpcode.SOFTDEVICE_TX_POWER_SET: TxPower,
-            DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS: TxPower,
-            DebugSubOpcode.UPTIME_STATUS: UptimeStatus,
-            DebugSubOpcode.LAST_SW_FAULT_STATUS: LastFault,
-            DebugSubOpcode.SYSTEM_STATS_STATUS: SystemStats,
-            DebugSubOpcode.LAST_MALLOC_FAULT_STATUS: LastFault,
-            DebugSubOpcode.LAST_FDS_FAULT_STATUS: LastFault,
-            DebugSubOpcode.BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS: GarbageCollector,
-            DebugSubOpcode.PROVISIONED_APP_VERSION_STATUS: AppVersion,
-            DebugSubOpcode.FULL_FIRMWARE_VERSION_STATUS: FirmwareVersion,
-            DebugSubOpcode.IV_INDEX_STATUS: IvIndex,
-            DebugSubOpcode.GARBAGE_COLLECTOR_COUNTER_STATUS: GarbageCollectorCounter,
-            DebugSubOpcode.ARAP_LIST_SIZE_STATUS: ArapSize,
-            DebugSubOpcode.ARAP_LIST_CONTENT_GET: ArapContentGet,
-            DebugSubOpcode.ARAP_LIST_CONTENT_STATUS: ArapContent,
-        },
-    ), None)
+    "payload" / DebugPayload,
 )
 
 DebugMessage = Struct(
     "opcode" / Const(DebugOpcode.SILVAIR_DEBUG, Opcode(DebugOpcode)),
-    "params" / DebugPayload
+    "params" / DebugParams
 )
 # fmt: on

@@ -23,23 +23,23 @@ import pytest
 from construct import ValidationError
 
 from bluetooth_mesh.messages.silvair.network_diagnostic_server import (
-    NetworkDiagnosticServerPayload,
+    NetworkDiagnosticServerParams,
     NetworkDiagnosticServerSubOpcode,
-    NetworkDiagnosticSetupServerPayload,
+    NetworkDiagnosticSetupServerParams,
     NetworkDiagnosticSetupServerSubOpcode,
 )
 
 # fmt: off
 valid = [
     pytest.param(
-        NetworkDiagnosticSetupServerPayload,
+        NetworkDiagnosticSetupServerParams,
         bytes.fromhex("00"),
         NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_GET,
         None,
         id='PublicationGet'
     ),
     pytest.param(
-        NetworkDiagnosticSetupServerPayload,
+        NetworkDiagnosticSetupServerParams,
         bytes.fromhex("01 1234 AAAA 82 03 1000"),
         NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET,
         dict(
@@ -53,7 +53,7 @@ valid = [
         id='PublicationSet (no features)'
     ),
     pytest.param(
-        NetworkDiagnosticSetupServerPayload,
+        NetworkDiagnosticSetupServerParams,
         bytes.fromhex("01 1234 AAAA 82 03 1000 0300"),
         NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET,
         dict(
@@ -67,7 +67,7 @@ valid = [
         id="PublicationSet (with features)"
     ),
     pytest.param(
-        NetworkDiagnosticSetupServerPayload,
+        NetworkDiagnosticSetupServerParams,
         bytes.fromhex("02 1234 AAAA 82 03 1000"),
         NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS,
         dict(
@@ -81,7 +81,7 @@ valid = [
         id="PublicationStatus (no features)"
     ),
     pytest.param(
-        NetworkDiagnosticSetupServerPayload,
+        NetworkDiagnosticSetupServerParams,
         bytes.fromhex("02 1234 AAAA 82 03 1000 0300"),
         NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS,
         dict(
@@ -95,14 +95,14 @@ valid = [
         id="PublicationStatus (with features)"
     ),
     pytest.param(
-        NetworkDiagnosticServerPayload,
+        NetworkDiagnosticServerParams,
         bytes.fromhex("00"),
         NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_GET,
         None,
         id="SubscriptionGet"
     ),
     pytest.param(
-        NetworkDiagnosticServerPayload,
+        NetworkDiagnosticServerParams,
         bytes.fromhex("01 1234 AAAA"),
         NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET,
         dict(
@@ -112,7 +112,7 @@ valid = [
         id="SubscriptionSet"
     ),
     pytest.param(
-        NetworkDiagnosticServerPayload,
+        NetworkDiagnosticServerParams,
         bytes.fromhex("03 1234 AAAA 20 5678 BBBB 00 00"),
         NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS,
         dict(
@@ -124,7 +124,7 @@ valid = [
         id="SubscriptionStatus (one record)"
     ),
     pytest.param(
-        NetworkDiagnosticServerPayload,
+        NetworkDiagnosticServerParams,
         bytes.fromhex("03 1234 AAAA 20 5678 BBBB 00 00 9101 CCCC 01 01"),
         NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS,
         dict(
@@ -154,7 +154,7 @@ def test_build_valid(klass, encoded, subopcode, payload):
 
 def test_prohibited_destination_addr_publication_set():
     with pytest.raises(ValidationError):
-        NetworkDiagnosticServerPayload.build(
+        NetworkDiagnosticServerParams.build(
             dict(
                 subopcode=NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET,
                 payload=dict(
@@ -171,7 +171,7 @@ def test_prohibited_destination_addr_publication_set():
 
 def test_prohibited_destination_addr_subscription_set():
     with pytest.raises(ValidationError):
-        NetworkDiagnosticServerPayload.build(
+        NetworkDiagnosticServerParams.build(
             dict(
                 subopcode=NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET,
                 payload=dict(destination=0xFF00, period=0xAAAA),
@@ -181,7 +181,7 @@ def test_prohibited_destination_addr_subscription_set():
 
 def test_prohibited_source_addr_subscription_stat():
     with pytest.raises(ValidationError):
-        NetworkDiagnosticServerPayload.build(
+        NetworkDiagnosticServerParams.build(
             dict(
                 subopcode=NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS,
                 payload=dict(

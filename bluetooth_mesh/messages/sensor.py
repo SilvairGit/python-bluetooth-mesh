@@ -49,7 +49,12 @@ from bluetooth_mesh.messages.properties import (
     PropertyID,
     PropertyValue,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, OpcodeMessage
+from bluetooth_mesh.messages.util import (
+    EnumAdapter,
+    FieldAdapter,
+    Opcode,
+    OpcodeMessage,
+)
 
 
 class SensorSampling(IntEnum):
@@ -98,9 +103,14 @@ class SensorSetupOpcode(IntEnum):
         return str(self.value)
 
 
-SensorPropertyId = Select(EnumAdapter(Int16ul, PropertyID), Int16ul)
-
 # fmt: off
+SensorPropertyId = FieldAdapter(
+    Select(
+        EnumAdapter(Int16ul, PropertyID),
+        Int16ul),
+    Int16ul
+)
+
 SensorGetMinimal = Struct()
 
 SensorGetOptional = Struct(
@@ -137,8 +147,12 @@ SensorSettingsStatus = Struct(
     "sensor_setting_property_ids" / GreedyRange(SensorPropertyId)
 )
 
-SensorDescriptor = Struct(
+SensorDescriptorMinimal = Struct(
     "sensor_property_id" / SensorPropertyId,
+)
+
+SensorDescriptorOptional = Struct(
+    Embedded(SensorDescriptorMinimal),
     *DoubleKeyIndex("sensor_negative_tolerance", "sensor_positive_tolerance"),
     "sensor_sampling_funcion" / Int8ul,
     "sensor_measurement_period" / Int8ul,
@@ -147,8 +161,8 @@ SensorDescriptor = Struct(
 
 SensorDescriptorStatus = GreedyRange(
     Select(
-        SensorDescriptor,
-        Struct("sensor_property_id" / SensorPropertyId),
+        SensorDescriptorOptional,
+        SensorDescriptorMinimal,
     ),
 )
 
@@ -210,9 +224,9 @@ class _SensorData(Construct):
 
         return obj
 
-SensorStatus = GreedyRange(
-    _SensorData()
-)
+SensorData = _SensorData()
+
+SensorStatus = GreedyRange(SensorData)
 
 # TODO: message not implemented due to somewhat complicated structure and lack of examples
 # SensorColumnGet = Struct(
