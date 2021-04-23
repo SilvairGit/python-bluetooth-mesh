@@ -33,7 +33,7 @@ from construct import (
     this,
 )
 
-from .util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode
 
 # fmt: off
 FaultTest = Struct(

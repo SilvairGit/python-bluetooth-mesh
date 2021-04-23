@@ -40,7 +40,7 @@ from construct import (
     Flag,
 )
 
-from .util import EnumAdapter, EmbeddedBitStruct, OpcodeMessage
+from bluetooth_mesh.messages.util import EnumAdapter, EmbeddedBitStruct, OpcodeMessage
 
 MS_IN_UNCERTAINTY_STEP = 10
 UNCERTAINTY_MS = 10
