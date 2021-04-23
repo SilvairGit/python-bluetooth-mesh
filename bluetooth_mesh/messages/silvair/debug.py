@@ -156,8 +156,8 @@ ArapSize8 = Struct(
 )
 
 ArapSize = Select(
-    ArapSize16,
-    ArapSize8,
+    new=ArapSize16,
+    old=ArapSize8,
 )
 
 ArapContentGet = Struct(

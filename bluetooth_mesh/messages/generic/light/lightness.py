@@ -80,8 +80,8 @@ LightLightnessStatusOptional = Struct(
 )
 
 LightLightnessStatus = Select(
-    LightLightnessStatusOptional,
-    LightLightnessStatusMinimal
+    optional=LightLightnessStatusOptional,
+    minimal=LightLightnessStatusMinimal
 )
 
 LightLightnessRange = Struct(
@@ -105,8 +105,8 @@ LightLightnessSetOptional = Struct(
 )
 
 LightLightnessSet = Select(
-    LightLightnessSetOptional,
-    LightLightnessSetMinimal
+    optional=LightLightnessSetOptional,
+    minimal=LightLightnessSetMinimal
 )
 
 LightLightnessMessage = OpcodeMessage({

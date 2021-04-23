@@ -50,7 +50,10 @@ GenericOnOffSetOptional = Struct(
     "delay" / Delay(Int8ul),
 )
 
-GenericOnOffSet = Select(GenericOnOffSetOptional, GenericOnOffSetMinimal)
+GenericOnOffSet = Select(
+    optional=GenericOnOffSetOptional,
+    minimal=GenericOnOffSetMinimal
+)
 
 GenericOnOffStatusMinimal = Struct("present_onoff" / Int8ul)
 
@@ -60,7 +63,10 @@ GenericOnOffStatusOptional = Struct(
     "remaining_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=True),
 )
 
-GenericOnOffStatus = Select(GenericOnOffStatusOptional, GenericOnOffStatusMinimal)
+GenericOnOffStatus = Select(
+    optional=GenericOnOffStatusOptional,
+    minimal=GenericOnOffStatusMinimal
+)
 
 
 GenericOnOffMessage = Struct(

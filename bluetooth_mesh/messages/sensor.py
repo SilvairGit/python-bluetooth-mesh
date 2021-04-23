@@ -118,8 +118,8 @@ SensorGetOptional = Struct(
 )
 
 SensorGet = Select(
-    SensorGetOptional,
-    SensorGetMinimal
+    optional=SensorGetOptional,
+    minimal=SensorGetMinimal
 )
 
 SensorSettingsGet = Struct(
@@ -159,12 +159,12 @@ SensorDescriptorOptional = Struct(
     "sensor_update_interval" / Int8ul
 )
 
-SensorDescriptorStatus = GreedyRange(
-    Select(
-        SensorDescriptorOptional,
-        SensorDescriptorMinimal,
-    ),
+SensorDescriptorStatusItem = Select(
+    optional=SensorDescriptorOptional,
+    minimal=SensorDescriptorMinimal
 )
+
+SensorDescriptorStatus = GreedyRange(SensorDescriptorStatusItem)
 
 class _SensorData(Construct):
     def _parse(self, stream, context, path):

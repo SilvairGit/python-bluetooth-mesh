@@ -76,8 +76,8 @@ SceneRecallWithTransition = Struct(
 )
 
 SceneRecall = Select(
-    SceneRecallWithTransition,
-    SceneRecallMinimal
+    optional=SceneRecallWithTransition,
+    minimal=SceneRecallMinimal
 )
 
 SceneStatusMinimal = Struct(
@@ -93,8 +93,8 @@ SceneStatusWithTargetScene = Struct(
 )
 
 SceneStatus = Select(
-    SceneStatusWithTargetScene,
-    SceneStatusMinimal
+    optional=SceneStatusWithTargetScene,
+    minimal=SceneStatusMinimal
 )
 
 SceneRegisterGet = Struct()
