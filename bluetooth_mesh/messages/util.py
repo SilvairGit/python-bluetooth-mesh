@@ -35,6 +35,7 @@ from construct import (
     Embedded,
     Enum,
     ExprValidator,
+    Float32b,
     Int8ub,
     Int16ub,
     Int24ub,
@@ -100,6 +101,8 @@ def EnumAdapter(subcon, enum):
         ENUM = enum
 
     class _EnumAdapter(Adapter):
+        _subcon = subcon
+
         def _decode(self, obj, context, path):
             if obj not in enum._value2member_map_:
                 raise ValidationError("object failed validation: %s" % (obj,))
@@ -122,6 +125,7 @@ def EnumAdapter(subcon, enum):
 def LogAdapter(subcon, *, max_value=None, infinity=False):
     class _LogAdapter(Adapter):
         MAX_TYPE_VALUE = int(math.pow(2, subcon.length * 8) - 1)
+        _subcon = subcon
 
         def _decode(self, obj, context, path):
             if obj == 0:
@@ -255,6 +259,8 @@ class Opcode(Construct):
 
 
 class DefaultCountValidator(Adapter):
+    _subcon = Float32b
+
     def __init__(self, subcon, rounding=None, resolution=1.0):
         super().__init__(subcon)
         self.rounding = rounding

@@ -569,9 +569,10 @@ Retransmit = BitStruct(
 
 
 class RetransmitAdapter(Adapter):
+    _subcon = Int16ul
+
     def __init__(self, subcon, interval):
         self.interval = interval
-        self.subcon = subcon
         super(RetransmitAdapter, self).__init__(subcon)
 
     def _decode(self, obj, context, path):
@@ -626,6 +627,8 @@ NetKeyIndex = SingleKeyIndex("net_key_index")
 
 
 class KeyIndicesAdapter(Adapter):
+    _subcon = GreedyRange(BitsInteger(12))
+
     def _decode(self, obj, context, path):
         """
         Flatten a list dictionaries into list of items:

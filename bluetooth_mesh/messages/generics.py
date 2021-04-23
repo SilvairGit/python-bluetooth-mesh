@@ -21,10 +21,11 @@
 #
 # pylint: disable=W0223
 
-from construct import Adapter, BitsInteger, BitStruct, Int8ul, Struct
+from construct import Adapter, BitsInteger, BitStruct, Float32b, Int8ul, Int16ul, Struct
 
 
 class TransitionTimeAdapter(Adapter):
+    _subcon = Float32b
     RESOLUTION = {0b00: 0.1, 0b01: 1, 0b10: 10, 0b11: 10 * 60}
 
     def __init__(self, subcon, allow_unknown=False):
@@ -50,6 +51,8 @@ class TransitionTimeAdapter(Adapter):
 
 
 class Delay(Adapter):
+    _subcon = Float32b
+
     def _decode(self, obj, context, path):
         return obj / 200
 
