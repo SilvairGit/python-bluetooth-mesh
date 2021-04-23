@@ -40,7 +40,6 @@ from construct import (
     Int24ul,
     Int32ul,
     PaddedString,
-    Probe,
     Struct,
     Switch,
     this,
@@ -263,7 +262,6 @@ Voltage = Struct(
 AverageVoltage = Struct(
     "voltage_value" / DefaultCountValidator(Int16ul, resolution=1/64),
     "sensing_duration" / TimeExponential8,
-    Probe(this)
 )
 
 VoltageRange = Struct(
