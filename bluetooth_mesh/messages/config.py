@@ -721,14 +721,21 @@ ConfigBeaconSet = Struct(
 
 ConfigBeaconStatus = ConfigBeaconSet
 
+class CompositionDataPage(enum.IntEnum):
+    ZERO = 0
+    LAST = 255
+
+CompositionDataPageAdapter = EnumAdapter(Int8ul, CompositionDataPage)
+
 ConfigCompositionDataGet = Struct(
-    "page" / Int8ul,
+    "page" / CompositionDataPageAdapter,
 )
 
 ConfigCompositionData = Switch(
         this.page,
         {
-            0: CompositionData,
+            CompositionDataPage.ZERO: CompositionData,
+            CompositionDataPage.LAST: GreedyBytes,
         },
         default=GreedyBytes
 )
