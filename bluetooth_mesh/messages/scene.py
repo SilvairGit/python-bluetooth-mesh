@@ -38,7 +38,7 @@ from bluetooth_mesh.messages.generics import (
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
 
 
 class SceneOpcode(IntEnum):
@@ -113,7 +113,7 @@ SceneSetup = Struct(
     "scene_number" / Int16ul
 )
 
-SceneMessage = Struct(
+SceneMessage = SwitchStruct(
     "opcode" / Opcode(SceneOpcode),
     "params" / Switch(
         this.opcode,

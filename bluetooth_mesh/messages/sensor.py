@@ -50,10 +50,11 @@ from bluetooth_mesh.messages.properties import (
     PropertyValue,
 )
 from bluetooth_mesh.messages.util import (
+    AliasedContainer,
     EnumAdapter,
     FieldAdapter,
     Opcode,
-    OpcodeMessage,
+    SwitchStruct,
 )
 
 
@@ -185,36 +186,27 @@ class _SensorData(Construct):
             length = (property_id[0] >> 1) + 1
             sensor_setting_property_id = property_id[1] | property_id[2] << 8
             sensor_setting_raw = list(stream_read(stream, length))
-
-            try:
-                sensor_setting_property_id = PropertyID(sensor_setting_property_id)
-                sensor_setting_name = sensor_setting_property_id.name.lower()
-            except ValueError:
-                sensor_setting_name = "raw"
-
-            return Container({
-                "format": 1,
-                "length": length,
-                "sensor_setting_property_id": sensor_setting_property_id,
-                sensor_setting_name: sensor_setting_raw
-                })
         else:
             length = ((property_id[0] >> 1) & 0b1111) + 1
             sensor_setting_property_id = (property_id[0] >> 5 & 0b111) | property_id[1] << 3
             sensor_setting_raw = PropertyDict[sensor_setting_property_id]._parse(stream, context, path)
 
-            try:
-                sensor_setting_property_id = PropertyID(sensor_setting_property_id)
-                sensor_setting_name = sensor_setting_property_id.name.lower()
-            except ValueError:
-                sensor_setting_name = "raw"
+        try:
+            sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+            sensor_setting_name = sensor_setting_property_id.name.lower()
+        except ValueError:
+            sensor_setting_name = "sensor_setting_raw"
 
-            return Container({
-                "format": 0,
-                "length": length,
-                "sensor_setting_property_id": sensor_setting_property_id,
-                sensor_setting_name: sensor_setting_raw
-            })
+        class _Container(AliasedContainer):
+            ALIAS = sensor_setting_name
+            ORIGINAL = "sensor_setting_raw"
+
+        return _Container({
+            "format": format,
+            "length": length,
+            "sensor_setting_property_id": sensor_setting_property_id,
+            sensor_setting_name: sensor_setting_raw
+        })
 
     def _build(self, obj, stream, context, path):
         format = obj["format"]
@@ -225,9 +217,12 @@ class _SensorData(Construct):
             sensor_setting_property_id = PropertyID(sensor_setting_property_id)
             sensor_setting_name = sensor_setting_property_id.name.lower()
         except ValueError:
-            sensor_setting_name = "raw"
+            sensor_setting_name = "sensor_setting_raw"
 
-        sensor_setting_raw = obj[sensor_setting_name]
+        try:
+            sensor_setting_raw = obj[sensor_setting_name]
+        except KeyError:
+            sensor_setting_raw = obj["sensor_setting_raw"]
 
         if format:
             stream_write(stream, bytes([(length - 1) << 1 | 0x01]))
@@ -289,28 +284,39 @@ TriggerDelta = Struct(
 #     "fast_cadence_high" / PropertyValue
 # )
 
-SensorMessage = OpcodeMessage({
-    SensorOpcode.SENSOR_DESCRIPTOR_GET: SensorGet,
-    SensorOpcode.SENSOR_DESCRIPTOR_STATUS: SensorDescriptorStatus,
-    SensorOpcode.SENSOR_GET: SensorGet,
-    SensorOpcode.SENSOR_STATUS: SensorStatus,
-    # SensorOpcode.SENSOR_COLUMN_GET: SensorColumnGet,
-    # SensorOpcode.SENSOR_COLUMN_STATUS: 0x00,
-    # SensorOpcode.SENSOR_SERIES_GET: SensorSeriesGet,
-    # SensorOpcode.SENSOR_SERIES_STATUS: 0x00,
-})
+SensorMessage = SwitchStruct(
+    "opcode" / Opcode(SensorOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            SensorOpcode.SENSOR_DESCRIPTOR_GET: SensorGet,
+            SensorOpcode.SENSOR_DESCRIPTOR_STATUS: SensorDescriptorStatus,
+            SensorOpcode.SENSOR_GET: SensorGet,
+            SensorOpcode.SENSOR_STATUS: SensorStatus,
+            # SensorOpcode.SENSOR_COLUMN_GET: SensorColumnGet,
+            # SensorOpcode.SENSOR_COLUMN_STATUS: 0x00,
+            # SensorOpcode.SENSOR_SERIES_GET: SensorSeriesGet,
+            # SensorOpcode.SENSOR_SERIES_STATUS: 0x00,
+        }
+    )
+)
 
-
-SensorSetupMessage = OpcodeMessage({
-    SensorSetupOpcode.SENSOR_CADENCE_GET: SensorGetOptional,
-    # SensorSetupOpcode.SENSOR_CADENCE_SET: SensorCadence,
-    # SensorSetupOpcode.SENSOR_CADENCE_SET_UNACKNOWLEDGED: SensorCadence,
-    # SensorSetupOpcode.SENSOR_CADENCE_STATUS: SensorCadence,
-    SensorSetupOpcode.SENSOR_SETTINGS_GET: SensorSettingsGet,
-    SensorSetupOpcode.SENSOR_SETTINGS_STATUS: SensorSettingsStatus,
-    SensorSetupOpcode.SENSOR_SETTING_GET: SensorSettingGet,
-    SensorSetupOpcode.SENSOR_SETTING_SET: SensorSettingSet,
-    SensorSetupOpcode.SENSOR_SETTING_SET_UNACKNOWLEDGED: SensorSettingSet,
-    SensorSetupOpcode.SENSOR_SETTING_STATUS: SensorSettingStatus,
-})
+SensorSetupMessage = SwitchStruct(
+    "opcode" / Opcode(SensorSetupOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            SensorSetupOpcode.SENSOR_CADENCE_GET: SensorGetOptional,
+            # SensorSetupOpcode.SENSOR_CADENCE_SET: SensorCadence,
+            # SensorSetupOpcode.SENSOR_CADENCE_SET_UNACKNOWLEDGED: SensorCadence,
+            # SensorSetupOpcode.SENSOR_CADENCE_STATUS: SensorCadence,
+            SensorSetupOpcode.SENSOR_SETTINGS_GET: SensorSettingsGet,
+            SensorSetupOpcode.SENSOR_SETTINGS_STATUS: SensorSettingsStatus,
+            SensorSetupOpcode.SENSOR_SETTING_GET: SensorSettingGet,
+            SensorSetupOpcode.SENSOR_SETTING_SET: SensorSettingSet,
+            SensorSetupOpcode.SENSOR_SETTING_SET_UNACKNOWLEDGED: SensorSettingSet,
+            SensorSetupOpcode.SENSOR_SETTING_STATUS: SensorSettingStatus,
+        }
+    )
+)
 # fmt: on

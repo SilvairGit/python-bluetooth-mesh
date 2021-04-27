@@ -28,7 +28,7 @@ from bluetooth_mesh.messages.generics import (
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
 
 
 class GenericLevelOpcode(IntEnum):
@@ -105,7 +105,7 @@ GenericLevelStatus = Select(
     minimal=GenericLevelStatusMinimal
 )
 
-GenericLevelMessage = Struct(
+GenericLevelMessage = SwitchStruct(
     "opcode" / Opcode(GenericLevelOpcode),
     "params" / Switch(
         this.opcode,

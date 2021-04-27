@@ -121,7 +121,7 @@ valid = [
         [dict(sensor_setting_property_id=0x4090,
               length=5,
               format=1,
-              raw=list(b'\xa2\x44\xff\x00\x00'))
+              sensor_setting_raw=list(b'\xa2\x44\xff\x00\x00'))
         ],
         id="SENSOR_STATUS_VENDOR_PROPERTY"),
     pytest.param(
@@ -718,3 +718,25 @@ def test_build_valid_property(encoded, data):
         )
         == encoded
     )
+
+
+def test_parse_sensor_setting_raw():
+    sensor_status = SensorMessage.parse(b"\x52\xe2\x0a\xc8\x00").params[0]
+    assert sensor_status.sensor_setting_raw == sensor_status.present_input_current
+
+
+def test_build_sensor_setting_raw():
+    encoded = SensorMessage.build(
+        dict(
+            opcode=SensorOpcode.SENSOR_STATUS,
+            params=[
+                dict(
+                    sensor_setting_property_id=PropertyID.PRESENT_INPUT_CURRENT,
+                    length=2,
+                    format=0,
+                    sensor_setting_raw=dict(current=2.0),
+                )
+            ],
+        )
+    )
+    assert encoded == b"\x52\xe2\x0a\xc8\x00"

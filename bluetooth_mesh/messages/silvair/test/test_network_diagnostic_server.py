@@ -144,7 +144,8 @@ valid = [
 
 @pytest.mark.parametrize("klass,encoded,subopcode,payload", valid)
 def test_parse_valid(klass, encoded, subopcode, payload):
-    assert klass.parse(encoded) == dict(subopcode=subopcode, payload=payload)
+    assert klass.parse(encoded).subopcode == subopcode
+    assert klass.parse(encoded).payload == payload
 
 
 @pytest.mark.parametrize("klass,encoded,subopcode,payload", valid)

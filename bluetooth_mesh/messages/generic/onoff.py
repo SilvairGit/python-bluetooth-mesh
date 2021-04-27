@@ -28,7 +28,7 @@ from bluetooth_mesh.messages.generics import (
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
 
 
 class GenericOnOffOpcode(IntEnum):
@@ -74,7 +74,7 @@ GenericOnOffStatus = Select(
 )
 
 
-GenericOnOffMessage = Struct(
+GenericOnOffMessage = SwitchStruct(
     "opcode" / Opcode(GenericOnOffOpcode),
     "params" / Switch(
         this.opcode,

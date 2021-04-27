@@ -102,7 +102,8 @@ def EnumAdapter(subcon, enum):
         ENUM = enum
 
     class _EnumAdapter(Adapter):
-        _subcon = subcon
+        type = enum
+        _enum = enum
 
         def _decode(self, obj, context, path):
             if obj not in enum._value2member_map_:
@@ -344,27 +345,51 @@ class DictAdapter(Adapter):
                 yield {key_name: k, value_name: v}
 
 
-class OpcodeMessage(Construct):
-    OPCODE = Opcode()
+class AliasedContainer(Container):
+    ALIAS = None
+    ORIGINAL = None
 
-    def __init__(self, opcodes):
-        super().__init__()
-        self._subcon = Struct("opcode" / Opcode(), "params" / Switch(this.opcode, opcodes))
-        self.opcodes = {k: v.compile() for k, v in opcodes.items()}
+    def __getattr__(self, name):
+        if name == self.ORIGINAL:
+            name = self.ALIAS
 
-    def _parse(self, stream, context, path):
-        opcode = self.OPCODE._parse(stream, context, path)
-        params = self.opcodes[opcode]._parse(stream, context, path)
+        return super().__getattr__(name)
 
-        return Container(opcode=opcode, params=params)
+    def __getitem__(self, name):
+        if name == self.ORIGINAL:
+            name = self.ALIAS
 
-    def _build(self, obj, stream, context, path):
-        opcode = obj["opcode"]
+        return super().__getitem__(name)
 
-        self.OPCODE._build(opcode, stream, context, path)
-        self.opcodes[opcode]._build(obj["params"], stream, context, path)
 
-        return obj
+class SwitchStruct(Adapter):
+    def __init__(self, key, switch):
+        super().__init__(Struct(key, switch))
+        self.key = key
+        self.switch = switch
+        self._subcon = Struct(key, switch.subcon)
 
-    def _sizeof(self, context, path):
-        raise SizeofError
+    def _decode(self, obj, context, path):
+        key = self.switch.keyfunc(obj)
+
+        try:
+            value = obj[self.switch.name]
+        except KeyError:
+            value = obj[key.name.lower()]
+
+        class _Container(AliasedContainer):
+            ORIGINAL = self.switch.name
+            ALIAS = key.name.lower()
+
+        return _Container({self.key.name: key, key.name.lower(): value})
+
+    def _encode(self, obj, context, path):
+        keytype = self.key.subcon.type
+        key = keytype(self.switch.keyfunc(obj))
+
+        try:
+            value = obj[key.name.lower()]
+        except KeyError:
+            value = obj[self.switch.name]
+
+        return Container({self.key.name: key, self.switch.name: value})

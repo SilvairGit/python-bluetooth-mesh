@@ -42,7 +42,7 @@ from construct import (
     this,
 )
 
-from bluetooth_mesh.messages.util import DictAdapter, EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import DictAdapter, EnumAdapter, Opcode, SwitchStruct
 
 
 class DebugOpcode(IntEnum):
@@ -182,39 +182,42 @@ ArapContent = Struct(
     )
 )
 
-DebugPayload = Default(Switch(
-    this.subopcode,
-    {
-        DebugSubOpcode.RSSI_THRESHOLD_SET: RssiThreshold,
-        DebugSubOpcode.RSSI_THRESHOLD_STATUS: RssiThreshold,
-        DebugSubOpcode.RADIO_TEST: RadioTest,
-        DebugSubOpcode.TIMESLOT_TX_POWER_SET: TxPower,
-        DebugSubOpcode.TIMESLOT_TX_POWER_STATUS: TxPower,
-        DebugSubOpcode.SOFTDEVICE_TX_POWER_SET: TxPower,
-        DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS: TxPower,
-        DebugSubOpcode.UPTIME_STATUS: UptimeStatus,
-        DebugSubOpcode.LAST_SW_FAULT_STATUS: LastFault,
-        DebugSubOpcode.SYSTEM_STATS_STATUS: SystemStats,
-        DebugSubOpcode.LAST_MALLOC_FAULT_STATUS: LastFault,
-        DebugSubOpcode.LAST_FDS_FAULT_STATUS: LastFault,
-        DebugSubOpcode.BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS: GarbageCollector,
-        DebugSubOpcode.PROVISIONED_APP_VERSION_STATUS: AppVersion,
-        DebugSubOpcode.FULL_FIRMWARE_VERSION_STATUS: FirmwareVersion,
-        DebugSubOpcode.IV_INDEX_STATUS: IvIndex,
-        DebugSubOpcode.GARBAGE_COLLECTOR_COUNTER_STATUS: GarbageCollectorCounter,
-        DebugSubOpcode.ARAP_LIST_SIZE_STATUS: ArapSize,
-        DebugSubOpcode.ARAP_LIST_CONTENT_GET: ArapContentGet,
-        DebugSubOpcode.ARAP_LIST_CONTENT_STATUS: ArapContent,
-    }
-), None)
-
-DebugParams = Struct(
+DebugParams = SwitchStruct(
     "subopcode" / EnumAdapter(Int8ul, DebugSubOpcode),
-    "payload" / DebugPayload,
+    "payload" / Switch(
+        this.subopcode,
+        {
+            DebugSubOpcode.RSSI_THRESHOLD_SET: RssiThreshold,
+            DebugSubOpcode.RSSI_THRESHOLD_STATUS: RssiThreshold,
+            DebugSubOpcode.RADIO_TEST: RadioTest,
+            DebugSubOpcode.TIMESLOT_TX_POWER_SET: TxPower,
+            DebugSubOpcode.TIMESLOT_TX_POWER_STATUS: TxPower,
+            DebugSubOpcode.SOFTDEVICE_TX_POWER_SET: TxPower,
+            DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS: TxPower,
+            DebugSubOpcode.UPTIME_STATUS: UptimeStatus,
+            DebugSubOpcode.LAST_SW_FAULT_STATUS: LastFault,
+            DebugSubOpcode.SYSTEM_STATS_STATUS: SystemStats,
+            DebugSubOpcode.LAST_MALLOC_FAULT_STATUS: LastFault,
+            DebugSubOpcode.LAST_FDS_FAULT_STATUS: LastFault,
+            DebugSubOpcode.BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS: GarbageCollector,
+            DebugSubOpcode.PROVISIONED_APP_VERSION_STATUS: AppVersion,
+            DebugSubOpcode.FULL_FIRMWARE_VERSION_STATUS: FirmwareVersion,
+            DebugSubOpcode.IV_INDEX_STATUS: IvIndex,
+            DebugSubOpcode.GARBAGE_COLLECTOR_COUNTER_STATUS: GarbageCollectorCounter,
+            DebugSubOpcode.ARAP_LIST_SIZE_STATUS: ArapSize,
+            DebugSubOpcode.ARAP_LIST_CONTENT_GET: ArapContentGet,
+            DebugSubOpcode.ARAP_LIST_CONTENT_STATUS: ArapContent,
+        }
+    )
 )
 
-DebugMessage = Struct(
-    "opcode" / Const(DebugOpcode.SILVAIR_DEBUG, Opcode(DebugOpcode)),
-    "params" / DebugParams
+DebugMessage = SwitchStruct(
+    "opcode" / Opcode(DebugOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            DebugOpcode.SILVAIR_DEBUG: DebugParams,
+        }
+    )
 )
 # fmt: on

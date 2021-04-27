@@ -238,7 +238,10 @@ invalid_build = [
 
 @pytest.mark.parametrize("encoded,subopcode,payload", valid + valid_parse)
 def test_parse_valid(encoded, subopcode, payload):
-    assert DebugParams.parse(encoded) == dict(subopcode=subopcode, payload=payload)
+    decoded = DebugParams.parse(encoded)
+    assert decoded.subopcode == subopcode
+    assert decoded.payload == payload
+    assert decoded[subopcode.name.lower()] == payload
 
 
 @pytest.mark.parametrize("encoded,subopcode,payload", valid + invalid_build)
