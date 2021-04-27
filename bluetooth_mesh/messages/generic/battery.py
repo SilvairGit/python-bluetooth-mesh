@@ -23,7 +23,12 @@ from enum import IntEnum
 
 from construct import BitsInteger, BitStruct, Int8ul, Int24ul, Struct, Switch, this
 
-from bluetooth_mesh.messages.util import DefaultCountValidator, EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import (
+    DefaultCountValidator,
+    EnumAdapter,
+    Opcode,
+    SwitchStruct,
+)
 
 
 class GenericBatteryOpcode(IntEnum):
@@ -80,7 +85,7 @@ GenericBatteryStatus = Struct(
     "flags" / BatteryFlags
 )
 
-GenericBatteryMessage = Struct(
+GenericBatteryMessage = SwitchStruct(
     "opcode" / Opcode(GenericBatteryOpcode),
     "params" / Switch(
         this.opcode,

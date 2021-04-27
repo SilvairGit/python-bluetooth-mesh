@@ -33,6 +33,11 @@ valid = [
                 "test_id": 0,
                 "company_id": 0x0136,
                 "fault_array": [0x03, 0x04, 0x05]
+            },
+            "current_status": {
+                "test_id": 0,
+                "company_id": 0x0136,
+                "fault_array": [0x03, 0x04, 0x05]
             }
         },
         id="1 byte opcode"
@@ -42,6 +47,10 @@ valid = [
         {
             "opcode": 0x8032,
             "params": {
+                "test_id": 1,
+                "company_id": 0x0136
+            },
+            "fault_test": {
                 "test_id": 1,
                 "company_id": 0x0136
             }

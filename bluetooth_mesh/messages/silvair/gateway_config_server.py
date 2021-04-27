@@ -42,6 +42,7 @@ from bluetooth_mesh.messages.util import (
     IpAddressAdapter,
     MacAddressAdapter,
     Opcode,
+    SwitchStruct,
 )
 
 
@@ -210,30 +211,33 @@ PacketsStatus = Struct(
     "connection_state" / ConnectionState,
 )
 
-GatewayConfigPayload = Default(Switch(
-    this.subopcode,
-    {
-        GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_SET: ConfigurationSet,
-        GatewayConfigServerSubOpcode.MTU_SIZE_SET: ConfigurationSetMtu,
-        GatewayConfigServerSubOpcode.ETHERNET_MAC_ADDRESS_SET: ConfigurationSetMacAddr,
-        GatewayConfigServerSubOpcode.SERVER_ADDRESS_AND_PORT_NUMBER_SET: ConfigurationSetServerAddrAndPortNr,
-        GatewayConfigServerSubOpcode.RECONNECT_INTERVAL_SET: ConfigurationSetReconnectInterval,
-        GatewayConfigServerSubOpcode.DNS_IP_ADDRESS_SET: ConfigurationSetDnsIpAddr,
-        GatewayConfigServerSubOpcode.IP_ADDRESS_SET: ConfigurationSetIpAddr,
-        GatewayConfigServerSubOpcode.GATEWAY_IP_ADDRESS_SET: ConfigurationSetGatewayIpAddr,
-        GatewayConfigServerSubOpcode.NETMASK_SET: ConfigurationSetNetmask,
-        GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS: ConfigurationStatus,
-        GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS: PacketsStatus,
-    },
-), None)
-
-GatewayConfigParams = Struct(
+GatewayConfigParams = SwitchStruct(
     "subopcode" / EnumAdapter(Int8ul, GatewayConfigServerSubOpcode),
-    "payload" / GatewayConfigPayload
+    "payload" / Switch(
+        this.subopcode,
+        {
+            GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_SET: ConfigurationSet,
+            GatewayConfigServerSubOpcode.MTU_SIZE_SET: ConfigurationSetMtu,
+            GatewayConfigServerSubOpcode.ETHERNET_MAC_ADDRESS_SET: ConfigurationSetMacAddr,
+            GatewayConfigServerSubOpcode.SERVER_ADDRESS_AND_PORT_NUMBER_SET: ConfigurationSetServerAddrAndPortNr,
+            GatewayConfigServerSubOpcode.RECONNECT_INTERVAL_SET: ConfigurationSetReconnectInterval,
+            GatewayConfigServerSubOpcode.DNS_IP_ADDRESS_SET: ConfigurationSetDnsIpAddr,
+            GatewayConfigServerSubOpcode.IP_ADDRESS_SET: ConfigurationSetIpAddr,
+            GatewayConfigServerSubOpcode.GATEWAY_IP_ADDRESS_SET: ConfigurationSetGatewayIpAddr,
+            GatewayConfigServerSubOpcode.NETMASK_SET: ConfigurationSetNetmask,
+            GatewayConfigServerSubOpcode.GATEWAY_CONFIGURATION_STATUS: ConfigurationStatus,
+            GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS: PacketsStatus,
+        },
+    )
 )
 
-GatewayConfigMessage = Struct(
-    "opcode" / Const(GatewayConfigServerOpcode.SILVAIR_GATEWAY, Opcode(GatewayConfigServerOpcode)),
-    "params" / GatewayConfigParams
+GatewayConfigMessage = SwitchStruct(
+    "opcode" / Opcode(GatewayConfigServerOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            GatewayConfigServerOpcode.SILVAIR_GATEWAY: GatewayConfigParams
+        }
+    )
 )
 # fmt: on

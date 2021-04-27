@@ -36,12 +36,18 @@ from construct import (
     Select,
     StopIf,
     Struct,
+    Switch,
     stream_read,
     stream_write,
     this,
 )
 
-from bluetooth_mesh.messages.util import EmbeddedBitStruct, EnumAdapter, OpcodeMessage
+from bluetooth_mesh.messages.util import (
+    EmbeddedBitStruct,
+    EnumAdapter,
+    Opcode,
+    SwitchStruct,
+)
 
 MS_IN_UNCERTAINTY_STEP = 10
 UNCERTAINTY_MS = 10
@@ -219,17 +225,24 @@ class TimeOpcode(enum.IntEnum):
 
 
 # fmt: off
-TimeMessage = OpcodeMessage({
-    TimeOpcode.TIME_GET: TimeGet,
-    TimeOpcode.TIME_SET: TimeSet,
-    TimeOpcode.TIME_STATUS: TimeStatus,
-    TimeOpcode.TIME_ZONE_GET: TimeZoneGet,
-    TimeOpcode.TIME_ZONE_SET: TimeZoneSet,
-    TimeOpcode.TIME_ZONE_STATUS: TimeZoneStatus,
-    TimeOpcode.TAI_UTC_DELTA_GET: TAIUTCDeltaGet,
-    TimeOpcode.TAI_UTC_DELTA_SET: TAIUTCDeltaSet,
-    TimeOpcode.TAI_UTC_DELTA_STATUS: TAIUTCDeltaStatus,
-    TimeOpcode.TIME_ROLE_GET: TimeRoleGet,
-    TimeOpcode.TIME_ROLE_SET: TimeRoleSet,
-    TimeOpcode.TIME_ROLE_STATUS: TimeRoleStatus})
+TimeMessage = SwitchStruct(
+    "opcode" / Opcode(TimeOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            TimeOpcode.TIME_GET: TimeGet,
+            TimeOpcode.TIME_SET: TimeSet,
+            TimeOpcode.TIME_STATUS: TimeStatus,
+            TimeOpcode.TIME_ZONE_GET: TimeZoneGet,
+            TimeOpcode.TIME_ZONE_SET: TimeZoneSet,
+            TimeOpcode.TIME_ZONE_STATUS: TimeZoneStatus,
+            TimeOpcode.TAI_UTC_DELTA_GET: TAIUTCDeltaGet,
+            TimeOpcode.TAI_UTC_DELTA_SET: TAIUTCDeltaSet,
+            TimeOpcode.TAI_UTC_DELTA_STATUS: TAIUTCDeltaStatus,
+            TimeOpcode.TIME_ROLE_GET: TimeRoleGet,
+            TimeOpcode.TIME_ROLE_SET: TimeRoleSet,
+            TimeOpcode.TIME_ROLE_STATUS: TimeRoleStatus
+        }
+    )
+)
 # fmt: on

@@ -26,6 +26,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from bluetooth_mesh import Element
+from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
 from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.test.fixtures import *  # pylint: disable=W0614, W0401
@@ -72,7 +73,8 @@ def element(model_mocks):
     return mock_element
 
 
-def test_message_received(element, source, app_index, status_encoded, status_parsed):
+def test_message_received(element, source, app_index, status_encoded):
+    status_parsed = AccessMessage.parse(status_encoded)
     element.message_received(source, app_index, False, status_encoded)
     MockModel.INSTANCES[0].message_received.assert_called_once_with(
         source, app_index, False, status_parsed
@@ -84,9 +86,8 @@ def test_other_opcode_message_received(element, source, app_index, get_encoded):
     MockModel.INSTANCES[0].message_received.assert_not_called()
 
 
-def test_dev_message_received(
-    element, source, net_index, status_encoded, status_parsed
-):
+def test_dev_message_received(element, source, net_index, status_encoded):
+    status_parsed = AccessMessage.parse(status_encoded)
     element.dev_key_message_received(source, True, net_index, status_encoded)
     MockModel.INSTANCES[0].dev_key_message_received.assert_called_once_with(
         source, True, net_index, status_parsed

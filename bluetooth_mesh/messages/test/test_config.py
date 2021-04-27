@@ -454,6 +454,22 @@ valid = [
                         "vendor_models": []
                     }
                 ]
+            },
+            "zero": {
+                "CID": 0x0136,
+                "PID": 0x00CE,
+                "VID": 0xCAFE,
+                "CRPL": 0xBEEF,
+                "features": 0xB00B,
+                "elements": [
+                    {
+                        "location": GATTNamespaceDescriptor.UNKNOWN,
+                        "SIG_number": 0x00,
+                        "vendor_number": 0x00,
+                        "SIG_models": [],
+                        "vendor_models": []
+                    }
+                ]
             }
         },
         id="ConfigCompositionDataStatus - page 0",),
@@ -462,7 +478,8 @@ valid = [
         bytes.fromhex('01CAFE'),
         {
             "page": 0x01,
-            "data": bytes.fromhex('CAFE')
+            "data": bytes.fromhex('CAFE'),
+            "first": bytes.fromhex('CAFE')
         },
         id="ConfigCompositionDataStatus - not page 0"
     ),
@@ -1014,17 +1031,18 @@ def test_build_invalid(message, decoded, exception):
         message.build(obj=decoded)
 
 
-def test_build_config_message():
-    key = bytes.fromhex("deadbeef" * 4)
+@pytest.mark.parametrize("key", ["params", "appkey_add"])
+def test_build_config_message(key):
+    app_key = bytes.fromhex("deadbeef" * 4)
 
     data = ConfigMessage.build(
-        dict(
-            opcode=ConfigOpcode.APPKEY_ADD,
-            params=dict(app_key_index=1, net_key_index=1, app_key=key,),
-        )
+        {
+            "opcode": ConfigOpcode.APPKEY_ADD,
+            key: dict(app_key_index=1, net_key_index=1, app_key=app_key,),
+        }
     )
 
-    assert data == bytes.fromhex("00011000") + key
+    assert data == bytes.fromhex("00011000") + app_key
 
 
 def test_parse_config_message():
@@ -1035,6 +1053,7 @@ def test_parse_config_message():
     assert msg == dict(
         opcode=ConfigOpcode.APPKEY_ADD,
         params=dict(app_key_index=1, net_key_index=1, app_key=key,),
+        appkey_add=dict(app_key_index=1, net_key_index=1, app_key=key,),
     )
 
 

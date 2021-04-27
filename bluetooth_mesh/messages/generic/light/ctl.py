@@ -29,7 +29,7 @@ from bluetooth_mesh.messages.generics import (
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
 
 
 class LightCTLOpcode(IntEnum):
@@ -145,7 +145,7 @@ LightCTLRangeStatus = Struct(
 )
 
 
-LightCTLMessage = Struct(
+LightCTLMessage = SwitchStruct(
     "opcode" / Opcode(LightCTLOpcode),
     "params" / Switch(
         this.opcode,
@@ -167,7 +167,7 @@ LightCTLMessage = Struct(
 )
 
 
-LightCTLSetupMessage = Struct(
+LightCTLSetupMessage = SwitchStruct(
     "opcode" / Opcode(LightCTLSetupOpcode),
     "params" / Switch(
         this.opcode,

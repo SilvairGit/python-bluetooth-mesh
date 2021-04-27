@@ -43,7 +43,7 @@ from bluetooth_mesh.messages.config import (
     UnicastUnassignedGroupAddress,
 )
 from bluetooth_mesh.messages.generic.onoff import TransitionTime
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
 
 MAX_RECORD_COUNT = 32
 
@@ -126,26 +126,34 @@ NetworkDiagnosticServerParams = Struct(
     "payload" / NetworkDiagnosticServerPayload
 )
 
-NetworkDiagnosticSetupServerPayload = Default(Switch(
-    this.subopcode,
-    {
-        NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET: NetworkDiagnosticSetupServerPublicationSet,
-        NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS: NetworkDiagnosticSetupServerPublicationStatus,
-    }
-), None)
-
-NetworkDiagnosticSetupServerParams = Struct(
+NetworkDiagnosticSetupServerParams = SwitchStruct(
     "subopcode" / EnumAdapter(Int8ul, NetworkDiagnosticSetupServerSubOpcode),
-    "payload" / NetworkDiagnosticSetupServerPayload
+    "payload" / Switch(
+        this.subopcode,
+        {
+            NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET: NetworkDiagnosticSetupServerPublicationSet,
+            NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS: NetworkDiagnosticSetupServerPublicationStatus,
+        }
+    )
 )
 
-NetworkDiagnosticServerMessage = Struct(
-    "opcode" / Const(NetworkDiagnosticServerOpcode.SILVAIR_NDS, Opcode(NetworkDiagnosticServerOpcode)),
-    "params" / NetworkDiagnosticServerParams
+NetworkDiagnosticServerMessage = SwitchStruct(
+    "opcode" / Opcode(NetworkDiagnosticServerOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            NetworkDiagnosticServerOpcode.SILVAIR_NDS: NetworkDiagnosticServerParams
+        }
+    )
 )
 
-NetworkDiagnosticSetupServerMessage = Struct(
-    "opcode" / Const(NetworkDiagnosticSetupServerOpcode.SILVAIR_NDS_SETUP, Opcode(NetworkDiagnosticSetupServerOpcode)),
-    "params" / NetworkDiagnosticSetupServerParams
+NetworkDiagnosticSetupServerMessage = SwitchStruct(
+    "opcode" / Opcode(NetworkDiagnosticSetupServerOpcode),
+    "params" / Switch(
+        this.opcode,
+        {
+            NetworkDiagnosticSetupServerOpcode.SILVAIR_NDS_SETUP: NetworkDiagnosticSetupServerParams
+        }
+    )
 )
 # fmt: on

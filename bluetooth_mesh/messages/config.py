@@ -55,6 +55,7 @@ from bluetooth_mesh.messages.util import (
     Opcode,
     RangeValidator,
     Reversed,
+    SwitchStruct,
 )
 
 
@@ -723,7 +724,8 @@ ConfigBeaconStatus = ConfigBeaconSet
 
 class CompositionDataPage(enum.IntEnum):
     ZERO = 0
-    LAST = 255
+    FIRST = 1
+    TWO_HUNDRED_AND_FIFTY_FIFTH = 255
 
 CompositionDataPageAdapter = EnumAdapter(Int8ul, CompositionDataPage)
 
@@ -732,16 +734,16 @@ ConfigCompositionDataGet = Struct(
 )
 
 ConfigCompositionData = Switch(
-        this.page,
-        {
-            CompositionDataPage.ZERO: CompositionData,
-            CompositionDataPage.LAST: GreedyBytes,
-        },
-        default=GreedyBytes
+    this.page,
+    {
+        CompositionDataPage.ZERO: CompositionData,
+        CompositionDataPage.FIRST: GreedyBytes,
+        CompositionDataPage.TWO_HUNDRED_AND_FIFTY_FIFTH: GreedyBytes,
+    }
 )
 
-ConfigCompositionDataStatus = Struct(
-    "page" / Int8ul,
+ConfigCompositionDataStatus = SwitchStruct(
+    "page" / CompositionDataPageAdapter,
     "data" / ConfigCompositionData,
 )
 
@@ -1118,7 +1120,7 @@ class ConfigOpcode(enum.IntEnum):
 
 
 # fmt: off
-ConfigMessage = Struct(
+ConfigMessage = SwitchStruct(
     "opcode" / Opcode(ConfigOpcode),
     "params" / Switch(
         this.opcode,

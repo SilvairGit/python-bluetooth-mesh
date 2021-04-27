@@ -33,7 +33,7 @@ from construct import (
     this,
 )
 
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
 
 # fmt: off
 FaultTest = Struct(
@@ -101,7 +101,7 @@ class HealthOpcode(enum.IntEnum):
 
 
 # fmt: off
-HealthMessage = Struct(
+HealthMessage = SwitchStruct(
     "opcode" / Opcode(HealthOpcode),
     "params" / Switch(
         this.opcode,
