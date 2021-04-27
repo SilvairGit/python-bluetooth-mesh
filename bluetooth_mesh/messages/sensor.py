@@ -55,6 +55,7 @@ from bluetooth_mesh.messages.util import (
     FieldAdapter,
     Opcode,
     SwitchStruct,
+    NamedSelect,
 )
 
 
@@ -118,7 +119,7 @@ SensorGetOptional = Struct(
     "property_id" / SensorPropertyId,
 )
 
-SensorGet = Select(
+SensorGet = NamedSelect(
     optional=SensorGetOptional,
     minimal=SensorGetMinimal
 )
@@ -160,7 +161,7 @@ SensorDescriptorOptional = Struct(
     "sensor_update_interval" / Int8ul
 )
 
-SensorDescriptorStatusItem = Select(
+SensorDescriptorStatusItem = NamedSelect(
     optional=SensorDescriptorOptional,
     minimal=SensorDescriptorMinimal
 )

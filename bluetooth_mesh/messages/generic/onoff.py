@@ -21,14 +21,14 @@
 #
 from enum import IntEnum
 
-from construct import Int8ul, Select, Struct, Switch, this
+from construct import Int8ul, Struct, Switch, this
 
 from bluetooth_mesh.messages.generics import (
     Delay,
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct, NamedSelect
 
 
 class GenericOnOffOpcode(IntEnum):
@@ -53,7 +53,7 @@ GenericOnOffSetOptional = Struct(
     "delay" / Delay(Int8ul),
 )
 
-GenericOnOffSet = Select(
+GenericOnOffSet = NamedSelect(
     optional=GenericOnOffSetOptional,
     minimal=GenericOnOffSetMinimal
 )
@@ -68,7 +68,7 @@ GenericOnOffStatusOptional = Struct(
     "remaining_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=True),
 )
 
-GenericOnOffStatus = Select(
+GenericOnOffStatus = NamedSelect(
     optional=GenericOnOffStatusOptional,
     minimal=GenericOnOffStatusMinimal
 )

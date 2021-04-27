@@ -33,7 +33,6 @@ from construct import (
     Flag,
     Int8ul,
     Padding,
-    Select,
     StopIf,
     Struct,
     Switch,
@@ -47,6 +46,7 @@ from bluetooth_mesh.messages.util import (
     EnumAdapter,
     Opcode,
     SwitchStruct,
+    NamedSelect,
 )
 
 MS_IN_UNCERTAINTY_STEP = 10
@@ -123,7 +123,7 @@ TimeOptional = Struct(
     "time_zone_offset" / Int8ul,
 )
 
-Time = Select(
+Time = NamedSelect(
     optional=TimeOptional,
     minimal=TimeMinimal,
 )

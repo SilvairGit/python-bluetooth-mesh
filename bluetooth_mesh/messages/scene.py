@@ -26,7 +26,6 @@ from construct import (
     ExprValidator,
     Int8ul,
     Int16ul,
-    Select,
     Struct,
     Switch,
     obj_,
@@ -38,7 +37,7 @@ from bluetooth_mesh.messages.generics import (
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import EnumAdapter, NamedSelect, Opcode, SwitchStruct
 
 
 class SceneOpcode(IntEnum):
@@ -75,7 +74,7 @@ SceneRecallWithTransition = Struct(
     "delay" / Delay(Int8ul),
 )
 
-SceneRecall = Select(
+SceneRecall = NamedSelect(
     optional=SceneRecallWithTransition,
     minimal=SceneRecallMinimal
 )
@@ -92,7 +91,7 @@ SceneStatusWithTargetScene = Struct(
     "remaining_time" / TransitionTimeAdapter(TransitionTime, allow_unknown=False),
 )
 
-SceneStatus = Select(
+SceneStatus = NamedSelect(
     optional=SceneStatusWithTargetScene,
     minimal=SceneStatusMinimal
 )

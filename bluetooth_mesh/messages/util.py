@@ -393,3 +393,18 @@ class SwitchStruct(Adapter):
             value = obj[self.switch.name]
 
         return Container({self.key.name: key, self.switch.name: value})
+
+
+class NameAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        obj._name = self.subcon.name
+        return obj
+
+    def _encode(self, obj, context, path):
+        return obj.get(self.subcon.name, obj)
+
+
+class NamedSelect(Select):
+    def __init__(self, *subcons, **subconskw):
+        subcons = list(NameAdapter(k/v) for k,v in subconskw.items())
+        super().__init__(*subcons)
