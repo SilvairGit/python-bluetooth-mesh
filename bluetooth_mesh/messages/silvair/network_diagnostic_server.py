@@ -28,7 +28,6 @@ from construct import (
     GreedyRange,
     Int8ul,
     Int16ul,
-    Select,
     Struct,
     Switch,
     this,
@@ -43,7 +42,7 @@ from bluetooth_mesh.messages.config import (
     UnicastUnassignedGroupAddress,
 )
 from bluetooth_mesh.messages.generic.onoff import TransitionTime
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import EnumAdapter, NamedSelect, Opcode, SwitchStruct
 
 MAX_RECORD_COUNT = 32
 
@@ -93,7 +92,7 @@ NetworkDiagnosticSetupServerPublicationSetOptional = Struct(
     "features" / ConfigHeartbeatPublicationFeatures
 )
 
-NetworkDiagnosticSetupServerPublicationSet = Select(
+NetworkDiagnosticSetupServerPublicationSet = NamedSelect(
     optional=NetworkDiagnosticSetupServerPublicationSetOptional,
     minimal=NetworkDiagnosticSetupServerPublicationSetMinimal,
 )
