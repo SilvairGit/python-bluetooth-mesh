@@ -749,7 +749,7 @@ class ConfigClient(Model):
         return ModelPublicationStatus(
             status["params"]["element_address"],
             status["params"]["publish_address"],
-            status["params"]["TTL"],
+            status["params"]["ttl"],
             status["params"]["app_key_index"],
             period,
             retransmissions,
@@ -764,7 +764,7 @@ class ConfigClient(Model):
         publication_address: int,
         app_key_index: int,
         model: Type[Model],
-        TTL: int = 8,
+        ttl: int = 8,
         publish_step_resolution: PublishPeriodStepResolution = PublishPeriodStepResolution.RESOLUTION_10_S,
         publish_number_of_steps: int = 6,  # 60seconds
         retransmit_count: int = 0,
@@ -779,7 +779,7 @@ class ConfigClient(Model):
                 status=StatusCode.SUCCESS,
                 element_address=element_address,
                 publish_address=publication_address,
-                TTL=TTL,
+                ttl=ttl,
                 app_key_index=app_key_index,
                 credential_flag=PublishFriendshipCredentialsFlag.MASTER_SECURITY,
                 RFU=0,
@@ -800,7 +800,7 @@ class ConfigClient(Model):
             params=dict(
                 element_address=element_address,
                 publish_address=publication_address,
-                TTL=TTL,
+                ttl=ttl,
                 app_key_index=app_key_index,
                 credential_flag=PublishFriendshipCredentialsFlag.MASTER_SECURITY,
                 RFU=0,
@@ -831,7 +831,7 @@ class ConfigClient(Model):
         return ModelPublicationStatus(
             status["params"]["element_address"],
             status["params"]["publish_address"],
-            status["params"]["TTL"],
+            status["params"]["ttl"],
             status["params"]["app_key_index"],
             period,
             retransmissions,
