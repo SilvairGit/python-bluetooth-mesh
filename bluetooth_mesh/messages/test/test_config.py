@@ -1089,7 +1089,7 @@ invalid_retr = [
 
 
 @pytest.mark.parametrize("message,encoded,decoded", invalid_retr)
-def test_build(message, encoded, decoded):
+def test_invalid_retransmit(message, encoded, decoded):
     _decoded = deepcopy(decoded)
     with pytest.raises(AttributeError):
         message.build(obj=_decoded)
