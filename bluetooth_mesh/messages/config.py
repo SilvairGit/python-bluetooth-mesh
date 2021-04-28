@@ -546,17 +546,17 @@ Int12ul = ExprValidator(
 
 CompositionDataElement = Struct(
     "location" / GATTNamespaceDescriptorAdapter,
-    "SIG_number" / Rebuild(Int8ul, len_(this["SIG_models"])),
+    "sig_number" / Rebuild(Int8ul, len_(this["sig_models"])),
     "vendor_number" / Rebuild(Int8ul, len_(this["vendor_models"])),
-    "SIG_models" / SIGModelId[this["SIG_number"]],
+    "sig_models" / SIGModelId[this["sig_number"]],
     "vendor_models" / VendorModelId[this["vendor_number"]],
 )
 
 CompositionData = Struct(
-    "CID" / Int16ul,
-    "PID" / Int16ul,
-    "VID" / Int16ul,
-    "CRPL" / Int16ul,
+    "cid" / Int16ul,
+    "pid" / Int16ul,
+    "vid" / Int16ul,
+    "crpl" / Int16ul,
     "features" / Int16ul,  # TODO should be parsed
     "elements" / GreedyRange(CompositionDataElement),
 )
@@ -750,7 +750,7 @@ ConfigCompositionDataStatus = SwitchStruct(
 ConfigDefaultTTLGet = Struct()
 
 ConfigDefaultTTLSet = Struct(
-    "TTL" / TTL,
+    "ttl" / TTL,
 )
 
 ConfigDefaultTTLStatus = ConfigDefaultTTLSet
@@ -782,12 +782,12 @@ ConfigModelPublicationSet = Struct(
     "publish_address" / NotVirtualLabel,
     *EmbeddedBitStruct(
         "_",
-        "RFU" / BitsInteger(3),
+        "rfu" / BitsInteger(3),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
         "app_key_index" / BitsInteger(12),
         reversed=True
     ),
-    "TTL" / TTL,
+    "ttl" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / PublishRetransmit,
     "model" / ModelId,
@@ -808,7 +808,7 @@ ConfigModelPublicationVASet = Struct(
         "app_key_index" / BitsInteger(12),
         reversed=True
     ),
-    "TTL" / TTL,
+    "ttl" / TTL,
     "publish_period" / PublishPeriod,
     "retransmit" / PublishRetransmit,
     "model" / ModelId,
@@ -962,7 +962,7 @@ ConfigVendorModelAppGet = Struct(
 ConfigVendorModelAppList = Struct(
     "status" / StatusCodeAdapter,
     Embedded(ConfigVendorModelAppGet),
-    "app key indices" / KeyIndices,
+    "app_key_indices" / KeyIndices,
 )
 
 ConfigNodeReset = Struct()
@@ -1002,7 +1002,7 @@ ConfigHeartbeatPublicationSet = Struct(
     "destination" / UnicastUnassignedGroupAddress,
     "count" / LogAdapter(Int8ul, max_value=0x10, infinity=True),
     "period" / LogAdapter(Int8ul, max_value=0x10),
-    "TTL" / TTL,
+    "ttl" / TTL,
     "features" / BitList(2),
     *NetKeyIndex,
 )

@@ -413,7 +413,7 @@ class TtlCommand(ConfigCommand):
     PARAMETER = "default_ttl"
 
     def format(self, data):
-        return data["TTL"]
+        return data["ttl"]
 
 
 class RelayCommand(ConfigCommand):
@@ -491,7 +491,7 @@ class PublicationCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
                     element_address=address + element_index,
                     publication_address=int(arguments["--address"], 16),
                     app_key_index=int(arguments["--key-index"]),
-                    TTL=int(arguments["--ttl"]),
+                    ttl=int(arguments["--ttl"]),
                     publish_step_resolution=resolution,
                     publish_number_of_steps=steps,
                     retransmit_count=int(arguments["--count"]),
@@ -1047,17 +1047,17 @@ class CompositionDataCommand(ModelCommandMixin, NodeSelectionCommandMixin, Comma
 
             yield "{}: CID {}, PID {}, VID {}, CRPL {}, Features {:016b}".format(
                 node.name,
-                composition["CID"],
-                composition["PID"],
-                composition["VID"],
-                composition["CRPL"],
+                composition["cid"],
+                composition["pid"],
+                composition["vid"],
+                composition["crpl"],
                 composition["features"],
             )
 
             for i, ele in enumerate(composition["elements"]):
                 yield "\tElement {}, location: {}".format(i, ele["location"])
                 yield "\t\t   SIG Models: " + ", ".join(
-                    "{:04x}".format(mod["model_id"]) for mod in ele["SIG_models"]
+                    "{:04x}".format(mod["model_id"]) for mod in ele["sig_models"]
                 )
                 yield "\t\tVendor Models: " + ", ".join(
                     "{:04x}:{:04x}".format(mod["vendor_id"], mod["model_id"])

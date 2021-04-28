@@ -193,9 +193,9 @@ valid = [
         bytes.fromhex('00000101ADDEEFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
-            "SIG_number": 0x01,
+            "sig_number": 0x01,
             "vendor_number": 0x01,
-            "SIG_models": [{"model_id": 0xDEAD}],
+            "sig_models": [{"model_id": 0xDEAD}],
             "vendor_models": [{"model_id": 0xDEAD, "vendor_id": 0xBEEF}]
         },
         id="CompositionDataElement",),
@@ -204,9 +204,9 @@ valid = [
         bytes.fromhex('00000001EFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
-            "SIG_number": 0x00,
+            "sig_number": 0x00,
             "vendor_number": 0x01,
-            "SIG_models": [],
+            "sig_models": [],
             "vendor_models": [{"model_id": 0xDEAD, "vendor_id": 0xBEEF}]
         },
         id="CompositionDataElement - No SIG",),
@@ -215,9 +215,9 @@ valid = [
         bytes.fromhex('00000100ADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
-            "SIG_number": 0x01,
+            "sig_number": 0x01,
             "vendor_number": 0x00,
-            "SIG_models": [{"model_id": 0xDEAD}],
+            "sig_models": [{"model_id": 0xDEAD}],
             "vendor_models": []
         },
         id="CompositionDataElement - No vendor"
@@ -226,17 +226,17 @@ valid = [
         CompositionData,
         bytes.fromhex('3601CE00FECAEFBE0BB000000000'),
         {
-            "CID": 0x0136,
-            "PID": 0x00CE,
-            "VID": 0xCAFE,
-            "CRPL": 0xBEEF,
+            "cid": 0x0136,
+            "pid": 0x00CE,
+            "vid": 0xCAFE,
+            "crpl": 0xBEEF,
             "features": 0xB00B,
             "elements": [
                 {
                     "location": GATTNamespaceDescriptor.UNKNOWN,
-                    "SIG_number": 0x00,
+                    "sig_number": 0x00,
                     "vendor_number": 0x00,
-                    "SIG_models": [],
+                    "sig_models": [],
                     "vendor_models": []
                 }
             ]
@@ -246,24 +246,24 @@ valid = [
         CompositionData,
         bytes.fromhex('3601CE00FECAEFBE0BB00000000000000000'),
         {
-            "CID": 0x0136,
-            "PID": 0x00CE,
-            "VID": 0xCAFE,
-            "CRPL": 0xBEEF,
+            "cid": 0x0136,
+            "pid": 0x00CE,
+            "vid": 0xCAFE,
+            "crpl": 0xBEEF,
             "features": 0xB00B,
             "elements": [
                 {
                     "location": GATTNamespaceDescriptor.UNKNOWN,
-                    "SIG_number": 0x00,
+                    "sig_number": 0x00,
                     "vendor_number": 0x00,
-                    "SIG_models": [],
+                    "sig_models": [],
                     "vendor_models": []
                 },
                 {
                     "location": GATTNamespaceDescriptor.UNKNOWN,
-                    "SIG_number": 0x00,
+                    "sig_number": 0x00,
                     "vendor_number": 0x00,
-                    "SIG_models": [],
+                    "sig_models": [],
                     "vendor_models": []
                 }
             ]
@@ -440,33 +440,33 @@ valid = [
         {
             "page": 0x00,
             "data": {
-                "CID": 0x0136,
-                "PID": 0x00CE,
-                "VID": 0xCAFE,
-                "CRPL": 0xBEEF,
+                "cid": 0x0136,
+                "pid": 0x00CE,
+                "vid": 0xCAFE,
+                "crpl": 0xBEEF,
                 "features": 0xB00B,
                 "elements": [
                     {
                         "location": GATTNamespaceDescriptor.UNKNOWN,
-                        "SIG_number": 0x00,
+                        "sig_number": 0x00,
                         "vendor_number": 0x00,
-                        "SIG_models": [],
+                        "sig_models": [],
                         "vendor_models": []
                     }
                 ]
             },
             "zero": {
-                "CID": 0x0136,
-                "PID": 0x00CE,
-                "VID": 0xCAFE,
-                "CRPL": 0xBEEF,
+                "cid": 0x0136,
+                "pid": 0x00CE,
+                "vid": 0xCAFE,
+                "crpl": 0xBEEF,
                 "features": 0xB00B,
                 "elements": [
                     {
                         "location": GATTNamespaceDescriptor.UNKNOWN,
-                        "SIG_number": 0x00,
+                        "sig_number": 0x00,
                         "vendor_number": 0x00,
-                        "SIG_models": [],
+                        "sig_models": [],
                         "vendor_models": []
                     }
                 ]
@@ -493,7 +493,7 @@ valid = [
         ConfigDefaultTTLSet,
         bytes.fromhex('00'),
         {
-            "TTL": 0x00
+            "ttl": 0x00
         },
         id="ConfigDefaultTTLSet - Min"
     ),
@@ -501,7 +501,7 @@ valid = [
         ConfigDefaultTTLSet,
         bytes.fromhex('0B'),
         {
-            "TTL": 0x0B
+            "ttl": 0x0B
         },
         id="ConfigDefaultTTLSet"
     ),
@@ -509,7 +509,7 @@ valid = [
         ConfigDefaultTTLSet,
         bytes.fromhex('7F'),
         {
-            "TTL": 0x7F
+            "ttl": 0x7F
         },
         id="ConfigDefaultTTLSet - Max"
     ),
@@ -517,7 +517,7 @@ valid = [
         ConfigDefaultTTLStatus,
         bytes.fromhex('00'),
         {
-            "TTL": 0x00
+            "ttl": 0x00
         },
         id="ConfigDefaultTTLStatus - Min"
     ),
@@ -525,7 +525,7 @@ valid = [
         ConfigDefaultTTLStatus,
         bytes.fromhex('0B'),
         {
-            "TTL": 0x0B
+            "ttl": 0x0B
         },
         id="ConfigDefaultTTLStatus"
     ),
@@ -533,7 +533,7 @@ valid = [
         ConfigDefaultTTLStatus,
         bytes.fromhex('7F'),
         {
-            "TTL": 0x7F
+            "ttl": 0x7F
         },
         id="ConfigDefaultTTLStatus - Max"
     ),
@@ -618,10 +618,10 @@ valid = [
         {
             "element_address": 0x0201,
             "publish_address": 0x0001,
-            "RFU": 0,
+            "rfu": 0,
             "credential_flag": PublishFriendshipCredentialsFlag.FRIENDSHIP_SECURITY,
             "app_key_index": 0xabc,
-            "TTL": 0x7F,
+            "ttl": 0x7F,
             "publish_period": {
                 "step_resolution": PublishPeriodStepResolution.RESOLUTION_10_MIN,
                 "number_of_steps": 0x00
@@ -643,10 +643,10 @@ valid = [
         {
             "element_address": 0x0102,
             "publish_address": 0x0304,
-            "RFU": 0,
+            "rfu": 0,
             "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
             "app_key_index": 5,
-            "TTL": 6,
+            "ttl": 6,
             "publish_period": {
                 "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
                 "number_of_steps": 7
@@ -668,10 +668,10 @@ valid = [
             "status": StatusCode.INVALID_MODEL,
             "element_address": 0x0102,
             "publish_address": 0x0304,
-            "RFU": 0,
+            "rfu": 0,
             "credential_flag": PublishFriendshipCredentialsFlag.MASTER_SECURITY,
             "app_key_index": 5,
-            "TTL": 6,
+            "ttl": 6,
             "publish_period": {
                 "step_resolution": PublishPeriodStepResolution.RESOLUTION_100_MS,
                 "number_of_steps": 7
@@ -862,7 +862,7 @@ valid = [
             "destination": 0x0201,
             "count": 4,
             "period": 8,
-            "TTL": 0x05,
+            "ttl": 0x05,
             "features": {5, 6, 13, 14, 15},
             "net_key_index": 0x908,
         },
@@ -875,7 +875,7 @@ valid = [
             "destination": 0x0201,
             "count": float('inf'),
             "period": 32,
-            "TTL": 0x05,
+            "ttl": 0x05,
             "features": {5, 6, 13, 14, 15},
             "net_key_index": 0x908,
         },
@@ -888,7 +888,7 @@ valid = [
             "destination": 0x0201,
             "count": float('inf'),
             "period": 0x8000,
-            "TTL": 0x05,
+            "ttl": 0x05,
             "features": {5, 6, 13, 14, 15},
             "net_key_index": 0x908,
         },
@@ -913,7 +913,7 @@ build_valid = [
         bytes.fromhex('00000101ADDEEFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
-            "SIG_models": [{
+            "sig_models": [{
                 "model_id": 0xDEAD
             }],
             "vendor_models": [{
@@ -928,7 +928,7 @@ build_valid = [
         bytes.fromhex('00000001EFBEADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
-            "SIG_models": [],
+            "sig_models": [],
             "vendor_models": [{
                 "model_id": 0xDEAD,
                 "vendor_id": 0xBEEF
@@ -941,7 +941,7 @@ build_valid = [
         bytes.fromhex('00000100ADDE'),
         {
             "location": GATTNamespaceDescriptor.UNKNOWN,
-            "SIG_models": [{
+            "sig_models": [{
                 "model_id": 0xDEAD
             }],
             "vendor_models": []
@@ -982,7 +982,7 @@ build_invalid = [
             "destination": 0x0201,
             "count": 1,
             "period": 0x8001,
-            "TTL": 0x05,
+            "ttl": 0x05,
             "features": {5, 6, 13, 14, 15},
             "net_key_index": 0x0908
         },
@@ -995,7 +995,7 @@ build_invalid = [
             "destination": 0x0201,
             "count": 1,
             "period": float('inf'),
-            "TTL": 0x05,
+            "ttl": 0x05,
             "features": {5, 6, 13, 14, 15},
             "net_key_index": 0x0908
         },
