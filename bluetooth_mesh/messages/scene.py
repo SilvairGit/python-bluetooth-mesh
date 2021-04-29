@@ -21,23 +21,16 @@
 #
 from enum import IntEnum
 
-from construct import (
-    Array,
-    ExprValidator,
-    Int8ul,
-    Int16ul,
-    Struct,
-    Switch,
-    obj_,
-    this,
-)
+from construct import Array, ExprValidator, Int8ul, Int16ul, Struct, obj_, this
 
 from bluetooth_mesh.messages.generics import (
     Delay,
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, NamedSelect, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
 
 class SceneOpcode(IntEnum):

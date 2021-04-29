@@ -287,22 +287,6 @@ class DefaultCountValidator(Adapter):
             return round(obj / self.resolution)
 
 
-# TODO: is there a better way to calculate size of a nested struct?
-def SwitchLength(type, switch, mapping, path, default=0):
-    def rebuild(type, v):
-        return Rebuild(type, lambda x: len(v.build(path(x))))
-
-    return Switch(
-        switch,
-        {k: rebuild(type, v) for k, v in mapping.items()},
-        default=Rebuild(type, lambda x: default),
-    )
-
-
-def RebuildLength(type, subcons, path):
-    return Rebuild(type, lambda x: len(subcons.build(path(x))))
-
-
 class MacAddressAdapter(Adapter):
     def _decode(self, obj, context, path):
         return ":".join(map("{:02x}".format, obj))
@@ -362,6 +346,16 @@ class AliasedContainer(Container):
         return super().__getitem__(name)
 
 
+class EnumSwitch(Switch):
+    def _emitparse(self, code):
+        fname = "factory_%s" % code.allocateId()
+        code.append("%s = {%s}" % (fname, ", ".join("%r : lambda io,this: %s" % (int(key), sc._compileparse(code)) for key,sc in self.cases.items()), ))
+
+        defaultfname = "compiled_%s" % code.allocateId()
+        code.append("%s = lambda io,this: %s" % (defaultfname, self.default._compileparse(code), ))
+        return "%s.get(%s, %s)(io, this)" % (fname, self.keyfunc, defaultfname)
+
+
 class SwitchStruct(Adapter):
     def __init__(self, key, switch):
         super().__init__(Struct(key, switch))
@@ -394,6 +388,31 @@ class SwitchStruct(Adapter):
 
         return Container({self.key.name: key, self.switch.name: value})
 
+    def _emitparse(self, code):
+        struct = self.subcon
+        keytype = self.key.subcon.type
+
+        fname = f"parse_struct_{code.allocateId()}"
+        block = f"""
+            def {fname}(io, this):
+                from {keytype.__module__} import {keytype.__name__}
+
+                key = {self.key._compileparse(code)}
+                key_name = {keytype.__name__}(key).name.lower()
+
+                result = Container()
+                this = Container(_ = this, _params = this['_params'], _root = None, _parsing = True, _building = False, _sizing = False, _subcons = None, _io = io, _index = this.get('_index', None))
+                this['_root'] = this['_'].get('_root', this)
+                try:
+                    result[{self.key.name!r}] = this[{self.key.name!r}] = key
+                    result[key_name] = this[key_name] = {self.switch._compileparse(code)}
+                except StopFieldError:
+                    pass
+                return result
+        """
+        code.append(block)
+        return f"{fname}(io, this)"
+
 
 class NameAdapter(Adapter):
     def _decode(self, obj, context, path):
@@ -404,7 +423,14 @@ class NameAdapter(Adapter):
         return obj.get(self.subcon.name, obj)
 
 
-class NamedSelect(Select):
-    def __init__(self, *subcons, **subconskw):
-        subcons = list(NameAdapter(k/v) for k,v in subconskw.items())
-        super().__init__(*subcons)
+class NamedSelect(Adapter):
+    def __init__(self, **subconskw):
+        subcons = list(NameAdapter(k/v.compile()) for k,v in subconskw.items())
+        super().__init__(Select(*subcons))
+        self._subcon = Select(**subconskw)
+
+    def _decode(self, obj, context, path):
+        return obj
+
+    def _encode(self, obj, context, path):
+        return obj

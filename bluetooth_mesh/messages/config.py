@@ -41,7 +41,6 @@ from construct import (
     Rebuild,
     Select,
     Struct,
-    Switch,
     len_,
     obj_,
     this,
@@ -56,6 +55,7 @@ from bluetooth_mesh.messages.util import (
     RangeValidator,
     Reversed,
     SwitchStruct,
+    EnumSwitch as Switch
 )
 
 

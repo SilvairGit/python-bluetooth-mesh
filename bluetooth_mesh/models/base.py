@@ -115,12 +115,11 @@ class Model:
         message: ParsedMeshMessage,
     ):
         self.logger.debug(
-            "App message received: %04x [app_index %d, destination %04x] opcode=%s params=%r",
+            "App message received: %04x [app_index %d, destination %04x] %r",
             source,
             app_index,
             destination,
-            message["opcode"],
-            message["params"],
+            message,
         )
 
         callbacks = self.app_message_callbacks[message["opcode"]]
@@ -143,12 +142,11 @@ class Model:
         self, source: int, remote: bool, net_index: int, message: ParsedMeshMessage
     ):
         self.logger.debug(
-            "Dev message received: %04x [remote %s, net_index %d] opcode=%s params=%r",
+            "Dev message received: %04x [remote %s, net_index %d] %r",
             source,
             remote,
             net_index,
-            message["opcode"],
-            message["params"],
+            message
         )
 
         callbacks = self.dev_message_callbacks[message["opcode"]]
@@ -280,12 +278,11 @@ class Model:
 
         message = AccessMessage.parse(data)
         self.logger.debug(
-            "Sending: %s -> %04x [app_index %d] %s %r",
+            "Sending: %s -> %04x [app_index %d] %r",
             self.element.path,
             destination,
             app_index,
-            message["opcode"],
-            message["params"],
+            message
         )
 
         await self._send_app(destination, app_index, data)
@@ -333,13 +330,12 @@ class Model:
 
         message = AccessMessage.parse(data)
         self.logger.debug(
-            "Sending: %s -> %04x [remote %s, net_index %d] %s %r",
+            "Sending: %s -> %04x [remote %s, net_index %d] %r",
             self.element.path,
             destination,
             remote,
             net_index,
-            message["opcode"],
-            message["params"],
+            message
         )
 
         await self._send_dev(destination, remote, net_index, data)

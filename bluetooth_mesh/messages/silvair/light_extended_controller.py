@@ -31,11 +31,12 @@ from construct import (
     Int16ul,
     Int24ul,
     Struct,
-    Switch,
     this,
 )
 
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import Opcode, SwitchStruct
 
 
 class LightExtendedControllerOpcode(IntEnum):
