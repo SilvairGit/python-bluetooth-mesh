@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
+import io
 from enum import IntEnum
 
 from construct import (
@@ -38,6 +39,7 @@ from construct import (
     Switch,
     obj_,
     stream_read,
+    stream_read_entire,
     stream_write,
     this,
 )
@@ -53,9 +55,9 @@ from bluetooth_mesh.messages.util import (
     AliasedContainer,
     EnumAdapter,
     FieldAdapter,
+    NamedSelect,
     Opcode,
     SwitchStruct,
-    NamedSelect,
 )
 
 
@@ -133,16 +135,91 @@ SensorSettingGet = Struct(
     "sensor_setting_property_id" / SensorPropertyId,
 )
 
-SensorSettingSet = Struct(
-    Embedded(SensorSettingGet),
-    "sensor_setting_raw" / PropertyValue,
-)
+class SensorSettingRawMixin:
+    def _parse_sensor_setting(self, stream, context, path, sensor_setting_property_id, **kwargs):
+        try:
+            sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+            sensor_setting_name = sensor_setting_property_id.name.lower()
+        except ValueError:
+            sensor_setting_name = "sensor_setting_raw"
 
-SensorSettingStatus = Struct(
-    Embedded(SensorSettingGet),
-    "sensor_setting_access" / Int8ul,
-    "sensor_setting_raw" / PropertyValue,
-)
+        try:
+            sensor_setting_raw = PropertyDict[sensor_setting_property_id]._parse(stream, context, path)
+        except KeyError:
+            sensor_setting_raw = list(stream_read_entire(stream))
+
+        class _Container(AliasedContainer):
+            ALIAS = sensor_setting_name
+            ORIGINAL = "sensor_setting_raw"
+
+        return _Container({
+            **kwargs,
+            "sensor_setting_property_id": sensor_setting_property_id,
+            sensor_setting_name: sensor_setting_raw
+        })
+
+    def _build_sensor_setting(self, obj, stream, context, path, sensor_setting_property_id):
+        try:
+            sensor_setting_property_id = PropertyID(sensor_setting_property_id)
+            sensor_setting_name = sensor_setting_property_id.name.lower()
+        except ValueError:
+            sensor_setting_name = "sensor_setting_raw"
+
+        sensor_setting_raw = obj.get(sensor_setting_name, obj.get("sensor_setting_raw"))
+
+        try:
+            PropertyDict[sensor_setting_property_id]._build(sensor_setting_raw, stream, context, path)
+        except KeyError:
+            stream_write(stream, bytes(sensor_setting_raw))
+
+        return obj
+
+
+class _SensorSettingSet(SensorSettingRawMixin, Construct):
+    subcon = Struct(
+        "sensor_property_id" / SensorPropertyId,
+        "sensor_setting_property_id" / SensorPropertyId,
+        PropertyValue,
+    )
+
+    def _parse(self, stream, context, path):
+        obj = SensorSettingGet._parse(stream, context, path)
+
+        sensor_setting_property_id = obj.pop("sensor_setting_property_id")
+        return self._parse_sensor_setting(stream, context, path, sensor_setting_property_id, **obj)
+
+    def _build(self, obj, stream, context, path):
+        SensorSettingGet._build(obj, stream, context, path)
+
+        sensor_setting_property_id = obj["sensor_setting_property_id"]
+        return self._build_sensor_setting(obj, stream, context, path, sensor_setting_property_id)
+
+
+SensorSettingSet = _SensorSettingSet()
+
+
+class _SensorSettingStatus(SensorSettingRawMixin, Construct):
+    subcon = Struct(
+        "sensor_property_id" / SensorPropertyId,
+        "sensor_setting_property_id" / SensorPropertyId,
+        "sensor_setting_access" / Int8ul,
+        PropertyValue,
+    )
+
+    def _parse(self, stream, context, path):
+        obj = Struct(Embedded(SensorSettingGet), "sensor_setting_access" / Int8ul)._parse(stream, context, path)
+
+        sensor_setting_property_id = obj.pop("sensor_setting_property_id")
+        return self._parse_sensor_setting(stream, context, path, sensor_setting_property_id, **obj)
+
+    def _build(self, obj, stream, context, path):
+        Struct(Embedded(SensorSettingGet), "sensor_setting_access" / Int8ul)._build(obj, stream, context, path)
+
+        sensor_setting_property_id = obj["sensor_setting_property_id"]
+        return self._build_sensor_setting(obj, stream, context, path, sensor_setting_property_id)
+
+
+SensorSettingStatus = _SensorSettingStatus()
 
 SensorSettingsStatus = Struct(
     Embedded(SensorSettingsGet),
@@ -168,7 +245,7 @@ SensorDescriptorStatusItem = NamedSelect(
 
 SensorDescriptorStatus = GreedyRange(SensorDescriptorStatusItem)
 
-class _SensorData(Construct):
+class _SensorData(SensorSettingRawMixin, Construct):
     subcon = Struct(
         "format" / Int8ul,
         "length" / Int16ul,
@@ -177,64 +254,36 @@ class _SensorData(Construct):
     )
 
     def _parse(self, stream, context, path):
-        property_id = stream_read(stream, 2)
+        setting_property_id = stream_read(stream, 2)
 
-        format = property_id[0] & 0x01
+        format = setting_property_id[0] & 0x01
 
         if format:
-            property_id += stream_read(stream, 1)
+            setting_property_id += stream_read(stream, 1)
 
-            length = (property_id[0] >> 1) + 1
-            sensor_setting_property_id = property_id[1] | property_id[2] << 8
-            sensor_setting_raw = list(stream_read(stream, length))
+            length = (setting_property_id[0] >> 1) + 1
+            sensor_setting_property_id = setting_property_id[1] | setting_property_id[2] << 8
         else:
-            length = ((property_id[0] >> 1) & 0b1111) + 1
-            sensor_setting_property_id = (property_id[0] >> 5 & 0b111) | property_id[1] << 3
-            sensor_setting_raw = PropertyDict[sensor_setting_property_id]._parse(stream, context, path)
+            length = ((setting_property_id[0] >> 1) & 0b1111) + 1
+            sensor_setting_property_id = (setting_property_id[0] >> 5 & 0b111) | setting_property_id[1] << 3
 
-        try:
-            sensor_setting_property_id = PropertyID(sensor_setting_property_id)
-            sensor_setting_name = sensor_setting_property_id.name.lower()
-        except ValueError:
-            sensor_setting_name = "sensor_setting_raw"
-
-        class _Container(AliasedContainer):
-            ALIAS = sensor_setting_name
-            ORIGINAL = "sensor_setting_raw"
-
-        return _Container({
-            "format": format,
-            "length": length,
-            "sensor_setting_property_id": sensor_setting_property_id,
-            sensor_setting_name: sensor_setting_raw
-        })
+        substream = io.BytesIO(stream.read(length))
+        return self._parse_sensor_setting(substream, context, path, sensor_setting_property_id, format=format, length=length)
 
     def _build(self, obj, stream, context, path):
-        format = obj["format"]
-        length = obj["length"]
         sensor_setting_property_id = obj["sensor_setting_property_id"]
 
-        try:
-            sensor_setting_property_id = PropertyID(sensor_setting_property_id)
-            sensor_setting_name = sensor_setting_property_id.name.lower()
-        except ValueError:
-            sensor_setting_name = "sensor_setting_raw"
-
-        try:
-            sensor_setting_raw = obj[sensor_setting_name]
-        except KeyError:
-            sensor_setting_raw = obj["sensor_setting_raw"]
+        format = obj["format"]
+        length = obj["length"]
 
         if format:
             stream_write(stream, bytes([(length - 1) << 1 | 0x01]))
             stream_write(stream, sensor_setting_property_id.to_bytes(2, byteorder='little'))
-            stream_write(stream, bytes(sensor_setting_raw))
         else:
             stream_write(stream, bytes([(length - 1) << 1 | (sensor_setting_property_id & 0b111) << 5]))
             stream_write(stream, bytes([sensor_setting_property_id >> 3]))
-            PropertyDict[sensor_setting_property_id]._build(sensor_setting_raw, stream, context, path)
 
-        return obj
+        return self._build_sensor_setting(obj, stream, context, path, sensor_setting_property_id)
 
 SensorData = _SensorData()
 
