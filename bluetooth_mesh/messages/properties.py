@@ -39,6 +39,7 @@ from construct import (
     Int16ul,
     Int24ul,
     Int32ul,
+    Float32b,
     PaddedString,
     Struct,
     Switch,
@@ -78,7 +79,7 @@ class PropertyID(IntEnum):
     DEVICE_SOFTWARE_REVISION = 0x001A
     DEVICE_UNDER_TEMPERATURE_EVENT_STATISTICS = 0x001B
     INDOOR_AMBIENT_TEMPERATURE_STATISTICAL_VALUES = 0x001C
-    INITIAL_CIE_1931_CHROMATICITY_COORDINATES = 0x001D
+    INITIAL_CIE1931_CHROMATICITY_COORDINATES = 0x001D
     INITIAL_CORRELATED_COLOR_TEMPERATURE = 0x001E
     INITIAL_LUMINOUS_FLUX = 0x001F
     INITIAL_PLANCKIAN_DISTANCE = 0x0020
@@ -129,7 +130,7 @@ class PropertyID(IntEnum):
     PRESENCE_DETECTED = 0x004D
     PRESENT_AMBIENT_LIGHT_LEVEL = 0x004E
     PRESENT_AMBIENT_TEMPERATURE = 0x004F
-    PRESENT_CIE_1931_CHROMATICITY_COORDINATES = 0x0050
+    PRESENT_CIE1931_CHROMATICITY_COORDINATES = 0x0050
     PRESENT_CORRELATED_COLOR_TEMPERATURE = 0x0051
     PRESENT_DEVICE_INPUT_POWER = 0x0052
     PRESENT_DEVICE_OPERATING_EFFICIENCY = 0x0053
@@ -169,6 +170,8 @@ class PropertyID(IntEnum):
 
 
 class TimeExponential8Validator(Adapter):
+    _subcon = Float32b
+
     def _decode(self, obj, content, path):
         return round(pow(1.1, obj - 64), 4) if obj else 0
 
@@ -177,13 +180,24 @@ class TimeExponential8Validator(Adapter):
 
 
 class DateValidator(Adapter):
+    _subcon = Int32ul
     EPOCH = datetime(1970, 1, 1)
 
     def _decode(self, obj, content, path):
-        return None if obj == 0x0 else self.EPOCH + timedelta(days=obj)
+        if obj is None:
+            return 0
+
+        return self.EPOCH + timedelta(days=obj)
 
     def _encode(self, obj, content, path):
-        return 0x0 if obj is None else (obj - self.EPOCH).days
+        if obj is None:
+            return 0
+
+        if isinstance(obj, datetime):
+            return (obj - self.EPOCH).days
+
+        return obj
+
 
 
 def FixedString(size):
@@ -502,7 +516,7 @@ PropertyDict = {
     PropertyID.DEVICE_SOFTWARE_REVISION: FixedString(8),
     PropertyID.DEVICE_UNDER_TEMPERATURE_EVENT_STATISTICS: EventStatistics,
     PropertyID.INDOOR_AMBIENT_TEMPERATURE_STATISTICAL_VALUES: Temperature8Statistics,
-    PropertyID.INITIAL_CIE_1931_CHROMATICITY_COORDINATES: ChromaticityCoordinates,
+    PropertyID.INITIAL_CIE1931_CHROMATICITY_COORDINATES: ChromaticityCoordinates,
     PropertyID.INITIAL_CORRELATED_COLOR_TEMPERATURE: CorrelatedColorTemperature,
     PropertyID.INITIAL_LUMINOUS_FLUX: LuminousFlux,
     PropertyID.INITIAL_PLANCKIAN_DISTANCE: ChromaticDistanceFromPlanckian,
@@ -553,7 +567,7 @@ PropertyDict = {
     PropertyID.PRESENCE_DETECTED: Presence,
     PropertyID.PRESENT_AMBIENT_LIGHT_LEVEL: Illuminance,
     PropertyID.PRESENT_AMBIENT_TEMPERATURE: Temperature8,
-    PropertyID.PRESENT_CIE_1931_CHROMATICITY_COORDINATES: ChromaticityCoordinates,
+    PropertyID.PRESENT_CIE1931_CHROMATICITY_COORDINATES: ChromaticityCoordinates,
     PropertyID.PRESENT_CORRELATED_COLOR_TEMPERATURE: CorrelatedColorTemperature,
     PropertyID.PRESENT_DEVICE_INPUT_POWER: Power,
     PropertyID.PRESENT_DEVICE_OPERATING_EFFICIENCY: Percentage8,
