@@ -32,17 +32,19 @@ from construct import (
     Byte,
     BytesInteger,
     Embedded,
+    ExprAdapter,
     Flag,
+    Float32b,
     Int8sl,
     Int8ul,
     Int16sl,
     Int16ul,
     Int24ul,
     Int32ul,
-    Float32b,
     PaddedString,
     Struct,
     Switch,
+    obj_,
     this,
 )
 
@@ -201,7 +203,12 @@ class DateValidator(Adapter):
 
 
 def FixedString(size):
-    return PaddedString(size, "utf8")
+    def decode_bytes(obj, context):
+        return obj.decode() if isinstance(obj, bytes) else obj
+
+    return ExprAdapter(
+        PaddedString(size, "utf8"), obj_, decode_bytes,
+    )
 
 
 # fmt: off
