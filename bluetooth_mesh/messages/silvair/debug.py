@@ -38,11 +38,12 @@ from construct import (
     Padding,
     Select,
     Struct,
-    Switch,
     this,
 )
 
-from bluetooth_mesh.messages.util import DictAdapter, EnumAdapter, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import DictAdapter, EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import Opcode, SwitchStruct
 
 
 class DebugOpcode(IntEnum):

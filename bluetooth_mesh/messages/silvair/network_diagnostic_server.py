@@ -29,7 +29,6 @@ from construct import (
     Int8ul,
     Int16ul,
     Struct,
-    Switch,
     this,
 )
 
@@ -42,7 +41,9 @@ from bluetooth_mesh.messages.config import (
     UnicastUnassignedGroupAddress,
 )
 from bluetooth_mesh.messages.generic.onoff import TransitionTime
-from bluetooth_mesh.messages.util import EnumAdapter, NamedSelect, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
 MAX_RECORD_COUNT = 32
 
@@ -111,18 +112,16 @@ NetworkDiagnosticServerSubscriptionStatus = Struct(
     "record" / GreedyRange(RegistryRecord)
 )
 
-NetworkDiagnosticServerPayload = Default(Switch(
-    this.subopcode,
-    {
-        NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET: NetworkDiagnosticServerSubscriptionSet,
-        NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET_UNACK: NetworkDiagnosticServerSubscriptionSet,
-        NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS: NetworkDiagnosticServerSubscriptionStatus
-    }
-), None)
-
 NetworkDiagnosticServerParams = Struct(
     "subopcode" / EnumAdapter(Int8ul, NetworkDiagnosticServerSubOpcode),
-    "payload" / NetworkDiagnosticServerPayload
+    "payload" / Switch(
+        this.subopcode,
+        {
+            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET: NetworkDiagnosticServerSubscriptionSet,
+            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET_UNACK: NetworkDiagnosticServerSubscriptionSet,
+            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS: NetworkDiagnosticServerSubscriptionStatus
+        }
+    )
 )
 
 NetworkDiagnosticSetupServerParams = SwitchStruct(

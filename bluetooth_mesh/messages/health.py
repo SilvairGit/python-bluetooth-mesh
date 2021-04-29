@@ -28,12 +28,13 @@ from construct import (
     Int8ul,
     Int16ul,
     Struct,
-    Switch,
     obj_,
     this,
 )
 
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import Opcode, SwitchStruct
 
 # fmt: off
 FaultTest = Struct(

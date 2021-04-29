@@ -21,14 +21,16 @@
 #
 from enum import IntEnum
 
-from construct import Embedded, Int8ul, Int16sl, Int32sl, Struct, Switch, this
+from construct import Embedded, Int8ul, Int16sl, Int32sl, Struct, this
 
 from bluetooth_mesh.messages.generics import (
     OptionalSetParameters,
     TransitionTime,
     TransitionTimeAdapter,
 )
-from bluetooth_mesh.messages.util import EnumAdapter, Opcode, SwitchStruct, NamedSelect
+from bluetooth_mesh.messages.util import EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
 
 class GenericLevelOpcode(IntEnum):
