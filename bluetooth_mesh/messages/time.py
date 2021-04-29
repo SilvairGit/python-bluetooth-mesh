@@ -35,19 +35,14 @@ from construct import (
     Padding,
     StopIf,
     Struct,
-    Switch,
     stream_read,
     stream_write,
     this,
 )
 
-from bluetooth_mesh.messages.util import (
-    EmbeddedBitStruct,
-    EnumAdapter,
-    Opcode,
-    SwitchStruct,
-    NamedSelect,
-)
+from bluetooth_mesh.messages.util import EmbeddedBitStruct, EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
 MS_IN_UNCERTAINTY_STEP = 10
 UNCERTAINTY_MS = 10

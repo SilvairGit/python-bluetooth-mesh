@@ -69,15 +69,17 @@ class _AccessMessage(Construct):
         TimeOpcode: TimeMessage,
     }
 
+    OPCODE = Opcode()
+
     def __init__(self):
         super().__init__()
         self._opcodes = {}
         for opcode_class, message in self.OPCODES.items():
             for opcode in opcode_class._value2member_map_.keys():
-                self._opcodes[opcode] = opcode_class(opcode), message
+                self._opcodes[opcode] = opcode_class(opcode), message.compile()
 
     def _parse(self, stream, context, path):
-        opcode = Opcode()._parse(stream, context, path)
+        opcode = self.OPCODE._parse(stream, context, path)
 
         try:
             opcode, message = self._opcodes[opcode]

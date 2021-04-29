@@ -21,14 +21,11 @@
 #
 from enum import IntEnum
 
-from construct import BitsInteger, BitStruct, Int8ul, Int24ul, Struct, Switch, this
+from construct import BitsInteger, BitStruct, Int8ul, Int24ul, Struct, this
 
-from bluetooth_mesh.messages.util import (
-    DefaultCountValidator,
-    EnumAdapter,
-    Opcode,
-    SwitchStruct,
-)
+from bluetooth_mesh.messages.util import DefaultCountValidator, EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
+from bluetooth_mesh.messages.util import Opcode, SwitchStruct
 
 
 class GenericBatteryOpcode(IntEnum):
