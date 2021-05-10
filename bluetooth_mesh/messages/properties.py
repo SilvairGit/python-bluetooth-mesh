@@ -201,14 +201,11 @@ class DateValidator(Adapter):
         return obj
 
 
-
 def FixedString(size):
     def decode_bytes(obj, context):
         return obj.decode() if isinstance(obj, bytes) else obj
 
-    return ExprAdapter(
-        PaddedString(size, "utf8"), obj_, decode_bytes,
-    )
+    return ExprAdapter(PaddedString(size, "utf8"), obj_, decode_bytes,)
 
 
 # fmt: off

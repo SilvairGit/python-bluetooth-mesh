@@ -1,7 +1,7 @@
 import logging
+from functools import lru_cache
 from uuid import UUID
 
-from functools import lru_cache
 import dbus_next.errors
 import dbus_next.signature
 import pytest

@@ -2,7 +2,7 @@ from asyncio import Task
 from asyncio.events import AbstractEventLoop
 from asyncio.futures import Future
 from asyncio.locks import Event
-from asyncio.tasks import wait_for, gather
+from asyncio.tasks import gather, wait_for
 from functools import partial
 
 import pytest

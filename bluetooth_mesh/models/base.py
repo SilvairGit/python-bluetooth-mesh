@@ -146,7 +146,7 @@ class Model:
             source,
             remote,
             net_index,
-            message
+            message,
         )
 
         callbacks = self.dev_message_callbacks[message["opcode"]]
@@ -282,7 +282,7 @@ class Model:
             self.element.path,
             destination,
             app_index,
-            message
+            message,
         )
 
         await self._send_app(destination, app_index, data)
@@ -335,7 +335,7 @@ class Model:
             destination,
             remote,
             net_index,
-            message
+            message,
         )
 
         await self._send_dev(destination, remote, net_index, data)

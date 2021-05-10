@@ -49,7 +49,7 @@ from bluetooth_mesh.messages.config import (
     PublishPeriodStepResolution,
 )
 from bluetooth_mesh.messages.properties import PropertyID
-from bluetooth_mesh.messages.time import TimeRole, UNCERTAINTY_MS, CURRENT_TAI_UTC_DELTA
+from bluetooth_mesh.messages.time import CURRENT_TAI_UTC_DELTA, UNCERTAINTY_MS, TimeRole
 from bluetooth_mesh.models import (
     ConfigClient,
     ConfigServer,
@@ -572,15 +572,23 @@ class AddSubscriptionCommand(ModelCommandMixin, NodeSelectionCommandMixin, Comma
         model = self.get_model(application)
         destinations = self.get_addresses(application, arguments)
 
-        element = int(arguments["--element"]) if arguments["--element"] is not None else 0
-        address = int(arguments["--address"], 16) if arguments["--address"] is not None else 0
+        element = (
+            int(arguments["--element"]) if arguments["--element"] is not None else 0
+        )
+        address = (
+            int(arguments["--address"], 16) if arguments["--address"] is not None else 0
+        )
         if not destinations:
             yield "invalid uuid!"
         for dst in destinations:
             element_address = dst + element
 
             results = await model.add_subscription(
-                dst, 0, element_address, address, model=getattr(models, arguments["--model"])
+                dst,
+                0,
+                element_address,
+                address,
+                model=getattr(models, arguments["--model"]),
             )
 
             node = application.network.get_node(address=dst)
@@ -613,14 +621,23 @@ class BindAppKeyCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
         if not destinations:
             yield "invalid uuid!"
 
-        element = int(arguments["--element"]) if arguments["--element"] is not None else 0
-        key_index = int(arguments["--keyindex"]) if arguments["--keyindex"] is not None else 0
+        element = (
+            int(arguments["--element"]) if arguments["--element"] is not None else 0
+        )
+        key_index = (
+            int(arguments["--keyindex"]) if arguments["--keyindex"] is not None else 0
+        )
 
         for dst in destinations:
             element_address = dst + element
 
             results = await model.bind_app_key(
-                dst, 0, element_address, key_index, model=getattr(models, arguments["--model"]))
+                dst,
+                0,
+                element_address,
+                key_index,
+                model=getattr(models, arguments["--model"]),
+            )
 
             node = application.network.get_node(address=dst)
             if results is None:
@@ -950,7 +967,9 @@ class LightRangeCommand(ModelGetCommandMixin, NodeSelectionCommandMixin, Command
     async def __call__(self, application, arguments):
         max_lightness_arg = arguments["--max"]
         if max_lightness_arg is None:
-            async for i in super(LightRangeCommand, self).__call__(application, arguments):
+            async for i in super(LightRangeCommand, self).__call__(
+                application, arguments
+            ):
                 yield i
             return
 
@@ -966,7 +985,7 @@ class LightRangeCommand(ModelGetCommandMixin, NodeSelectionCommandMixin, Command
                     app_index=0,
                     destination=address,
                     min_lightness=min_lightness,
-                    max_lightness=max_lightness
+                    max_lightness=max_lightness,
                 )
                 for address in addresses
             )
@@ -977,7 +996,7 @@ class LightRangeCommand(ModelGetCommandMixin, NodeSelectionCommandMixin, Command
                         app_index=0,
                         destination=address,
                         min_lightness=min_lightness,
-                        max_lightness=max_lightness
+                        max_lightness=max_lightness,
                     )
                 except asyncio.TimeoutError:
                     result = None

@@ -190,10 +190,7 @@ def test_build_invalid(message, decoded, exception):
 @pytest.mark.parametrize("key", ["params", "attention_set"])
 def test_build_health_message(key):
     data = HealthMessage.build(
-        {
-            "opcode": HealthOpcode.ATTENTION_SET,
-            key: dict(attention=6),
-        }
+        {"opcode": HealthOpcode.ATTENTION_SET, key: dict(attention=6),}
     )
 
     assert data == bytes.fromhex("800506")

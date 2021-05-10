@@ -43,7 +43,7 @@ from .silvair.network_diagnostic_server import (
     NetworkDiagnosticSetupServerMessage,
     NetworkDiagnosticSetupServerOpcode,
 )
-from .time import TimeOpcode, TimeMessage
+from .time import TimeMessage, TimeOpcode
 from .util import Opcode
 
 

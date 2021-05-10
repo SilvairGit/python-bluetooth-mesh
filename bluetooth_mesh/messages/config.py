@@ -46,16 +46,14 @@ from construct import (
     this,
 )
 
+from bluetooth_mesh.messages.util import BitList, EmbeddedBitStruct, EnumAdapter
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
 from bluetooth_mesh.messages.util import (
-    BitList,
-    EmbeddedBitStruct,
-    EnumAdapter,
     LogAdapter,
     Opcode,
     RangeValidator,
     Reversed,
     SwitchStruct,
-    EnumSwitch as Switch
 )
 
 

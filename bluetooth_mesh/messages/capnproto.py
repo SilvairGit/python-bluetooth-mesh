@@ -64,12 +64,7 @@ names = VariableNames("bluetooth_mesh.messages")
 
 
 def convert(
-    con,
-    visitor,
-    field_name=None,
-    struct_name=None,
-    many=False,
-    message_name=None,
+    con, visitor, field_name=None, struct_name=None, many=False, message_name=None,
 ):
     struct_name = struct_name or names[con] or f"{message_name}Params"
 
@@ -111,9 +106,7 @@ def convert(
 
         for subcon in con.subcons:
             convert(
-                subcon,
-                visitor,
-                message_name=message_name,
+                subcon, visitor, message_name=message_name,
             )
 
         visitor.exit()

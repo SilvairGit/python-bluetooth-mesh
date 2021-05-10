@@ -30,8 +30,8 @@ import logging
 import socket
 import struct
 from enum import Enum
-from os import urandom
 from functools import lru_cache, partial
+from os import urandom
 from typing import (
     Any,
     Awaitable,
@@ -614,9 +614,7 @@ class Application(
             return await join_callback(token)
 
     async def connect(
-        self,
-        join_callback: Optional[Callable[[int], Awaitable[int]]] = None,
-        **kwargs,
+        self, join_callback: Optional[Callable[[int], Awaitable[int]]] = None, **kwargs,
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
@@ -631,9 +629,7 @@ class Application(
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
 
-            token = await self.import_node(
-                join_callback=join_callback,
-            )
+            token = await self.import_node(join_callback=join_callback,)
             configuration = await self.attach(token, **kwargs)
 
         # after attaching, explicitly import own device key to enable
@@ -963,7 +959,14 @@ class Application(
             partial(self._join_callback, join_callback=join_callback), asyncio.Future()
         )
         await self.network_interface.import_node(
-            "/", self.uuid, self.dev_key, net_key, net_index, flags, self.iv_index, self.address,
+            "/",
+            self.uuid,
+            self.dev_key,
+            net_key,
+            net_index,
+            flags,
+            self.iv_index,
+            self.address,
         )
         return await self._join_complete.future
 

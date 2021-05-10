@@ -19,17 +19,17 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from bluetooth_mesh.messages.time import (
-    TimeOpcode,
-    TimeMessage,
-    TimeRole,
     MESH_UNIX_EPOCH_DIFF,
-    mesh_time_zone_offset_to_timedelta,
+    TimeMessage,
+    TimeOpcode,
+    TimeRole,
     mesh_tai_utc_delta_to_timedelta,
+    mesh_time_zone_offset_to_timedelta,
     subsecond_to_seconds,
 )
 

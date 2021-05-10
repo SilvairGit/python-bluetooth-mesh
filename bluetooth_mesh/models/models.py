@@ -24,7 +24,7 @@ This module implements mesh models, both clients and servers.
 """
 import inspect
 import itertools
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from functools import partial
 from typing import Any, Dict, Iterable, NamedTuple, Optional, Sequence, Tuple, Type
 
@@ -47,6 +47,7 @@ from bluetooth_mesh.messages.generic.light.lightness import (
 )
 from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.messages.health import HealthOpcode
+from bluetooth_mesh.messages.properties import PropertyID
 from bluetooth_mesh.messages.scene import SceneOpcode
 from bluetooth_mesh.messages.sensor import SensorOpcode
 from bluetooth_mesh.messages.silvair.debug import DebugOpcode, DebugSubOpcode
@@ -65,7 +66,6 @@ from bluetooth_mesh.messages.silvair.network_diagnostic_server import (
     NetworkDiagnosticServerOpcode,
     NetworkDiagnosticSetupServerOpcode,
 )
-from bluetooth_mesh.messages.properties import PropertyID
 from bluetooth_mesh.messages.time import TimeOpcode, TimeRole
 from bluetooth_mesh.models.base import Model
 from bluetooth_mesh.utils import ModelOperationError, ProgressCallback
@@ -1187,10 +1187,7 @@ class GenericOnOffClient(Model):
                 app_index=app_index,
                 opcode=GenericOnOffOpcode.ONOFF_SET,
                 params=dict(
-                    onoff=onoff,
-                    tid=tid,
-                    transition_time=0,
-                    delay=current_delay,
+                    onoff=onoff, tid=tid, transition_time=0, delay=current_delay,
                 ),
             )
             current_delay = max(0.0, current_delay - send_interval)
@@ -1234,9 +1231,7 @@ class GenericOnOffClient(Model):
             return await ret
 
         await self.repeat(
-            request,
-            retransmissions=retransmissions,
-            send_interval=send_interval,
+            request, retransmissions=retransmissions, send_interval=send_interval,
         )
 
     async def get_light_status(
@@ -1327,9 +1322,7 @@ class SceneClient(Model):
 
             return await ret
 
-        await self.repeat(
-            request, retransmissions=6, send_interval=send_interval
-        )
+        await self.repeat(request, retransmissions=6, send_interval=send_interval)
 
     async def get_scene(
         self,
@@ -1419,9 +1412,7 @@ class GenericLevelClient(Model):
             return await ret
 
         await self.repeat(
-            request,
-            retransmissions=retransmissions,
-            send_interval=send_interval,
+            request, retransmissions=retransmissions, send_interval=send_interval,
         )
 
 
@@ -1482,21 +1473,23 @@ class LightLightnessClient(Model):
         )
 
     async def set_lightness_range(
-            self,
-            destination: int,
-            app_index: int,
-            min_lightness: int,
-            max_lightness: int,
-            *,
-            send_interval: float = 0.1,
-            timeout: Optional[float] = None,
+        self,
+        destination: int,
+        app_index: int,
+        min_lightness: int,
+        max_lightness: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
     ) -> Optional[Any]:
         request = partial(
             self.send_app,
             destination=destination,
             app_index=app_index,
             opcode=LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET,
-            params=dict(range_min=min_lightness, range_max=max_lightness, tid=self.tid()),
+            params=dict(
+                range_min=min_lightness, range_max=max_lightness, tid=self.tid()
+            ),
         )
 
         status = self.expect_app(
@@ -1508,10 +1501,7 @@ class LightLightnessClient(Model):
         )
 
         result = await self.query(
-            request,
-            status,
-            send_interval=send_interval,
-            timeout=timeout or 2.0,
+            request, status, send_interval=send_interval, timeout=timeout or 2.0,
         )
 
         return result["params"]
@@ -1601,15 +1591,15 @@ class LightLightnessClient(Model):
         }
 
     async def set_lightness_unack(
-            self,
-            destination: int,
-            app_index: int,
-            lightness: int,
-            transition_time: float,
-            *,
-            delay: float = 0.5,
-            retransmissions: int = 6,
-            send_interval: float = 0.075,
+        self,
+        destination: int,
+        app_index: int,
+        lightness: int,
+        transition_time: float,
+        *,
+        delay: float = 0.5,
+        retransmissions: int = 6,
+        send_interval: float = 0.075,
     ) -> None:
         tid = self.tid()
         remaining_delay = delay
@@ -1620,7 +1610,12 @@ class LightLightnessClient(Model):
                 destination,
                 app_index=app_index,
                 opcode=LightLightnessOpcode.LIGHTNESS_SET_UNACKNOWLEDGED,
-                params=dict(lightness=lightness, delay=remaining_delay, tid=tid, transition_time=transition_time)
+                params=dict(
+                    lightness=lightness,
+                    delay=remaining_delay,
+                    tid=tid,
+                    transition_time=transition_time,
+                ),
             )
             remaining_delay = max(0.0, remaining_delay - send_interval)
 
@@ -2374,7 +2369,7 @@ class TimeSetupServer(Model):
         TimeOpcode.TAI_UTC_DELTA_SET,
         TimeOpcode.TIME_ROLE_SET,
         TimeOpcode.TIME_ROLE_GET,
-        TimeOpcode.TIME_ROLE_STATUS
+        TimeOpcode.TIME_ROLE_STATUS,
     }
     PUBLISH = False
     SUBSCRIBE = False
@@ -2483,7 +2478,7 @@ class TimeClient(Model):
                     uncertainty=uncertainty,
                     time_authority=time_authority,
                     tai_utc_delta=tai_utc_delta,
-                )
+                ),
             )
             for node in nodes
         }

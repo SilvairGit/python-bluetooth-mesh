@@ -349,10 +349,22 @@ class AliasedContainer(Container):
 class EnumSwitch(Switch):
     def _emitparse(self, code):
         fname = "factory_%s" % code.allocateId()
-        code.append("%s = {%s}" % (fname, ", ".join("%r : lambda io,this: %s" % (int(key), sc._compileparse(code)) for key,sc in self.cases.items()), ))
+        code.append(
+            "%s = {%s}"
+            % (
+                fname,
+                ", ".join(
+                    "%r : lambda io,this: %s" % (int(key), sc._compileparse(code))
+                    for key, sc in self.cases.items()
+                ),
+            )
+        )
 
         defaultfname = "compiled_%s" % code.allocateId()
-        code.append("%s = lambda io,this: %s" % (defaultfname, self.default._compileparse(code), ))
+        code.append(
+            "%s = lambda io,this: %s"
+            % (defaultfname, self.default._compileparse(code),)
+        )
         return "%s.get(%s, %s)(io, this)" % (fname, self.keyfunc, defaultfname)
 
 
@@ -425,7 +437,7 @@ class NameAdapter(Adapter):
 
 class NamedSelect(Adapter):
     def __init__(self, **subconskw):
-        subcons = list(NameAdapter(k/v.compile()) for k,v in subconskw.items())
+        subcons = list(NameAdapter(k / v.compile()) for k, v in subconskw.items())
         super().__init__(Select(*subcons))
         self._subcon = Select(**subconskw)
 

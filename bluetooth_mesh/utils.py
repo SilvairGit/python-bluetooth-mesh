@@ -27,7 +27,18 @@ from concurrent.futures._base import CancelledError
 from contextlib import suppress
 from functools import wraps
 from inspect import isawaitable
-from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, TypeVar, Awaitable, Dict, Tuple
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Hashable,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+    TypeVar,
+)
 
 from typing_extensions import Protocol
 
@@ -35,6 +46,7 @@ try:
     from asyncio import create_task
 except ImportError:
     from asyncio import ensure_future
+
     create_task = ensure_future
 
 ParsedMeshMessage = Mapping[str, Any]
@@ -213,5 +225,7 @@ def tasklet(coro: AnyCoroutine) -> Respawn:
 
         return handles.setdefault(key, create_task(coro(*args, **kwargs)))
 
-    respawn.group_by = lambda *args, **kwargs: 1  # All tasks belong to one group by default
+    respawn.group_by = (
+        lambda *args, **kwargs: 1
+    )  # All tasks belong to one group by default
     return respawn
