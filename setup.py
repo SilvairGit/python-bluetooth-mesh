@@ -49,7 +49,6 @@ setup(
         'ecdsa==0.15',
         'pluggy>=0.13.1',
         'marshmallow>=3.0.1,<4.0',
-        'pycapnp',
     ],
     tests_require=[
         'asynctest==0.12.3',
@@ -65,6 +64,9 @@ setup(
         ],
         tools=[
             'prompt-toolkit==2.0.10',
+        ],
+        capnp=[
+            'pycapnp',
         ],
     ),
     entry_points=dict(

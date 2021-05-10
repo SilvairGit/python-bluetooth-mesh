@@ -23,22 +23,25 @@ import enum
 import json
 import logging
 import re
+import sys
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
-import capnp
 import construct
 import pytest
 
 from bluetooth_mesh.messages import AccessMessage
-from bluetooth_mesh.messages.capnproto import generate
 from bluetooth_mesh.messages.util import Opcode
+
+if sys.version_info >= (3, 7):
+    import capnp
+    from bluetooth_mesh.messages.capnproto import generate
 
 valid = [
     # config
     bytes.fromhex("02003601CE00FECAEFBE0BB000000000"),
     bytes.fromhex("8002000b00010000012100"),
-    bytes.fromhex('8039010203040506070809'),
+    bytes.fromhex("8039010203040506070809"),
     # ctl
     bytes.fromhex("826522223333ff323c"),
     # nds
@@ -56,7 +59,7 @@ valid = [
     bytes.fromhex("52220b2003"),
     bytes.fromhex("52440da244ff"),
     ##vendor sensor
-    #bytes.fromhex("52099040a244ff0000"),
+    # bytes.fromhex("52099040a244ff0000"),
     bytes.fromhex("52440da244ff220b2003"),
     bytes.fromhex("583000010004000900"),
     bytes.fromhex("583000"),
@@ -73,12 +76,12 @@ valid = [
     bytes.fromhex("590a003600b80b00"),
     bytes.fromhex("596d006d000a0000"),
     ##no value
-    #bytes.fromhex("596d006d00ffffff"),
+    # bytes.fromhex("596d006d00ffffff"),
     bytes.fromhex("59550055001a2700"),
     bytes.fromhex("594c004c001b1a"),
     bytes.fromhex("596c006c00ff1b1a"),
     ##no value
-    #bytes.fromhex("596c006c00ffffff"),
+    # bytes.fromhex("596c006c00ffffff"),
     bytes.fromhex("59680068000500"),
     bytes.fromhex("5967006700050001007040"),
     bytes.fromhex("590e000e006162636465666768"),
@@ -254,6 +257,7 @@ class CaseConverter:
         return value
 
 
+@pytest.mark.skipif(sys.version_info < (3, 7), reason="requires Python3.7")
 @pytest.mark.parametrize("encoded", [pytest.param(i, id=i.hex()) for i in valid])
 def test_parse_capnproto(encoded, capnproto):
     logging.info("MESH[%i] %s", len(encoded), encoded.hex())
