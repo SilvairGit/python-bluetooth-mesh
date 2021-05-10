@@ -27,11 +27,26 @@ from bluetooth_mesh.utils import construct_match
 @pytest.mark.parametrize(
     "received, expected",
     [
-        pytest.param(42, 42,),
-        pytest.param([1, 2, 3], [1, 2, 3],),
-        pytest.param([1, 2, 3, 4], [1, 2, ..., 4],),
-        pytest.param(dict(a=42, b=[1, 2, 3]), dict(a=42, b=[1, 2, 3]),),
-        pytest.param(dict(a=42, b=[1, 2, 3]), dict(b=[1, 2, 3]),),
+        pytest.param(
+            42,
+            42,
+        ),
+        pytest.param(
+            [1, 2, 3],
+            [1, 2, 3],
+        ),
+        pytest.param(
+            [1, 2, 3, 4],
+            [1, 2, ..., 4],
+        ),
+        pytest.param(
+            dict(a=42, b=[1, 2, 3]),
+            dict(a=42, b=[1, 2, 3]),
+        ),
+        pytest.param(
+            dict(a=42, b=[1, 2, 3]),
+            dict(b=[1, 2, 3]),
+        ),
     ],
 )
 def test_construct_match(received, expected):
@@ -41,10 +56,22 @@ def test_construct_match(received, expected):
 @pytest.mark.parametrize(
     "received, expected",
     [
-        pytest.param(42, 41,),
-        pytest.param([1, 2, 3], [1, 2, 3, 4],),
-        pytest.param([1, 2, 3, 4], [1, 2, ...],),
-        pytest.param(dict(a=42, b=[1, 2, 3]), dict(a=42, b=[1, 3]),),
+        pytest.param(
+            42,
+            41,
+        ),
+        pytest.param(
+            [1, 2, 3],
+            [1, 2, 3, 4],
+        ),
+        pytest.param(
+            [1, 2, 3, 4],
+            [1, 2, ...],
+        ),
+        pytest.param(
+            dict(a=42, b=[1, 2, 3]),
+            dict(a=42, b=[1, 3]),
+        ),
     ],
 )
 def test_construct_doesnt_match(received, expected):

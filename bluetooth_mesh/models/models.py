@@ -93,24 +93,45 @@ __all__ = [
 ]
 
 AppKeyStatus = NamedTuple(
-    "ApplicationKeyStatus", [("net_key_index", int), ("app_key_index", int),]
+    "ApplicationKeyStatus",
+    [
+        ("net_key_index", int),
+        ("app_key_index", int),
+    ],
 )
 
-NetKeyStatus = NamedTuple("NetworkKeyStatus", [("net_key_index", int),])
+NetKeyStatus = NamedTuple(
+    "NetworkKeyStatus",
+    [
+        ("net_key_index", int),
+    ],
+)
 
 ModelBindStatus = NamedTuple(
     "ModelBindStatus",
-    [("element_address", int), ("app_key_index", int), ("model", Type[Model]),],
+    [
+        ("element_address", int),
+        ("app_key_index", int),
+        ("model", Type[Model]),
+    ],
 )
 
 ModelSubscriptionStatus = NamedTuple(
     "ModelSubscriptionStatus",
-    [("element_address", int), ("subscription_address", int), ("model", Type[Model]),],
+    [
+        ("element_address", int),
+        ("subscription_address", int),
+        ("model", Type[Model]),
+    ],
 )
 
 ModelSubscriptionList = NamedTuple(
     "ModelSubscriptionList",
-    [("element_address", int), ("model", Type[Model]), ("addresses", Sequence[int]),],
+    [
+        ("element_address", int),
+        ("model", Type[Model]),
+        ("addresses", Sequence[int]),
+    ],
 )
 
 ModelPublicationStatus = NamedTuple(
@@ -239,10 +260,16 @@ class ConfigClient(Model):
             nodes,
             net_index,
             request=dict(
-                opcode=ConfigOpcode.COMPOSITION_DATA_GET, params=dict(page=0,)
+                opcode=ConfigOpcode.COMPOSITION_DATA_GET,
+                params=dict(
+                    page=0,
+                ),
             ),
             status=dict(
-                opcode=ConfigOpcode.COMPOSITION_DATA_STATUS, params=dict(page=0,)
+                opcode=ConfigOpcode.COMPOSITION_DATA_STATUS,
+                params=dict(
+                    page=0,
+                ),
             ),
             send_interval=send_interval,
             progress_callback=progress_callback,
@@ -298,11 +325,16 @@ class ConfigClient(Model):
             nodes,
             net_index,
             request=dict(
-                opcode=ConfigOpcode.KEY_REFRESH_PHASE_GET, params=dict(net_key_index=0,)
+                opcode=ConfigOpcode.KEY_REFRESH_PHASE_GET,
+                params=dict(
+                    net_key_index=0,
+                ),
             ),
             status=dict(
                 opcode=ConfigOpcode.KEY_REFRESH_PHASE_STATUS,
-                params=dict(net_key_index=net_key_index,),
+                params=dict(
+                    net_key_index=net_key_index,
+                ),
             ),
             send_interval=send_interval,
             progress_callback=progress_callback,
@@ -316,7 +348,10 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.NETKEY_STATUS,
-            params=dict(net_key_index=net_key_index, status=StatusCode.SUCCESS,),
+            params=dict(
+                net_key_index=net_key_index,
+                status=StatusCode.SUCCESS,
+            ),
         )
 
         request = partial(
@@ -324,7 +359,10 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.NETKEY_ADD,
-            params=dict(net_key_index=net_key_index, net_key=net_key.bytes,),
+            params=dict(
+                net_key_index=net_key_index,
+                net_key=net_key.bytes,
+            ),
         )
 
         status = await self.query(request, status)
@@ -341,7 +379,10 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.NETKEY_STATUS,
-            params=dict(net_key_index=net_key_index, status=StatusCode.SUCCESS,),
+            params=dict(
+                net_key_index=net_key_index,
+                status=StatusCode.SUCCESS,
+            ),
         )
 
         request = partial(
@@ -349,7 +390,9 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.NETKEY_DELETE,
-            params=dict(net_key_index=net_key_index,),
+            params=dict(
+                net_key_index=net_key_index,
+            ),
         )
 
         status = await self.query(request, status)
@@ -371,7 +414,10 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.APPKEY_STATUS,
-            params=dict(net_key_index=net_key_index, app_key_index=app_key_index,),
+            params=dict(
+                net_key_index=net_key_index,
+                app_key_index=app_key_index,
+            ),
         )
 
         request = partial(
@@ -396,13 +442,20 @@ class ConfigClient(Model):
         )
 
     async def delete_app_key(
-        self, destination: int, net_index: int, app_key_index: int, net_key_index: int,
+        self,
+        destination: int,
+        net_index: int,
+        app_key_index: int,
+        net_key_index: int,
     ) -> AppKeyStatus:
         status = self.expect_dev(
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.APPKEY_STATUS,
-            params=dict(net_key_index=net_key_index, app_key_index=app_key_index,),
+            params=dict(
+                net_key_index=net_key_index,
+                app_key_index=app_key_index,
+            ),
         )
 
         request = partial(
@@ -410,7 +463,10 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.APPKEY_DELETE,
-            params=dict(net_key_index=net_key_index, app_key_index=app_key_index,),
+            params=dict(
+                net_key_index=net_key_index,
+                app_key_index=app_key_index,
+            ),
         )
 
         status = await self.query(request, status)
@@ -434,7 +490,10 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.APPKEY_STATUS,
-            params=dict(net_key_index=net_key_index, app_key_index=app_key_index,),
+            params=dict(
+                net_key_index=net_key_index,
+                app_key_index=app_key_index,
+            ),
         )
 
         request = partial(
@@ -442,7 +501,11 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.APPKEY_UPDATE,
-            params=dict(app_key_index=0, net_key_index=0, app_key=app_key.bytes,),
+            params=dict(
+                app_key_index=0,
+                net_key_index=0,
+                app_key=app_key.bytes,
+            ),
         )
 
         status = await self.query(request, status)
@@ -545,7 +608,9 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.NETKEY_STATUS,
-            params=dict(net_key_index=net_key_index,),
+            params=dict(
+                net_key_index=net_key_index,
+            ),
         )
 
         request = partial(
@@ -553,7 +618,10 @@ class ConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=ConfigOpcode.NETKEY_UPDATE,
-            params=dict(net_key_index=0, net_key=net_key.bytes,),
+            params=dict(
+                net_key_index=0,
+                net_key=net_key.bytes,
+            ),
         )
 
         status = await self.query(request, status)
@@ -663,7 +731,8 @@ class ConfigClient(Model):
             net_index=net_index,
             opcode=ConfigOpcode.MODEL_SUBSCRIPTION_DELETE_ALL,
             params=dict(
-                element_address=element_address, model=self._get_model_id(model),
+                element_address=element_address,
+                model=self._get_model_id(model),
             ),
         )
 
@@ -691,7 +760,8 @@ class ConfigClient(Model):
             net_index=net_index,
             opcode=status_opcode,
             params=dict(
-                element_address=element_address, model=self._get_model_id(model),
+                element_address=element_address,
+                model=self._get_model_id(model),
             ),
         )
 
@@ -701,7 +771,8 @@ class ConfigClient(Model):
             net_index=net_index,
             opcode=request_opcode,
             params=dict(
-                element_address=element_address, model=self._get_model_id(model),
+                element_address=element_address,
+                model=self._get_model_id(model),
             ),
         )
 
@@ -711,7 +782,9 @@ class ConfigClient(Model):
             raise ModelOperationError("Cannot get subscription list", status)
 
         return ModelSubscriptionList(
-            status["params"]["element_address"], model, status["params"]["addresses"],
+            status["params"]["element_address"],
+            model,
+            status["params"]["addresses"],
         )
 
     async def get_publication(
@@ -908,7 +981,9 @@ class HealthClient(Model):
             app_index=app_index,
             destination=None,
             opcode=HealthOpcode.ATTENTION_STATUS,
-            params=dict(attention=attention,),
+            params=dict(
+                attention=attention,
+            ),
         )
 
         request = partial(
@@ -916,7 +991,9 @@ class HealthClient(Model):
             destination,
             app_index=app_index,
             opcode=HealthOpcode.ATTENTION_SET,
-            params=dict(attention=attention,),
+            params=dict(
+                attention=attention,
+            ),
         )
 
         status = await self.query(request, status)
@@ -928,7 +1005,9 @@ class HealthClient(Model):
             destination,
             app_index=app_index,
             opcode=HealthOpcode.ATTENTION_SET_UNACKNOWLEDGED,
-            params=dict(attention=attention,),
+            params=dict(
+                attention=attention,
+            ),
         )
 
         await self.repeat(request)
@@ -1095,7 +1174,8 @@ class DebugClient(Model):
                 net_index=app_index,
                 opcode=DebugOpcode.SILVAIR_DEBUG,
                 params=dict(
-                    subopcode=DebugSubOpcode.ARAP_LIST_CONTENT_GET, data=dict(page=0),
+                    subopcode=DebugSubOpcode.ARAP_LIST_CONTENT_GET,
+                    data=dict(page=0),
                 ),
             )
             for node in nodes
@@ -1187,7 +1267,10 @@ class GenericOnOffClient(Model):
                 app_index=app_index,
                 opcode=GenericOnOffOpcode.ONOFF_SET,
                 params=dict(
-                    onoff=onoff, tid=tid, transition_time=0, delay=current_delay,
+                    onoff=onoff,
+                    tid=tid,
+                    transition_time=0,
+                    delay=current_delay,
                 ),
             )
             current_delay = max(0.0, current_delay - send_interval)
@@ -1231,7 +1314,9 @@ class GenericOnOffClient(Model):
             return await ret
 
         await self.repeat(
-            request, retransmissions=retransmissions, send_interval=send_interval,
+            request,
+            retransmissions=retransmissions,
+            send_interval=send_interval,
         )
 
     async def get_light_status(
@@ -1412,7 +1497,9 @@ class GenericLevelClient(Model):
             return await ret
 
         await self.repeat(
-            request, retransmissions=retransmissions, send_interval=send_interval,
+            request,
+            retransmissions=retransmissions,
+            send_interval=send_interval,
         )
 
 
@@ -1463,7 +1550,10 @@ class LightLightnessClient(Model):
                 destination,
                 app_index=app_index,
                 opcode=LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
-                params=dict(range_min=min_lightness, range_max=max_lightness,),
+                params=dict(
+                    range_min=min_lightness,
+                    range_max=max_lightness,
+                ),
             )
 
             return await ret
@@ -1501,7 +1591,10 @@ class LightLightnessClient(Model):
         )
 
         result = await self.query(
-            request, status, send_interval=send_interval, timeout=timeout or 2.0,
+            request,
+            status,
+            send_interval=send_interval,
+            timeout=timeout or 2.0,
         )
 
         return result["params"]
@@ -1994,11 +2087,19 @@ class GatewayConfigClient(Model):
         )
 
         if dns:
-            payload.update(dict(dns_ip_address=dns,))
+            payload.update(
+                dict(
+                    dns_ip_address=dns,
+                )
+            )
 
         if ip and gateway and netmask:
             payload.update(
-                dict(ip_address=ip, gateway_ip_address=gateway, netmask=netmask,)
+                dict(
+                    ip_address=ip,
+                    gateway_ip_address=gateway,
+                    netmask=netmask,
+                )
             )
 
         request = partial(
@@ -2029,14 +2130,18 @@ class GatewayConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
-            params=dict(subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_GET,),
+            params=dict(
+                subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_GET,
+            ),
         )
 
         status = self.expect_dev(
             destination,
             net_index=net_index,
             opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
-            params=dict(subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS,),
+            params=dict(
+                subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_STATUS,
+            ),
         )
         return await self.query(request, status, timeout=1.0)
 
@@ -2046,7 +2151,9 @@ class GatewayConfigClient(Model):
             destination,
             net_index=net_index,
             opcode=GatewayConfigServerOpcode.SILVAIR_GATEWAY,
-            params=dict(subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_CLEAR,),
+            params=dict(
+                subopcode=GatewayConfigServerSubOpcode.GATEWAY_PACKETS_CLEAR,
+            ),
         )
 
         status = self.expect_dev(
@@ -2107,7 +2214,10 @@ class GatewayConfigClient(Model):
         return await self.query(request, status, timeout=1.0)
 
     async def server_set(
-        self, destination: int, net_index: int, server: Tuple[str, int],
+        self,
+        destination: int,
+        net_index: int,
+        server: Tuple[str, int],
     ):
         request = partial(
             self.send_dev,
@@ -2395,7 +2505,9 @@ class TimeClient(Model):
     SUBSCRIBE = True
 
     async def get_time(
-        self, nodes: Sequence[int], app_index: int,
+        self,
+        nodes: Sequence[int],
+        app_index: int,
     ) -> Dict[int, Optional[Any]]:
         requests = {
             node: partial(
@@ -2427,7 +2539,9 @@ class TimeClient(Model):
         }
 
     async def get_time_role(
-        self, nodes: Sequence[int], app_index: int,
+        self,
+        nodes: Sequence[int],
+        app_index: int,
     ) -> Dict[int, Optional[Any]]:
         requests = {
             node: partial(
@@ -2451,7 +2565,10 @@ class TimeClient(Model):
             for node in nodes
         }
 
-        results = await self.bulk_query(requests, statuses,)
+        results = await self.bulk_query(
+            requests,
+            statuses,
+        )
 
         return {
             node: None if isinstance(result, Exception) else result["params"]
@@ -2494,7 +2611,10 @@ class TimeClient(Model):
             for node in nodes
         }
 
-        results = await self.bulk_query(requests, statuses,)
+        results = await self.bulk_query(
+            requests,
+            statuses,
+        )
 
         return {
             node: None if isinstance(result, Exception) else result["params"]
@@ -2526,7 +2646,10 @@ class TimeClient(Model):
             for node in nodes
         }
 
-        results = await self.bulk_query(requests, statuses,)
+        results = await self.bulk_query(
+            requests,
+            statuses,
+        )
 
         return {
             node: None if isinstance(result, Exception) else result["params"]

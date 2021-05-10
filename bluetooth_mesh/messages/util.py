@@ -363,7 +363,10 @@ class EnumSwitch(Switch):
         defaultfname = "compiled_%s" % code.allocateId()
         code.append(
             "%s = lambda io,this: %s"
-            % (defaultfname, self.default._compileparse(code),)
+            % (
+                defaultfname,
+                self.default._compileparse(code),
+            )
         )
         return "%s.get(%s, %s)(io, this)" % (fname, self.keyfunc, defaultfname)
 

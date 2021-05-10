@@ -614,7 +614,9 @@ class Application(
             return await join_callback(token)
 
     async def connect(
-        self, join_callback: Optional[Callable[[int], Awaitable[int]]] = None, **kwargs,
+        self,
+        join_callback: Optional[Callable[[int], Awaitable[int]]] = None,
+        **kwargs,
     ) -> Mapping[int, Dict[Tuple[int, int], Dict[str, Tuple[Any, int]]]]:
         """
         Connect to BlueZ. If a node doesn't exist yet, it gets created via
@@ -629,7 +631,9 @@ class Application(
         except (ValueError, dbus_next.errors.DBusError) as ex:
             self.logger.error("Attach failed: %s, trying to import node", ex)
 
-            token = await self.import_node(join_callback=join_callback,)
+            token = await self.import_node(
+                join_callback=join_callback,
+            )
             configuration = await self.attach(token, **kwargs)
 
         # after attaching, explicitly import own device key to enable
@@ -1022,9 +1026,12 @@ class Element(LocationMixin):
         for opcode in sum((list(model.OPCODES) for model in self.MODELS), []):
             models = [model for model in self.MODELS if opcode in model.OPCODES]
 
-            assert len(models) == 1, (
-                "Element #%d declares models %r with overlapping opcode %r"
-                % (index, models, opcode)
+            assert (
+                len(models) == 1
+            ), "Element #%d declares models %r with overlapping opcode %r" % (
+                index,
+                models,
+                opcode,
             )
 
         self._models = {

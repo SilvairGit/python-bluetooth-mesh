@@ -280,7 +280,11 @@ class AccessMessage(Segment):
         )
 
         yield from super()._segments(
-            application_key, seq, payload=upper_transport_pdu, szmic=szmic, seg=seg,
+            application_key,
+            seq,
+            payload=upper_transport_pdu,
+            szmic=szmic,
+            seg=seg,
         )
 
     @classmethod

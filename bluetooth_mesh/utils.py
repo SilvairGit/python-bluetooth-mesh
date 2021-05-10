@@ -105,15 +105,15 @@ class Signal:
 
 class Gatherer:
     """
-        Gather tasks as they are done and return them in asynchronous iterator form.
+    Gather tasks as they are done and return them in asynchronous iterator form.
 
-        :param aws: iterable collection of tasks
-        :param timeout: Timeout in seconds of None for no timeout
-        :param loop: asyncio loop or None
+    :param aws: iterable collection of tasks
+    :param timeout: Timeout in seconds of None for no timeout
+    :param loop: asyncio loop or None
 
-        :return: A tuple of:
-            - task to collect
-            - result of the task
+    :return: A tuple of:
+        - task to collect
+        - result of the task
     """
 
     def __init__(self, aws: Iterable, timeout: int = None, loop=None):

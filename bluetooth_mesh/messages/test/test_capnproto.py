@@ -35,6 +35,7 @@ from bluetooth_mesh.messages.util import Opcode
 
 if sys.version_info >= (3, 7):
     import capnp
+
     from bluetooth_mesh.messages.capnproto import generate
 
 valid = [

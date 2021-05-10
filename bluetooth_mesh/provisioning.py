@@ -303,7 +303,7 @@ ProvisioningMessage = Struct(
 class ProvisioningEncryption:
     @staticmethod
     def data_encrypt(secret, inputs, data):
-        """ inputs = confirmation_salt + provisioner_random + device_random """
+        """inputs = confirmation_salt + provisioner_random + device_random"""
         provisioning_salt = s1(inputs)
         provisioning_key = k1(secret, provisioning_salt, b"prsk")
         provisioning_nonce = k1(secret, provisioning_salt, b"prsn")[-13:]
@@ -312,7 +312,7 @@ class ProvisioningEncryption:
 
     @staticmethod
     def data_decrypt(secret, inputs, data, mic=b""):
-        """ inputs = confirmation_salt + provisioner_random + device_random """
+        """inputs = confirmation_salt + provisioner_random + device_random"""
         provisioning_salt = s1(inputs)
         provisioning_key = k1(secret, provisioning_salt, b"prsk")
         provisioning_nonce = k1(secret, provisioning_salt, b"prsn")[-13:]
@@ -330,7 +330,7 @@ class ProvisioningEncryption:
 
     @staticmethod
     def confirmation_encrypt(secret, inputs, random, auth=None):
-        """ inputs = invite(attention) + capabilities(without opcode) + start(msg) + provisioner_key + device_key """
+        """inputs = invite(attention) + capabilities(without opcode) + start(msg) + provisioner_key + device_key"""
         confirmation_salt = s1(inputs)
         confirmation_key = k1(secret, confirmation_salt, b"prck")
 

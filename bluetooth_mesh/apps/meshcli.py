@@ -1557,7 +1557,9 @@ class MeshCommandLine(*application_mixins, Application):
         self.history = FileHistory(f"{self.config_dir}/history")
         self.completer = MeshCompleter(self)
         self.session = PromptSession(
-            history=self.history, completer=self.completer, complete_while_typing=False,
+            history=self.history,
+            completer=self.completer,
+            complete_while_typing=False,
         )
         self.commands = {cmd.CMD: cmd() for cmd in self.COMMANDS}
         self._tid = 0

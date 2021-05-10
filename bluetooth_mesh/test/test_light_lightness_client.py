@@ -90,7 +90,10 @@ async def test_set_lightness_range_calls_node_interface_with_appropriate_argumen
     data = LightLightnessSetupMessage.build(
         {
             "opcode": LightLightnessSetupOpcode.LIGHTNESS_RANGE_SET_UNACKNOWLEDGED,
-            "params": {"range_min": 0, "range_max": 100,},
+            "params": {
+                "range_min": 0,
+                "range_max": 100,
+            },
         }
     )
     light_lightness_client._node_interface.send.assert_awaited_with(
