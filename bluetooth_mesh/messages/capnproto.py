@@ -261,7 +261,7 @@ class Visitor:
         self.current[field_name] = type_name
 
 
-def generate(protocol_id, file=sys.stdout):
+def generate(protocol_id, file=sys.stdout, static_structs=None):
     visitor = Visitor("AccessMessage")
 
     for opcode, message in AccessMessage.OPCODES.items():
@@ -303,12 +303,28 @@ def generate(protocol_id, file=sys.stdout):
                     file=file,
                 )
 
-    for struct_name, struct_fields in visitor.items():
+    def print_struct(struct_name, struct_fields, file):
         print(f"struct {struct_name} {{", file=file)
         describe(struct_fields)
         print("}", file=file)
         print("", file=file)
 
+    for struct_name, struct_fields in static_structs.items():
+        print_struct(struct_name, struct_fields, file)
+
+    for struct_name, struct_fields in visitor.items():
+        print_struct(struct_name, struct_fields, file)
+
 
 if __name__ == "__main__":
-    generate(0xD988DA1AAFBE9E47)
+    generate(
+        0xD988DA1AAFBE9E47,
+        static_structs=dict(
+            MeshMessage=dict(
+                timestamp="UInt64",
+                source="UInt16",
+                destination="UInt16",
+                payload="AccessMessage",
+            )
+        ),
+    )
