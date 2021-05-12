@@ -445,7 +445,7 @@ class NamedSelect(Adapter):
         self._subcon = Select(**subconskw)
 
     def _decode(self, obj, context, path):
-        return obj
+        return Container(**{obj._name: obj}) if hasattr(obj, "_name") else obj
 
     def _encode(self, obj, context, path):
         return obj
