@@ -21,7 +21,9 @@
 #
 # pylint: disable=W0223
 
+import enum
 import math
+import re
 from ipaddress import IPv4Address
 
 from construct import (
@@ -449,3 +451,45 @@ class NamedSelect(Adapter):
 
     def _encode(self, obj, context, path):
         return obj
+
+
+def camelcase(field_name):
+    if field_name is None:
+        return None
+
+    head, *tail = str(field_name).lower().replace(" ", "_").split("_")
+    return "".join([head, *(i.title() for i in tail)])
+
+
+def snakecase(camel_input):
+    words = re.findall(r"[A-Z]?[a-z]+|[A-Z]{2,}(?=[A-Z][a-z]|\d|\W|$)|\d+", camel_input)
+    return "_".join(map(str.lower, words))
+
+
+def to_case_dict(value, case):
+    if isinstance(value, dict):
+        new_dict = {
+            case(k): to_case_dict(v, case)
+            for k, v in value.items()
+            if not k.startswith("_")
+        }
+        return {value["_name"]: new_dict} if "_name" in value else new_dict
+
+    elif isinstance(value, list):
+        return [to_case_dict(i, case) for i in value]
+
+    elif isinstance(value, enum.Enum):
+        return value.value
+
+    elif isinstance(value, bytes):
+        return value.hex()
+
+    return value
+
+
+def to_camelcase_dict(value):
+    return to_case_dict(value, case=camelcase)
+
+
+def to_snakecase_dict(value):
+    return to_case_dict(value, case=snakecase)

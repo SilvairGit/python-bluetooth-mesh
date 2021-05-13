@@ -7,6 +7,7 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import IntEnum
+from functools import partial
 from itertools import chain, count
 from typing import Dict
 
@@ -262,6 +263,7 @@ class Visitor:
 
 
 def generate(protocol_id, file=sys.stdout):
+    _print = partial(print, file=file, flush=True)
     visitor = Visitor("AccessMessage")
 
     for opcode, message in AccessMessage.OPCODES.items():
@@ -280,8 +282,8 @@ def generate(protocol_id, file=sys.stdout):
         ):
             visitor.structs["AccessMessage"][None].update(message_fields[None])
 
-    print(f"@0x{protocol_id:x};", file=file)
-    print("", file=file)
+    _print(f"@0x{protocol_id:x};")
+    _print("")
 
     def describe(struct_fields, field_tag=None, level=1):
         field_tag = field_tag or count()
@@ -289,25 +291,25 @@ def generate(protocol_id, file=sys.stdout):
         for field_name, field_type in struct_fields.items():
             if isinstance(field_type, dict):
                 if field_name:
-                    print(" " * (level * 4 - 1), f"{field_name} :union {{", file=file)
+                    _print(" " * (level * 4 - 1), f"{field_name} :union {{")
                 else:
-                    print(" " * (level * 4 - 1), f"union {{", file=file)
+                    _print(" " * (level * 4 - 1), f"union {{")
 
                 describe(field_type, field_tag, level + 1)
 
-                print(" " * (level * 4 - 1), f"}}", file=file)
+                _print(" " * (level * 4 - 1), f"}}")
             else:
-                print(
+                _print(
                     " " * (level * 4 - 1),
                     f"{field_name} @{next(field_tag)} :{field_type};",
                     file=file,
                 )
 
     for struct_name, struct_fields in visitor.items():
-        print(f"struct {struct_name} {{", file=file)
+        _print(f"struct {struct_name} {{")
         describe(struct_fields)
-        print("}", file=file)
-        print("", file=file)
+        _print("}")
+        _print("")
 
 
 if __name__ == "__main__":
