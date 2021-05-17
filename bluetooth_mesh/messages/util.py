@@ -24,6 +24,7 @@
 import enum
 import math
 import re
+import sys
 from ipaddress import IPv4Address
 
 from construct import (
@@ -38,6 +39,7 @@ from construct import (
     Enum,
     ExprValidator,
     Float32b,
+    Float64b,
     Int8ub,
     Int16ub,
     Int24ub,
@@ -265,7 +267,7 @@ class Opcode(Construct):
 
 
 class DefaultCountValidator(Adapter):
-    _subcon = Float32b
+    _subcon = Float64b
 
     def __init__(self, subcon, rounding=None, resolution=1.0):
         super().__init__(subcon)
@@ -274,7 +276,7 @@ class DefaultCountValidator(Adapter):
 
     def _decode(self, obj, content, path):
         if obj == (256 ** self.subcon.length) - 1:
-            return None
+            return float(sys.float_info.max)
         else:
             return (
                 round(obj * self.resolution, self.rounding)
@@ -283,7 +285,7 @@ class DefaultCountValidator(Adapter):
             )
 
     def _encode(self, obj, content, path):
-        if obj is None:
+        if obj == float(sys.float_info.max):
             return (256 ** self.subcon.length) - 1
         else:
             return round(obj / self.resolution)

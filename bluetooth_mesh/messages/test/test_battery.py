@@ -19,6 +19,8 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
+import sys
+
 import pytest
 
 from bluetooth_mesh.messages.generic.battery import *
@@ -51,9 +53,9 @@ valid = [
         b'\x82\x24\xff\xbb\xaa\x00\xff\xff\xff\xdb',
         GenericBatteryOpcode.GENERIC_BATTERY_STATUS,
         dict(
-            battery_level=None,
+            battery_level=float(sys.float_info.max),
             time_to_discharge=0xaabb,
-            time_to_charge=None,
+            time_to_charge=float(sys.float_info.max),
             flags=dict(
                 battery_presence_flags=GenericBatteryFlagsPresence.BATTERY_PRESENCE_UNKNOWN,
                 battery_indicator_flags=GenericBatteryFlagsIndicator.BATTERY_CHARGE_GOOD,
