@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
+import sys
 from datetime import datetime
 
 import pytest
@@ -259,7 +260,7 @@ valid_properties = [
         dict(sensor_property_id=PropertyID.TOTAL_DEVICE_POWER_ON_TIME,
              sensor_setting_property_id=PropertyID.TOTAL_DEVICE_POWER_ON_TIME,
              total_device_power_on_time=dict(
-                 hours=None)),
+                 hours=float(sys.float_info.max))),
         id="TimeHour24_unknown"),
     pytest.param(
         b'\x59\x55\x00\x55\x00\x1a\x27\x00',
@@ -287,7 +288,7 @@ valid_properties = [
         dict(sensor_property_id=PropertyID.TOTAL_DEVICE_POWER_ON_CYCLES,
              sensor_setting_property_id=PropertyID.TOTAL_DEVICE_POWER_ON_CYCLES,
              total_device_power_on_cycles=dict(
-                 count=None)),
+                 count=float(sys.float_info.max))),
         id="Count24_unknown"),
     pytest.param(
         b'\x59\x68\x00\x68\x00\x05\x00',
