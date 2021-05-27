@@ -36,7 +36,7 @@ Installation
 
 You can install "python-bluetooth-mesh" via `pip`_ from `PyPI`_::
 
-    $ pip install python-bluetooth-mesh
+    $ pip install bluetooth-mesh
 
 
 Contributing
