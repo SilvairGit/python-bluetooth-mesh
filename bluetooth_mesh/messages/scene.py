@@ -21,7 +21,16 @@
 #
 from enum import IntEnum
 
-from construct import Array, ExprValidator, Int8ul, Int16ul, Struct, obj_, this
+from construct import (
+    Array,
+    ExprValidator,
+    GreedyRange,
+    Int8ul,
+    Int16ul,
+    Struct,
+    obj_,
+    this,
+)
 
 from bluetooth_mesh.messages.generics import (
     Delay,
@@ -94,7 +103,7 @@ SceneRegisterGet = Struct()
 SceneRegisterStatus = Struct(
     "status_code" / EnumAdapter(Int8ul, SceneStatusCode),
     "current_scene" / Int16ul,
-    "scenes" / Array(16, Int16ul)
+    "scenes" / GreedyRange(Int16ul)
 )
 
 SceneSetupWithValidation = Struct(
