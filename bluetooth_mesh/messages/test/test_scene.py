@@ -107,6 +107,11 @@ valid = [
         dict(status_code=0, current_scene=1, scenes=[1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
         id="SCENE_REGISTER_STATUS"),
     pytest.param(
+        b'\x82\x45\x00\x01\x00\x01\x00\x02\x00\x03\x00',
+        SceneOpcode.SCENE_REGISTER_STATUS,
+        dict(status_code=0, current_scene=1, scenes=[1, 2, 3]),
+        id="SCENE_REGISTER_STATUS_ONLY_3_SCENES"),
+    pytest.param(
         b'\x82\x46\x01\x00',
         SceneOpcode.SCENE_STORE,
         dict(scene_number=1),
