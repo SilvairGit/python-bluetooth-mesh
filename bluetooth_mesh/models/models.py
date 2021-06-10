@@ -223,13 +223,17 @@ class ConfigClient(Model):
             for node in nodes
         }
 
+        params_name = status["opcode"].name.lower()
+
         async def _progress_callback(address, result, done, total):
             if isinstance(result, TimeoutError):
                 self.logger.warning("Callback timeout for addr %s", address)
                 return
 
             try:
-                aw = progress_callback(address, result["params"]["data"], done, total)
+                aw = progress_callback(
+                    address, result[params_name]["data"], done, total
+                )
                 if inspect.isawaitable(aw):
                     await aw
             except Exception as ex:
@@ -244,7 +248,7 @@ class ConfigClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None if isinstance(result, Exception) else result[params_name]
             for node, result in results.items()
         }
 
@@ -344,10 +348,12 @@ class ConfigClient(Model):
     async def add_net_key(
         self, destination: int, net_index: int, net_key_index: int, net_key: NetworkKey
     ) -> NetKeyStatus:
+        status_opcode = ConfigOpcode.CONFIG_NETKEY_STATUS
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_NETKEY_STATUS,
+            opcode=status_opcode,
             params=dict(
                 net_key_index=net_key_index,
                 status=StatusCode.SUCCESS,
@@ -367,7 +373,7 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[status_opcode.name.lower()]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add net key", status)
 
         return NetKeyStatus(net_key_index=net_key_index)
@@ -375,10 +381,12 @@ class ConfigClient(Model):
     async def delete_net_key(
         self, destination: int, net_index: int, net_key_index: int
     ) -> NetKeyStatus:
+        status_opcode = (ConfigOpcode.CONFIG_NETKEY_STATUS,)
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_NETKEY_STATUS,
+            opcode=status_opcode,
             params=dict(
                 net_key_index=net_key_index,
                 status=StatusCode.SUCCESS,
@@ -397,7 +405,7 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[status_opcode.name.lower()]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot delete net key", status)
 
         return NetKeyStatus(net_key_index=net_key_index)
@@ -410,10 +418,13 @@ class ConfigClient(Model):
         net_key_index: int,
         app_key: ApplicationKey,
     ) -> AppKeyStatus:
+        status_opcode = ConfigOpcode.CONFIG_APPKEY_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_APPKEY_STATUS,
+            opcode=status_opcode,
             params=dict(
                 net_key_index=net_key_index,
                 app_key_index=app_key_index,
@@ -434,11 +445,11 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add app key", status)
 
         return AppKeyStatus(
-            status["params"]["net_key_index"], status["params"]["app_key_index"]
+            status[params_name]["net_key_index"], status[params_name]["app_key_index"]
         )
 
     async def delete_app_key(
@@ -448,10 +459,13 @@ class ConfigClient(Model):
         app_key_index: int,
         net_key_index: int,
     ) -> AppKeyStatus:
+        status_opcode = ConfigOpcode.CONFIG_APPKEY_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_APPKEY_STATUS,
+            opcode=status_opcode,
             params=dict(
                 net_key_index=net_key_index,
                 app_key_index=app_key_index,
@@ -471,11 +485,11 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot delete app key", status)
 
         return AppKeyStatus(
-            status["params"]["net_key_index"], status["params"]["app_key_index"]
+            status[params_name]["net_key_index"], status[params_name]["app_key_index"]
         )
 
     async def update_app_key(
@@ -486,10 +500,13 @@ class ConfigClient(Model):
         app_key_index: int,
         app_key: ApplicationKey,
     ) -> AppKeyStatus:
+        status_opcode = ConfigOpcode.CONFIG_APPKEY_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_APPKEY_STATUS,
+            opcode=status_opcode,
             params=dict(
                 net_key_index=net_key_index,
                 app_key_index=app_key_index,
@@ -510,11 +527,11 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot update app key", status)
 
         return AppKeyStatus(
-            status["params"]["net_key_index"], status["params"]["app_key_index"]
+            status[params_name]["net_key_index"], status[params_name]["app_key_index"]
         )
 
     async def bind_app_key(
@@ -525,10 +542,13 @@ class ConfigClient(Model):
         app_key_index: int,
         model: Type[Model],
     ) -> ModelBindStatus:
+        status_opcode = ConfigOpcode.CONFIG_MODEL_APP_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_MODEL_APP_STATUS,
+            opcode=status_opcode,
             params=dict(
                 element_address=element_address,
                 app_key_index=app_key_index,
@@ -550,22 +570,25 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot bind app key", status)
 
         return ModelBindStatus(
-            status["params"]["element_address"],
-            status["params"]["app_key_index"],
+            status[params_name]["element_address"],
+            status[params_name]["app_key_index"],
             model,
         )
 
     async def get_network_transmission(
         self, destination: int, net_index: int
     ) -> Tuple[int, int]:
+        status_opcode = ConfigOpcode.CONFIG_NETWORK_TRANSMIT_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_NETWORK_TRANSMIT_STATUS,
+            opcode=status_opcode,
             params=dict(),
         )
 
@@ -578,15 +601,18 @@ class ConfigClient(Model):
         )
 
         status = await self.query(request, status)
-        return (status["params"]["interval"], status["params"]["count"])
+        return (status[params_name]["interval"], status[params_name]["count"])
 
     async def set_network_transmission(
         self, destination: int, net_index: int, interval: int, count: int
     ) -> Tuple[int, int]:
+        status_opcode = ConfigOpcode.CONFIG_NETWORK_TRANSMIT_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_NETWORK_TRANSMIT_STATUS,
+            opcode=status_opcode,
             params=dict(interval=interval, count=count),
         )
 
@@ -599,15 +625,18 @@ class ConfigClient(Model):
         )
 
         status = await self.query(request, status)
-        return (status["params"]["interval"], status["params"]["count"])
+        return (status[params_name]["interval"], status[params_name]["count"])
 
     async def update_net_key(
         self, destination: int, net_index: int, net_key_index: int, net_key: NetworkKey
     ) -> int:
+        status_opcode = ConfigOpcode.CONFIG_NETKEY_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_NETKEY_STATUS,
+            opcode=status_opcode,
             params=dict(
                 net_key_index=net_key_index,
             ),
@@ -626,10 +655,10 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot update net key", status)
 
-        return status["params"]["net_key_index"]
+        return status[params_name]["net_key_index"]
 
     async def add_subscription(
         self,
@@ -639,10 +668,13 @@ class ConfigClient(Model):
         subscription_address: int,
         model: Type[Model],
     ) -> ModelSubscriptionStatus:
+        status_opcode = ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_STATUS,
+            opcode=status_opcode,
             params=dict(
                 element_address=element_address,
                 address=subscription_address,
@@ -664,11 +696,13 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add subscription", status)
 
         return ModelSubscriptionStatus(
-            status["params"]["element_address"], status["params"]["address"], model
+            status[params_name]["element_address"],
+            status[params_name]["address"],
+            model,
         )
 
     async def del_subscription(
@@ -679,10 +713,13 @@ class ConfigClient(Model):
         subscription_address: int,
         model: Type[Model],
     ) -> ModelSubscriptionStatus:
+        status_opcode = ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_STATUS,
+            opcode=status_opcode,
             params=dict(
                 element_address=element_address,
                 address=subscription_address,
@@ -704,20 +741,25 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add subscription", status)
 
         return ModelSubscriptionStatus(
-            status["params"]["element_address"], status["params"]["address"], model
+            status[params_name]["element_address"],
+            status[params_name]["address"],
+            model,
         )
 
     async def clear_subscriptions(
         self, destination: int, net_index: int, element_address: int, model: Type[Model]
     ) -> ModelSubscriptionStatus:
+        status_opcode = ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_MODEL_SUBSCRIPTION_STATUS,
+            opcode=status_opcode,
             params=dict(
                 element_address=element_address,
                 address=0,
@@ -738,11 +780,13 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add subscription", status)
 
         return ModelSubscriptionStatus(
-            status["params"]["element_address"], status["params"]["address"], model
+            status[params_name]["element_address"],
+            status[params_name]["address"],
+            model,
         )
 
     async def get_subscriptions(
@@ -754,6 +798,8 @@ class ConfigClient(Model):
         else:
             status_opcode = ConfigOpcode.CONFIG_SIG_MODEL_SUBSCRIPTION_LIST
             request_opcode = ConfigOpcode.CONFIG_SIG_MODEL_SUBSCRIPTION_GET
+
+        params_name = status_opcode.name.lower()
 
         status = self.expect_dev(
             destination,
@@ -778,22 +824,25 @@ class ConfigClient(Model):
 
         status = await self.query(request, status)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot get subscription list", status)
 
         return ModelSubscriptionList(
-            status["params"]["element_address"],
+            status[params_name]["element_address"],
             model,
-            status["params"]["addresses"],
+            status[params_name]["addresses"],
         )
 
     async def get_publication(
         self, destination: int, net_index: int, element_address: int, model: Type[Model]
     ) -> ModelPublicationStatus:
+        status_opcode = ConfigOpcode.CONFIG_MODEL_PUBLICATION_STATUS
+        params_name = status_opcode.name.lower()
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_MODEL_PUBLICATION_STATUS,
+            opcode=status_opcode,
             params=dict(),
         )
 
@@ -810,20 +859,22 @@ class ConfigClient(Model):
         status = await self.query(request, status)
 
         period = (
-            status["params"]["publish_period"]["step_resolution"].multiplier
-            * status["params"]["publish_period"]["number_of_steps"]
+            status[params_name]["publish_period"]["step_resolution"].multiplier
+            * status[params_name]["publish_period"]["number_of_steps"]
         )
 
         retransmissions = dict(
-            count=status["params"]["retransmit"]["count"],
-            interval=timedelta(milliseconds=status["params"]["retransmit"]["interval"]),
+            count=status[params_name]["retransmit"]["count"],
+            interval=timedelta(
+                milliseconds=status[params_name]["retransmit"]["interval"]
+            ),
         )
 
         return ModelPublicationStatus(
-            status["params"]["element_address"],
-            status["params"]["publish_address"],
-            status["params"]["ttl"],
-            status["params"]["app_key_index"],
+            status[params_name]["element_address"],
+            status[params_name]["publish_address"],
+            status[params_name]["ttl"],
+            status[params_name]["app_key_index"],
             period,
             retransmissions,
             model,
@@ -843,6 +894,8 @@ class ConfigClient(Model):
         retransmit_count: int = 0,
         retransmit_interval: int = 50,
     ) -> ModelPublicationStatus:
+        status_opcode = ConfigOpcode.CONFIG_MODEL_PUBLICATION_STATUS
+        params_name = status_opcode.name.lower()
 
         status = self.expect_dev(
             destination,
@@ -888,24 +941,26 @@ class ConfigClient(Model):
 
         status = await self.query(request, status, send_interval=0.2, timeout=4)
 
-        if status["params"]["status"] != StatusCode.SUCCESS:
+        if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add subscription", status)
 
         period = (
-            status["params"]["publish_period"]["step_resolution"].multiplier
-            * status["params"]["publish_period"]["number_of_steps"]
+            status[params_name]["publish_period"]["step_resolution"].multiplier
+            * status[params_name]["publish_period"]["number_of_steps"]
         )
 
         retransmissions = dict(
-            count=status["params"]["retransmit"]["count"],
-            interval=timedelta(milliseconds=status["params"]["retransmit"]["interval"]),
+            count=status[params_name]["retransmit"]["count"],
+            interval=timedelta(
+                milliseconds=status[params_name]["retransmit"]["interval"]
+            ),
         )
 
         return ModelPublicationStatus(
-            status["params"]["element_address"],
-            status["params"]["publish_address"],
-            status["params"]["ttl"],
-            status["params"]["app_key_index"],
+            status[params_name]["element_address"],
+            status[params_name]["publish_address"],
+            status[params_name]["ttl"],
+            status[params_name]["app_key_index"],
             period,
             retransmissions,
             model,
@@ -919,10 +974,12 @@ class ConfigClient(Model):
         send_interval: float = 2.0,
         timeout: float = 5.0,
     ) -> CompositionData:
+        status_opcode = ConfigOpcode.CONFIG_BEACON_STATUS
+
         status = self.expect_dev(
             destination,
             net_index=net_index,
-            opcode=ConfigOpcode.CONFIG_BEACON_STATUS,
+            opcode=status_opcode,
             params=dict(
                 beacon=SecureNetworkBeacon.ON if enabled else SecureNetworkBeacon.OFF,
             ),
@@ -942,7 +999,7 @@ class ConfigClient(Model):
             request, status, send_interval=send_interval, timeout=timeout
         )
 
-        return status["params"]["beacon"]
+        return status[status_opcode.name.lower()]["beacon"]
 
 
 class HealthServer(Model):
@@ -976,11 +1033,13 @@ class HealthClient(Model):
     SUBSCRIBE = True
 
     async def attention(self, destination: int, app_index: int, attention: int) -> int:
+        status_opcode = HealthOpcode.HEALTH_ATTENTION_STATUS
+
         status = self.expect_app(
             destination,
             app_index=app_index,
             destination=None,
-            opcode=HealthOpcode.HEALTH_ATTENTION_STATUS,
+            opcode=status_opcode,
             params=dict(
                 attention=attention,
             ),
@@ -997,7 +1056,7 @@ class HealthClient(Model):
         )
 
         status = await self.query(request, status)
-        return status["params"]["attention"]
+        return status[status_opcode.name.lower()]["attention"]
 
     async def attention_unack(self, destination: int, app_index: int, attention: int):
         request = partial(
@@ -1062,13 +1121,17 @@ class DebugClient(Model):
             for node in nodes
         }
 
+        params_name = status["opcode"].name.lower()
+
         async def _progress_callback(address, result, done, total):
             if isinstance(result, TimeoutError):
                 self.logger.warning("Callback timeout for addr %s", address)
                 return
 
             try:
-                aw = progress_callback(address, result["params"]["data"], done, total)
+                aw = progress_callback(
+                    address, result[params_name]["data"], done, total
+                )
 
                 if inspect.isawaitable(aw):
                     await aw
@@ -1084,7 +1147,7 @@ class DebugClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]["data"]
+            node: None if isinstance(result, Exception) else result[params_name]["data"]
             for node, result in results.items()
         }
 
@@ -1181,11 +1244,13 @@ class DebugClient(Model):
             for node in nodes
         }
 
+        status_opcode = DebugOpcode.SILVAIR_DEBUG
+
         statuses = {
             node: self.expect_dev(
                 node,
                 net_index=0,
-                opcode=DebugOpcode.SILVAIR_DEBUG,
+                opcode=status_opcode,
                 params=dict(subopcode=DebugSubOpcode.ARAP_LIST_CONTENT_STATUS),
             )
             for node in nodes
@@ -1200,7 +1265,9 @@ class DebugClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]["data"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]["data"]
             for node, result in results.items()
         }
 
@@ -1252,11 +1319,13 @@ class GenericOnOffClient(Model):
         current_delay = delay
         tid = self.tid()
 
+        status_opcode = GenericOnOffOpcode.GENERIC_ONOFF_STATUS
+
         status = self.expect_app(
             destination,
             app_index=app_index,
             destination=None,
-            opcode=GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
+            opcode=status_opcode,
             params=dict(present_onoff=onoff),
         )
 
@@ -1281,7 +1350,7 @@ class GenericOnOffClient(Model):
             request, status, send_interval=send_interval, timeout=1
         )
 
-        return status["params"]["present_onoff"]
+        return status[status_opcode.name.lower()]["present_onoff"]
 
     async def set_onoff_unack(
         self,
@@ -1338,12 +1407,14 @@ class GenericOnOffClient(Model):
             for node in nodes
         }
 
+        status_opcode = GenericOnOffOpcode.GENERIC_ONOFF_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1357,7 +1428,9 @@ class GenericOnOffClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -1428,12 +1501,14 @@ class SceneClient(Model):
             for node in nodes
         }
 
+        status_opcode = SceneOpcode.SCENE_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=SceneOpcode.SCENE_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1447,7 +1522,9 @@ class SceneClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -1582,11 +1659,13 @@ class LightLightnessClient(Model):
             ),
         )
 
+        status_opcode = LightLightnessOpcode.LIGHT_LIGHTNESS_RANGE_STATUS
+
         status = self.expect_app(
             source=destination,
             app_index=0,
             destination=None,
-            opcode=LightLightnessOpcode.LIGHT_LIGHTNESS_RANGE_STATUS,
+            opcode=status_opcode,
             params=dict(),
         )
 
@@ -1597,7 +1676,7 @@ class LightLightnessClient(Model):
             timeout=timeout or 2.0,
         )
 
-        return result["params"]
+        return result[status_opcode.name.lower()]
 
     async def get_lightness_range(
         self,
@@ -1618,12 +1697,14 @@ class LightLightnessClient(Model):
             for node in nodes
         }
 
+        status_opcode = LightLightnessOpcode.LIGHT_LIGHTNESS_RANGE_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=app_index,
                 destination=None,
-                opcode=LightLightnessOpcode.LIGHT_LIGHTNESS_RANGE_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1637,7 +1718,9 @@ class LightLightnessClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -1660,12 +1743,14 @@ class LightLightnessClient(Model):
             for node in nodes
         }
 
+        status_opcode = LightLightnessOpcode.LIGHT_LIGHTNESS_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=LightLightnessOpcode.LIGHT_LIGHTNESS_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1679,7 +1764,9 @@ class LightLightnessClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -1739,12 +1826,14 @@ class LightLightnessClient(Model):
             for node in nodes
         }
 
+        status_opcode = LightLightnessOpcode.LIGHT_LIGHTNESS_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=LightLightnessOpcode.LIGHT_LIGHTNESS_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1758,7 +1847,9 @@ class LightLightnessClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -1793,12 +1884,14 @@ class SensorClient(Model):
             for node in nodes
         }
 
+        status_opcode = SensorOpcode.SENSOR_DESCRIPTOR_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=SensorOpcode.SENSOR_DESCRIPTOR_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1812,7 +1905,9 @@ class SensorClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -1836,12 +1931,14 @@ class SensorClient(Model):
             for node in nodes
         }
 
+        status_opcode = SensorOpcode.SENSOR_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=SensorOpcode.SENSOR_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1855,7 +1952,7 @@ class SensorClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None if isinstance(result, Exception) else result[status.name.lower()]
             for node, result in results.items()
         }
 
@@ -1898,12 +1995,14 @@ class LightCTLClient(Model):
             for node in nodes
         }
 
+        status_opcode = LightCTLOpcode.LIGHT_CTL_TEMPERATURE_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=LightCTLOpcode.LIGHT_CTL_TEMPERATURE_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1917,7 +2016,9 @@ class LightCTLClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -1943,12 +2044,14 @@ class LightCTLClient(Model):
             for node in nodes
         }
 
+        status_opcode = LightCTLOpcode.LIGHT_CTL_TEMPERATURE_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=LightCTLOpcode.LIGHT_CTL_TEMPERATURE_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -1962,7 +2065,9 @@ class LightCTLClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -2406,13 +2511,17 @@ class LightExtendedControllerSetupClient(Model):
             for node in nodes
         }
 
+        params_name = LightExtendedControllerOpcode.SILVAIR_LEC
+
         async def _progress_callback(address, result, done, total):
             if isinstance(result, TimeoutError):
                 self.logger.warning("Callback timeout for addr %s", address)
                 return
 
             try:
-                aw = progress_callback(address, result["params"]["data"], done, total)
+                aw = progress_callback(
+                    address, result[params_name]["data"], done, total
+                )
 
                 if inspect.isawaitable(aw):
                     await aw
@@ -2430,7 +2539,7 @@ class LightExtendedControllerSetupClient(Model):
         return {
             node: None
             if isinstance(result, Exception)
-            else result["params"]["payload"]["value"]
+            else result[params_name]["payload"]["value"]
             for node, result in results.items()
         }
 
@@ -2520,12 +2629,14 @@ class TimeClient(Model):
             for node in nodes
         }
 
+        status_opcode = TimeOpcode.TIME_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=TimeOpcode.TIME_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -2534,7 +2645,9 @@ class TimeClient(Model):
         results = await self.bulk_query(requests, statuses)
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -2554,12 +2667,14 @@ class TimeClient(Model):
             for node in nodes
         }
 
+        status_opcode = TimeOpcode.TIME_ROLE_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=TimeOpcode.TIME_ROLE_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -2571,7 +2686,9 @@ class TimeClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -2600,12 +2717,14 @@ class TimeClient(Model):
             for node in nodes
         }
 
+        status_opcode = TimeOpcode.TIME_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=TimeOpcode.TIME_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -2617,7 +2736,9 @@ class TimeClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -2635,12 +2756,14 @@ class TimeClient(Model):
             for node in nodes
         }
 
+        status_opcode = TimeOpcode.TIME_ROLE_STATUS
+
         statuses = {
             node: self.expect_app(
                 node,
                 app_index=0,
                 destination=None,
-                opcode=TimeOpcode.TIME_ROLE_STATUS,
+                opcode=status_opcode,
                 params=dict(),
             )
             for node in nodes
@@ -2652,6 +2775,8 @@ class TimeClient(Model):
         )
 
         return {
-            node: None if isinstance(result, Exception) else result["params"]
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
