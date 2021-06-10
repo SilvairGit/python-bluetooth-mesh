@@ -2,7 +2,7 @@ from bluetooth_mesh.apps import hookimpl
 
 
 class LocalNetworkMixin:
-    async def get_network(self):
+    async def get_network(self, *args, **kwargs):
         # TODO: add a way to use a local provisioning database
 
         raise NotImplementedError(
