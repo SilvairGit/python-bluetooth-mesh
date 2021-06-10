@@ -202,7 +202,7 @@ class Model:
             if destination is not None and (_destination != destination):
                 return False
 
-            if params and not construct_match(message["params"], params):
+            if params and not construct_match(message[opcode.name.lower()], params):
                 return False
 
             if not future.done():
@@ -240,7 +240,7 @@ class Model:
             if (_source != source) or (_net_index != net_index):
                 return False
 
-            if params and not construct_match(message["params"], params):
+            if params and not construct_match(message[opcode.name.lower()], params):
                 return False
 
             if not future.done():

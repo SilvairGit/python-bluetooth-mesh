@@ -194,7 +194,10 @@ async def test_send_app(
     model, status_parsed, destination, app_index, element_path, node_interface
 ):
     await model.send_app(
-        destination, app_index, status_parsed["opcode"], status_parsed["params"]
+        destination,
+        app_index,
+        status_parsed["opcode"],
+        status_parsed["generic_onoff_status"],
     )
     node_interface.send.assert_called_once_with(
         element_path, destination, app_index, b"\x82\x04\x00"
@@ -206,7 +209,10 @@ async def test_send_dev(
     model, status_parsed, destination, net_index, element_path, node_interface
 ):
     await model.send_dev(
-        destination, net_index, status_parsed["opcode"], status_parsed["params"]
+        destination,
+        net_index,
+        status_parsed["opcode"],
+        status_parsed["generic_onoff_status"],
     )
     node_interface.dev_key_send.assert_called_once_with(
         element_path, destination, True, net_index, b"\x82\x04\x00"
@@ -222,7 +228,7 @@ async def test_repeat(
         destination,
         app_index,
         status_parsed["opcode"],
-        status_parsed["params"],
+        status_parsed["generic_onoff_status"],
     )
     await model.repeat(request, send_interval=0.0001)
     node_interface.send.assert_has_calls(
@@ -242,7 +248,10 @@ async def test_query(
 
     async def request():
         await model.send_app(
-            destination, app_index, status_parsed["opcode"], status_parsed["params"]
+            destination,
+            app_index,
+            status_parsed["opcode"],
+            status_parsed["generic_onoff_status"],
         )
         request_future.set_result(None)
 
@@ -262,7 +271,10 @@ async def test_bulk_query(
 ):
     async def request(future, dest):
         await model.send_app(
-            dest, app_index, status_parsed["opcode"], status_parsed["params"]
+            dest,
+            app_index,
+            status_parsed["opcode"],
+            status_parsed["generic_onoff_status"],
         )
         future.set_result(None)
 
@@ -295,7 +307,10 @@ async def test_bulk_query_timeout(
 ):
     async def request(dest):
         await model.send_app(
-            dest, app_index, status_parsed["opcode"], status_parsed["params"]
+            dest,
+            app_index,
+            status_parsed["opcode"],
+            status_parsed["generic_onoff_status"],
         )
 
     async def callback(address, result, done, total):
@@ -303,7 +318,7 @@ async def test_bulk_query_timeout(
             assert len(done) == 1
             assert result == {
                 "opcode": GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
-                "params": {"present_onoff": 0},
+                "generic_onoff_status": {"present_onoff": 0},
             }
         elif address == 20:
             assert len(done) == 2

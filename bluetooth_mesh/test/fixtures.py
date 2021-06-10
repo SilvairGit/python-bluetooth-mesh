@@ -27,7 +27,8 @@ from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 @pytest.fixture()
 def status_parsed():
     return dict(
-        opcode=GenericOnOffOpcode.GENERIC_ONOFF_STATUS, params=dict(present_onoff=0)
+        opcode=GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
+        generic_onoff_status=dict(present_onoff=0),
     )
 
 
