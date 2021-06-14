@@ -269,13 +269,14 @@ class Opcode(Construct):
 class DefaultCountValidator(Adapter):
     _subcon = Float64b
 
-    def __init__(self, subcon, rounding=None, resolution=1.0):
+    def __init__(self, subcon, rounding=None, resolution=1.0, unknown_value=True):
         super().__init__(subcon)
         self.rounding = rounding
         self.resolution = resolution
+        self.unknown_value = unknown_value
 
     def _decode(self, obj, content, path):
-        if obj == (256 ** self.subcon.length) - 1:
+        if self.unknown_value and obj == (256 ** self.subcon.length) - 1:
             return float(sys.float_info.max)
         else:
             return (
@@ -285,7 +286,7 @@ class DefaultCountValidator(Adapter):
             )
 
     def _encode(self, obj, content, path):
-        if obj == float(sys.float_info.max):
+        if self.unknown_value and obj == float(sys.float_info.max):
             return (256 ** self.subcon.length) - 1
         else:
             return round(obj / self.resolution)
