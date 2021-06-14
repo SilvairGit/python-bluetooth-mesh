@@ -301,7 +301,7 @@ VoltageStatistics = Struct(
 )
 
 RelativeValueInAVoltageRange = Struct(
-    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5, unknown_value=False),
     "minimum_voltage" / DefaultCountValidator(Int16ul, resolution=1/64),
     "maximum_voltage" / DefaultCountValidator(Int16ul, resolution=1/64),
 )
@@ -372,7 +372,7 @@ TemperatureStatistics = Struct(
 )
 
 RelativeValueInATemperatureRange = Struct(
-    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5, unknown_value=False),
     "minimum_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01),
     "maximum_temperature" / DefaultCountValidator(Int16sl, rounding=2, resolution=0.01)
 )
@@ -405,13 +405,13 @@ LuminousEfficacy = Struct(
 )
 
 Illuminance = Struct(
-    "illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01)
+    "illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01, unknown_value=False)
 )
 
 RelativeValueInAnIlluminanceRange = Struct(
-    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
-    "minimum_illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01),
-    "maximum_illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01)
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5, unknown_value=False),
+    "minimum_illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01, unknown_value=False),
+    "maximum_illuminance" / DefaultCountValidator(Int24ul, rounding=2, resolution=0.01, unknown_value=False)
 )
 
 PerceivedLightness = Struct(
@@ -439,11 +439,11 @@ Coefficient = Struct(
 
 # chromaticity
 ChromaticityTolerance = Struct(
-    "chromaticity_tolerance" / DefaultCountValidator(Int8sl, rounding=4, resolution=0.0001)
+    "chromaticity_tolerance" / DefaultCountValidator(Int8sl, rounding=4, resolution=0.0001, unknown_value=False)
 )
 
 ChromaticDistanceFromPlanckian = Struct(
-    "distance_from_planckian" / DefaultCountValidator(Int16sl, rounding=5, resolution=0.00001)
+    "distance_from_planckian" / DefaultCountValidator(Int16sl, rounding=5, resolution=0.00001, unknown_value=False)
 )
 
 CorrelatedColorTemperature = Struct(
@@ -451,12 +451,12 @@ CorrelatedColorTemperature = Struct(
 )
 
 ChromaticityCoordinates = Struct(
-    "chromaticity_x_coordinate" / DefaultCountValidator(Int16ul, resolution=1/0xffff),
-    "chromaticity_y_coordinate" / DefaultCountValidator(Int16ul, resolution=1/0xffff)
+    "chromaticity_x_coordinate" / DefaultCountValidator(Int16ul, resolution=1/0xffff, unknown_value=False),
+    "chromaticity_y_coordinate" / DefaultCountValidator(Int16ul, resolution=1/0xffff, unknown_value=False)
 )
 
 ColorRenderingIndex = Struct(
-    "color_rendering_index" / DefaultCountValidator(Int8sl)
+    "color_rendering_index" / DefaultCountValidator(Int8sl, unknown_value=False)
 )
 
 
@@ -490,9 +490,9 @@ EventStatistics = Struct(
 )
 
 RelativeRuntimeInAGenericLevelRange = Struct(
-    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5),
-    "minimum_generic_level" / DefaultCountValidator(Int16ul),
-    "maximum_generic_level" / DefaultCountValidator(Int16ul),
+    "relative_value" / DefaultCountValidator(Int8ul, rounding=1, resolution=0.5, unknown_value=False),
+    "minimum_generic_level" / DefaultCountValidator(Int16ul, unknown_value=False),
+    "maximum_generic_level" / DefaultCountValidator(Int16ul, unknown_value=False),
 )
 
 PropertyDict = {
