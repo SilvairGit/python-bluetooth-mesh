@@ -35,7 +35,7 @@ valid = [
         NetworkDiagnosticSetupServerParams,
         bytes.fromhex("00"),
         NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_GET,
-        None,
+        {},
         id='PublicationGet'
     ),
     pytest.param(
@@ -98,7 +98,7 @@ valid = [
         NetworkDiagnosticServerParams,
         bytes.fromhex("00"),
         NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_GET,
-        None,
+        {},
         id="SubscriptionGet"
     ),
     pytest.param(

@@ -73,6 +73,8 @@ class NetworkDiagnosticSetupServerSubOpcode(IntEnum):
 
 
 # fmt: off
+NetworkDiagnosticSetupServerPublicationGet = Struct()
+
 RegistryRecord = Struct(
     "source" / UnicastUnassignedAddress,
     "count" / Int16ul,
@@ -100,6 +102,8 @@ NetworkDiagnosticSetupServerPublicationSet = NamedSelect(
 
 NetworkDiagnosticSetupServerPublicationStatus = NetworkDiagnosticSetupServerPublicationSet
 
+NetworkDiagnosticServerSubscriptionGet = Struct()
+
 NetworkDiagnosticServerSubscriptionSet = Struct(
     "destination" / UnicastUnassignedGroupAddress,
     "period" / Int16ul
@@ -112,14 +116,18 @@ NetworkDiagnosticServerSubscriptionStatus = Struct(
     "record" / GreedyRange(RegistryRecord)
 )
 
+NetworkDiagnosticServerRadioStatGet = Struct()
+
 NetworkDiagnosticServerParams = Struct(
     "subopcode" / EnumAdapter(Int8ul, NetworkDiagnosticServerSubOpcode),
     "payload" / Switch(
         this.subopcode,
         {
+            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_GET: NetworkDiagnosticServerSubscriptionGet,
             NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET: NetworkDiagnosticServerSubscriptionSet,
             NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET_UNACK: NetworkDiagnosticServerSubscriptionSet,
-            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS: NetworkDiagnosticServerSubscriptionStatus
+            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS: NetworkDiagnosticServerSubscriptionStatus,
+            NetworkDiagnosticServerSubOpcode.RADIO_STAT_GET: NetworkDiagnosticServerRadioStatGet
         }
     )
 )
@@ -129,8 +137,9 @@ NetworkDiagnosticSetupServerParams = SwitchStruct(
     "payload" / Switch(
         this.subopcode,
         {
+            NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_GET: NetworkDiagnosticSetupServerPublicationGet,
             NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_SET: NetworkDiagnosticSetupServerPublicationSet,
-            NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS: NetworkDiagnosticSetupServerPublicationStatus,
+            NetworkDiagnosticSetupServerSubOpcode.PUBLICATION_STATUS: NetworkDiagnosticSetupServerPublicationStatus
         }
     )
 )
