@@ -91,6 +91,8 @@ class DebugSubOpcode(IntEnum):
 
 
 # fmt: off
+RssiThresholdGet = Struct()
+
 RssiThreshold = Struct(
     "rssi_threshold" / Int8ul
 )
@@ -99,18 +101,34 @@ RadioTest = Struct(
     "packet_counter" / Int8ul
 )
 
-TxPower = Struct(
+TimeslotTxPowerGet = Struct()
+
+TimeslotTxPowerStatus = Struct(
     "tx_power" / Int8ul
 )
+
+SoftdeviceTxPowerGet = Struct()
+
+SoftdeviceTxPowerStatus = Struct(
+    "tx_power" / Int8ul
+)
+
+UptimeGet = Struct()
 
 UptimeStatus = Struct(
     "uptime" / Int32ul
 )
 
-LastFault = Struct(
+LastSwFaultGet = Struct()
+
+LastSwFaultClear = Struct()
+
+LastSwFaultStatus = Struct(
     "time" / Int32ul,
     "fault" / GreedyString("utf8")
 )
+
+SystemStatsGet = Struct()
 
 SystemStat = Struct(
     "name" / PaddedString(8, "utf8"),
@@ -118,7 +136,7 @@ SystemStat = Struct(
     "rfu" / Padding(4),
 )
 
-SystemStats = Struct(
+SystemStatsStatus = Struct(
     "stats" / DictAdapter(
         GreedyRange(SystemStat),
         key=this.name,
@@ -126,23 +144,45 @@ SystemStats = Struct(
     )
 )
 
-GarbageCollector = Struct(
+LastMallocFaultGet = Struct()
+
+LastMallocFaultClear = Struct()
+
+LastMallocFaultStatus = LastSwFaultStatus
+
+LastFdsFaultGet = Struct()
+
+LastFdsFaultClear = Struct()
+
+LastFdsFaultStatus = LastSwFaultStatus
+
+BytesBeforeGarbageCollectorGet = Struct()
+
+BytesBeforeGarbageCollectorStatus = Struct(
     "bytes_left" / Int16ul
 )
 
-AppVersion = Struct(
+ProvisionedAppVersionGet = Struct()
+
+ProvisionedAppVersionStatus = Struct(
     "version" / Int16ul
 )
 
-FirmwareVersion = Struct(
+FullFirmwareVersionGet = Struct()
+
+FullFirmwareVersionStatus = Struct(
     "version" / GreedyString("utf8")
 )
 
-IvIndex = Struct(
+IvIndexGet = Struct()
+
+IvIndexStatus = Struct(
     "ivindex" / Int32ul
 )
 
-GarbageCollectorCounter = Struct(
+GarbageCollectorCounterGet = Struct()
+
+GarbageCollectorCounterStatus = Struct(
     "counter" / Int16ul
 )
 
@@ -156,12 +196,14 @@ ArapSize8 = Struct(
     "size" / Int8ul
 )
 
-ArapSize = Select(
+ArapListSizeGet = Struct()
+
+ArapListSizeStatus = Select(
     new=ArapSize16,
     old=ArapSize8,
 )
 
-ArapContentGet = Struct(
+ArapListContentGet = Struct(
     "page" / Int8ul
 )
 
@@ -173,7 +215,7 @@ ArapNode = ByteSwapped(
     )
 )
 
-ArapContent = Struct(
+ArapListContentStatus = Struct(
     "current_page" / Int8ul,
     "last_page" / Int8ul,
     "nodes" / DictAdapter(
@@ -188,26 +230,43 @@ DebugParams = SwitchStruct(
     "payload" / Switch(
         this.subopcode,
         {
+            DebugSubOpcode.RSSI_THRESHOLD_GET: RssiThresholdGet,
             DebugSubOpcode.RSSI_THRESHOLD_SET: RssiThreshold,
             DebugSubOpcode.RSSI_THRESHOLD_STATUS: RssiThreshold,
             DebugSubOpcode.RADIO_TEST: RadioTest,
-            DebugSubOpcode.TIMESLOT_TX_POWER_SET: TxPower,
-            DebugSubOpcode.TIMESLOT_TX_POWER_STATUS: TxPower,
-            DebugSubOpcode.SOFTDEVICE_TX_POWER_SET: TxPower,
-            DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS: TxPower,
+            DebugSubOpcode.TIMESLOT_TX_POWER_GET: TimeslotTxPowerGet,
+            DebugSubOpcode.TIMESLOT_TX_POWER_SET: TimeslotTxPowerStatus,
+            DebugSubOpcode.TIMESLOT_TX_POWER_STATUS: TimeslotTxPowerStatus,
+            DebugSubOpcode.SOFTDEVICE_TX_POWER_GET: SoftdeviceTxPowerGet,
+            DebugSubOpcode.SOFTDEVICE_TX_POWER_SET: SoftdeviceTxPowerStatus,
+            DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS: SoftdeviceTxPowerStatus,
+            DebugSubOpcode.UPTIME_GET: UptimeGet,
             DebugSubOpcode.UPTIME_STATUS: UptimeStatus,
-            DebugSubOpcode.LAST_SW_FAULT_STATUS: LastFault,
-            DebugSubOpcode.SYSTEM_STATS_STATUS: SystemStats,
-            DebugSubOpcode.LAST_MALLOC_FAULT_STATUS: LastFault,
-            DebugSubOpcode.LAST_FDS_FAULT_STATUS: LastFault,
-            DebugSubOpcode.BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS: GarbageCollector,
-            DebugSubOpcode.PROVISIONED_APP_VERSION_STATUS: AppVersion,
-            DebugSubOpcode.FULL_FIRMWARE_VERSION_STATUS: FirmwareVersion,
-            DebugSubOpcode.IV_INDEX_STATUS: IvIndex,
-            DebugSubOpcode.GARBAGE_COLLECTOR_COUNTER_STATUS: GarbageCollectorCounter,
-            DebugSubOpcode.ARAP_LIST_SIZE_STATUS: ArapSize,
-            DebugSubOpcode.ARAP_LIST_CONTENT_GET: ArapContentGet,
-            DebugSubOpcode.ARAP_LIST_CONTENT_STATUS: ArapContent,
+            DebugSubOpcode.LAST_SW_FAULT_GET: LastSwFaultGet,
+            DebugSubOpcode.LAST_SW_FAULT_CLEAR: LastSwFaultClear,
+            DebugSubOpcode.LAST_SW_FAULT_STATUS: LastSwFaultStatus,
+            DebugSubOpcode.SYSTEM_STATS_GET: SystemStatsGet,
+            DebugSubOpcode.SYSTEM_STATS_STATUS: SystemStatsStatus,
+            DebugSubOpcode.LAST_MALLOC_FAULT_GET: LastMallocFaultGet,
+            DebugSubOpcode.LAST_MALLOC_FAULT_CLEAR: LastMallocFaultClear,
+            DebugSubOpcode.LAST_MALLOC_FAULT_STATUS: LastMallocFaultStatus,
+            DebugSubOpcode.LAST_FDS_FAULT_GET: LastFdsFaultGet,
+            DebugSubOpcode.LAST_FDS_FAULT_CLEAR: LastFdsFaultClear,
+            DebugSubOpcode.LAST_FDS_FAULT_STATUS: LastFdsFaultStatus,
+            DebugSubOpcode.BYTES_BEFORE_GARBAGE_COLLECTOR_GET: BytesBeforeGarbageCollectorGet,
+            DebugSubOpcode.BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS: BytesBeforeGarbageCollectorStatus,
+            DebugSubOpcode.PROVISIONED_APP_VERSION_GET: ProvisionedAppVersionGet,
+            DebugSubOpcode.PROVISIONED_APP_VERSION_STATUS: ProvisionedAppVersionStatus,
+            DebugSubOpcode.FULL_FIRMWARE_VERSION_GET: FullFirmwareVersionGet,
+            DebugSubOpcode.FULL_FIRMWARE_VERSION_STATUS: FullFirmwareVersionStatus,
+            DebugSubOpcode.IV_INDEX_GET: IvIndexGet,
+            DebugSubOpcode.IV_INDEX_STATUS: IvIndexStatus,
+            DebugSubOpcode.GARBAGE_COLLECTOR_COUNTER_GET: GarbageCollectorCounterGet,
+            DebugSubOpcode.GARBAGE_COLLECTOR_COUNTER_STATUS: GarbageCollectorCounterStatus,
+            DebugSubOpcode.ARAP_LIST_SIZE_GET: ArapListSizeGet,
+            DebugSubOpcode.ARAP_LIST_SIZE_STATUS: ArapListSizeStatus,
+            DebugSubOpcode.ARAP_LIST_CONTENT_GET: ArapListContentGet,
+            DebugSubOpcode.ARAP_LIST_CONTENT_STATUS: ArapListContentStatus,
         }
     )
 )
