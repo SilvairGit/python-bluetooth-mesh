@@ -163,17 +163,17 @@ valid = [
         b'HEAP\x00\x00\x00\x00\xa8I\x00\x00\x00\x00',
         DebugSubOpcode.SYSTEM_STATS_STATUS,
         {
-            "stats": {
-                'KERNEL': 520,
-                'BLE': 1288,
-                'SNV': 200,
-                'APP': 436,
-                'RX Task': 484,
-                'MESH': 1032,
-                'Tmr Svc': 496,
-                'IDLE': 228,
-                'HEAP': 18856,
-            }
+            "stats": [
+                {"name": u'KERNEL', "high_water_mark": 520},
+                {"name": u'BLE', "high_water_mark": 1288},
+                {"name": u'SNV', "high_water_mark": 200},
+                {"name": u'APP', "high_water_mark": 436},
+                {"name": u'RX Task', "high_water_mark": 484},
+                {"name": u'MESH', "high_water_mark": 1032},
+                {"name": u'Tmr Svc', "high_water_mark": 496},
+                {"name": u'IDLE', "high_water_mark": 228},
+                {"name": u'HEAP', "high_water_mark": 18856},
+            ]
         },
         id='SystemStatsStatus (long)'
     ),
@@ -184,9 +184,11 @@ valid = [
         b'IDLE\x00\x00\x00\x00\xf4\x00\x00\x00\x00\x00',
         DebugSubOpcode.SYSTEM_STATS_STATUS,
         {
-            "stats": {
-                'HEAP': 19080, 'Tmr Svc': 552, 'IDLE': 244,
-            }
+            "stats": [
+                {"name": u'HEAP', "high_water_mark": 19080},
+                {"name": u'Tmr Svc', "high_water_mark": 552},
+                {"name": u'IDLE', "high_water_mark": 244},
+            ]
         },
         id='SystemStatsStatus (short)'
     ),
@@ -196,9 +198,9 @@ valid = [
         {
             'current_page': 0,
             'last_page': 0,
-            'nodes': {
-                0x0080: {"ivi": True, "sequence": 0x58},
-            }
+            'nodes': [
+                {"ivi": True, "sequence": 0x58, "address": 0x0080},
+            ]
         },
         id='ArapContent (1 node)'
     ),
@@ -208,10 +210,10 @@ valid = [
         {
             'current_page': 0,
             'last_page': 0,
-            'nodes': {
-                0x0007: {"ivi": False, "sequence": 0x20c70},
-                0x0080: {"ivi": False, "sequence": 0x58},
-            }
+            'nodes': [
+                {"ivi": False, "sequence": 0x20c70, "address": 0x0007},
+                {"ivi": False, "sequence": 0x58, "address": 0x0080},
+            ]
         },
         id='ArapContent (2 nodes)'
     ),

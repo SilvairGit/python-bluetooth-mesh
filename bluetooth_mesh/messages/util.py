@@ -308,32 +308,6 @@ class IpAddressAdapter(Adapter):
         return bytes(int(i) for i in obj.split("."))
 
 
-class DictAdapter(Adapter):
-    def __init__(self, subcon, key, value):
-        super().__init__(subcon)
-        self.key = key
-        self.value = value
-
-    def _decode(self, obj, context, path):
-        if isinstance(self.value, (list, tuple)):
-            return {
-                self.key(i): {v.__getfield__(): v(i) for v in self.value} for i in obj
-            }
-
-        return {self.key(i): self.value(i) for i in obj}
-
-    def _encode(self, obj, context, path):
-        key_name = self.key.__getfield__()
-
-        if isinstance(self.value, (list, tuple)):
-            for k, v in obj.items():
-                yield {key_name: k, **v}
-        else:
-            value_name = self.value.__getfield__()
-            for k, v in obj.items():
-                yield {key_name: k, value_name: v}
-
-
 class AliasedContainer(Container):
     ALIAS = None
     ORIGINAL = None

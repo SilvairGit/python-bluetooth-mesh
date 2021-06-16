@@ -39,6 +39,71 @@ if sys.version_info >= (3, 7):
     from bluetooth_mesh.messages.capnproto import generate
 
 valid = [
+    # debug
+    bytes.fromhex("f5360100"),  # RSSI_THRESHOLD_GET
+    bytes.fromhex("f5360101f0"),  # RSSI_THRESHOLD_SET
+    bytes.fromhex("f5360102f0"),  # RSSI_THRESHOLD_STATUS
+    bytes.fromhex("f5360103ff"),  # RADIO_TEST
+    bytes.fromhex("f5360104"),  # TIMESLOT_TX_POWER_GET
+    bytes.fromhex("f536010500"),  # TIMESLOT_TX_POWER_SET
+    bytes.fromhex("f5360105ff"),  # TIMESLOT_TX_POWER_SET
+    bytes.fromhex("f536010600"),  # TIMESLOT_TX_POWER_STATUS
+    bytes.fromhex("f5360106ff"),  # TIMESLOT_TX_POWER_STATUS
+    bytes.fromhex("f5360107"),  # SOFTDEVICE_TX_POWER_GET
+    bytes.fromhex("f536010800"),  # SOFTDEVICE_TX_POWER_SET
+    bytes.fromhex("f5360108ff"),  # SOFTDEVICE_TX_POWER_SET
+    bytes.fromhex("f536010900"),  # SOFTDEVICE_TX_POWER_STATUS
+    bytes.fromhex("f5360109ff"),  # SOFTDEVICE_TX_POWER_STATUS
+    bytes.fromhex("f536010a"),  # UPTIME_GET
+    bytes.fromhex("f536010b00000000"),  # UPTIME_STATUS
+    bytes.fromhex("f536010bffffffff"),  # UPTIME_STATUS
+    bytes.fromhex("f536010c"),  # LAST_SW_FAULT_GET
+    bytes.fromhex("f536010d"),  # LAST_SW_FAULT_CLEAR
+    bytes.fromhex("f536010e00000000616263"),  # LAST_SW_FAULT_STATUS
+    bytes.fromhex("f536010f"),  # SYSTEM_STATS_GET
+    bytes.fromhex("f5360110"),  # SYSTEM_STATS_STATUS
+    bytes.fromhex("f53601106162636465666768000000000000"),
+    bytes.fromhex("f53601106162636400000000ffff00000000"),
+    bytes.fromhex("f5360111"),  # LAST_MALLOC_FAULT_GET
+    bytes.fromhex("f5360112"),  # LAST_MALLOC_FAULT_CLEAR
+    bytes.fromhex("f536011300000000616263"),  # LAST_MALLOC_FAULT_STATUS
+    bytes.fromhex("f5360114"),  # LAST_FDS_FAULT_GET
+    bytes.fromhex("f5360115"),  # LAST_FDS_FAULT_CLEAR
+    bytes.fromhex("f536011600000000616263"),  # LAST_FDS_FAULT_STATUS
+    bytes.fromhex("f5360117"),  # BYTES_BEFORE_GARBAGE_COLLECTOR_GET
+    bytes.fromhex("f53601180000"),  # BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS
+    bytes.fromhex("f53601181234"),  # BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS
+    bytes.fromhex("f5360118ffff"),  # BYTES_BEFORE_GARBAGE_COLLECTOR_STATUS
+    bytes.fromhex("f5360119"),  # PROVISIONED_APP_VERSION_GET
+    bytes.fromhex("f536011a0000"),  # PROVISIONED_APP_VERSION_STATUS
+    bytes.fromhex("f536011a1234"),  # PROVISIONED_APP_VERSION_STATUS
+    bytes.fromhex("f536011affff"),  # PROVISIONED_APP_VERSION_STATUS
+    bytes.fromhex("f536011b"),  # FULL_FIRMWARE_VERSION_GET
+    bytes.fromhex("f536011c61626364"),  # FULL_FIRMWARE_VERSION_STATUS
+    bytes.fromhex("f536011d"),  # IV_INDEX_GET
+    bytes.fromhex("f536011e00000000"),  # IV_INDEX_STATUS
+    bytes.fromhex("f536011e12345678"),  # IV_INDEX_STATUS
+    bytes.fromhex("f536011effffffff"),  # IV_INDEX_STATUS
+    bytes.fromhex("f536011f"),  # GARBAGE_COLLECTOR_COUNTER_GET
+    bytes.fromhex("f53601200000"),  # GARBAGE_COLLECTOR_COUNTER_STATUS
+    bytes.fromhex("f53601201234"),  # GARBAGE_COLLECTOR_COUNTER_STATUS
+    bytes.fromhex("f5360120ffff"),  # GARBAGE_COLLECTOR_COUNTER_STATUS
+    bytes.fromhex("f5360121"),  # ARAP_LIST_SIZE_GET
+    bytes.fromhex("f53601220000"),  # ARAP_LIST_SIZE_STATUS
+    bytes.fromhex("f53601221234"),  # ARAP_LIST_SIZE_STATUS
+    bytes.fromhex("f5360122ffff"),  # ARAP_LIST_SIZE_STATUS
+    bytes.fromhex("f536012200000000"),  # ARAP_LIST_SIZE_STATUS
+    bytes.fromhex("f536012212345678"),  # ARAP_LIST_SIZE_STATUS
+    bytes.fromhex("f5360122ffffffff"),  # ARAP_LIST_SIZE_STATUS
+    bytes.fromhex("f536012300"),  # ARAP_LIST_CONTENT_GET
+    bytes.fromhex("f536012312"),  # ARAP_LIST_CONTENT_GET
+    bytes.fromhex("f5360123ff"),  # ARAP_LIST_CONTENT_GET
+    bytes.fromhex("f53601240000"),  # ARAP_LIST_CONTENT_STATUS
+    bytes.fromhex("f536012400000000000000"),  # ARAP_LIST_CONTENT_STATUS
+    bytes.fromhex("f53601240000ffffffffff"),  # ARAP_LIST_CONTENT_STATUS
+    bytes.fromhex(
+        "f53601240000ffffffffff00000000001234561234"
+    ),  # ARAP_LIST_CONTENT_STATUS
     # config
     bytes.fromhex("02003601CE00FECAEFBE0BB000000000"),
     bytes.fromhex("8002000b00010000012100"),
@@ -46,8 +111,15 @@ valid = [
     # ctl
     bytes.fromhex("826522223333ff323c"),
     # nds
-    bytes.fromhex("FD3601011234AAAA82031000"),
-    bytes.fromhex("FD3601011234AAAA820310000300"),
+    bytes.fromhex("fd360100"),  # PUBLICATION_GET
+    bytes.fromhex("fd3601011234aaaa82031000"),  # PUBLICATION_SET
+    bytes.fromhex("fd3601011234aaaa820310000300"),  # PUBLICATION_SET
+    bytes.fromhex("fd3601011234aaaa82031000"),  # PUBLICATION_SET
+    bytes.fromhex("fd3601021234aaaa820310000300"),  # PUBLICATION_STATUS
+    bytes.fromhex("fc360100"),  # SUBSCRIPTION_GET
+    bytes.fromhex("fc3601010123aaaa"),  # SUBSCRIPTION_SET
+    bytes.fromhex("fc3601020123aaaa"),  # SUBSCRIPTION_SET_UNACKNOWLEDGED
+    bytes.fromhex("fc3601031234aaaa20012300110101"),  # SUBSCRIPTION_STATUS
     # sensor
     bytes.fromhex("8230"),
     bytes.fromhex("82300400"),
