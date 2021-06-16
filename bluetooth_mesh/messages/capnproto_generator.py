@@ -33,6 +33,7 @@ from construct import (
     Restreamed,
     Select,
     StopIf,
+    StringEncoded,
     Struct,
     Switch,
     Transformed,
@@ -131,6 +132,9 @@ def convert(
             many=many,
         )
 
+    elif isinstance(con, StringEncoded):
+        visitor.field(con, field_name, struct_name)
+
     elif isinstance(con, (GreedyRange, Array)):
         convert(
             con.subcon,
@@ -206,8 +210,11 @@ class Visitor:
             d="Float64",
         )
 
-        if isinstance(con, Bytes) or con is GreedyBytes:
-            return f"Data"
+        if isinstance(con, StringEncoded):
+            return "Text"
+
+        elif isinstance(con, Bytes) or con is GreedyBytes:
+            return "Data"
 
         elif isinstance(con, FormatField):
             return FORMAT_FIELD_TYPES[con.fmtstr[1:]]

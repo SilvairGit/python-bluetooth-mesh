@@ -45,8 +45,6 @@ from bluetooth_mesh.messages.util import EnumAdapter
 from bluetooth_mesh.messages.util import EnumSwitch as Switch
 from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
-MAX_RECORD_COUNT = 32
-
 
 class NetworkDiagnosticServerOpcode(IntEnum):
     SILVAIR_NDS = 0xFC3601
@@ -55,7 +53,7 @@ class NetworkDiagnosticServerOpcode(IntEnum):
 class NetworkDiagnosticServerSubOpcode(IntEnum):
     SUBSCRIPTION_GET = 0x00
     SUBSCRIPTION_SET = 0x01
-    SUBSCRIPTION_SET_UNACK = 0x02
+    SUBSCRIPTION_SET_UNACKNOWLEDGED = 0x02
     SUBSCRIPTION_STATUS = 0x03
     RADIO_STAT_GET = 0x04
     RADIO_STAT_SET = 0x05
@@ -112,20 +110,20 @@ NetworkDiagnosticServerSubscriptionSet = Struct(
 NetworkDiagnosticServerSubscriptionStatus = Struct(
     "destination" / UnicastUnassignedGroupAddress,
     "period" / Int16ul,
-    "max_record_count" / Const(MAX_RECORD_COUNT, Int8ul),
+    "max_record_count" / Int8ul,
     "record" / GreedyRange(RegistryRecord)
 )
 
 NetworkDiagnosticServerRadioStatGet = Struct()
 
-NetworkDiagnosticServerParams = Struct(
+NetworkDiagnosticServerParams = SwitchStruct(
     "subopcode" / EnumAdapter(Int8ul, NetworkDiagnosticServerSubOpcode),
     "payload" / Switch(
         this.subopcode,
         {
             NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_GET: NetworkDiagnosticServerSubscriptionGet,
             NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET: NetworkDiagnosticServerSubscriptionSet,
-            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET_UNACK: NetworkDiagnosticServerSubscriptionSet,
+            NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_SET_UNACKNOWLEDGED: NetworkDiagnosticServerSubscriptionSet,
             NetworkDiagnosticServerSubOpcode.SUBSCRIPTION_STATUS: NetworkDiagnosticServerSubscriptionStatus,
             NetworkDiagnosticServerSubOpcode.RADIO_STAT_GET: NetworkDiagnosticServerRadioStatGet
         }

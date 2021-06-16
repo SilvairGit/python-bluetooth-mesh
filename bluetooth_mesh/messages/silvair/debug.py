@@ -41,9 +41,9 @@ from construct import (
     this,
 )
 
-from bluetooth_mesh.messages.util import DictAdapter, EnumAdapter
+from bluetooth_mesh.messages.util import EnumAdapter
 from bluetooth_mesh.messages.util import EnumSwitch as Switch
-from bluetooth_mesh.messages.util import Opcode, SwitchStruct
+from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct
 
 
 class DebugOpcode(IntEnum):
@@ -133,15 +133,11 @@ SystemStatsGet = Struct()
 SystemStat = Struct(
     "name" / PaddedString(8, "utf8"),
     "high_water_mark" / Int16ul,
-    "rfu" / Padding(4),
+    "_rfu" / Padding(4)
 )
 
 SystemStatsStatus = Struct(
-    "stats" / DictAdapter(
-        GreedyRange(SystemStat),
-        key=this.name,
-        value=this.high_water_mark
-    )
+    "stats" / GreedyRange(SystemStat)
 )
 
 LastMallocFaultGet = Struct()
@@ -198,7 +194,7 @@ ArapSize8 = Struct(
 
 ArapListSizeGet = Struct()
 
-ArapListSizeStatus = Select(
+ArapListSizeStatus = NamedSelect(
     new=ArapSize16,
     old=ArapSize8,
 )
@@ -218,11 +214,7 @@ ArapNode = ByteSwapped(
 ArapListContentStatus = Struct(
     "current_page" / Int8ul,
     "last_page" / Int8ul,
-    "nodes" / DictAdapter(
-        GreedyRange(ArapNode),
-        key=this.address,
-        value=[this.ivi, this.sequence]
-    )
+    "nodes" / GreedyRange(ArapNode)
 )
 
 DebugParams = SwitchStruct(
