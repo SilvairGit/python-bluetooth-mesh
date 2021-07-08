@@ -101,6 +101,12 @@ class Key:
     def __str__(self):
         return "<%s: %s>" % (type(self).__name__, self.bytes.hex())
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.bytes == other.bytes
+
+    def __hash__(self):
+        return hash(self.bytes)
+
 
 class ApplicationKey(Key):
     @property
