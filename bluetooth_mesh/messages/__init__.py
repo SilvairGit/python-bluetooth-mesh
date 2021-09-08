@@ -29,6 +29,7 @@ from .health import HealthMessage, HealthOpcode
 from .scene import SceneMessage, SceneOpcode
 from .sensor import SensorMessage, SensorOpcode, SensorSetupMessage, SensorSetupOpcode
 from .silvair.debug import DebugMessage, DebugOpcode
+from .silvair.debugV2 import DebugV2Message, DebugV2Opcode
 from .silvair.gateway_config_server import (
     GatewayConfigMessage,
     GatewayConfigServerOpcode,
@@ -67,6 +68,7 @@ class _AccessMessage(Construct):
         SensorSetupOpcode: SensorSetupMessage,
         LightExtendedControllerOpcode: LightExtendedControllerMessage,
         TimeOpcode: TimeMessage,
+        DebugV2Opcode: DebugV2Message,
     }
 
     OPCODE = Opcode()
