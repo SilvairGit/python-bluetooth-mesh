@@ -193,6 +193,21 @@ valid = [
         id='SystemStatsStatus (short)'
     ),
     pytest.param(
+        b'\x10'
+        b'HEAP\x00\x00\x00\x00\xb7\x86\x01\x00\x00\x00'
+        b'Tmr Svc\x00(\x02\x00\x00\x00\x00'
+        b'IDLE\x00\x00\x00\x00\xf4\x00\x00\x00\x00\x00',
+        DebugSubOpcode.SYSTEM_STATS_STATUS,
+        {
+            "stats": [
+                {"name": u'HEAP', "high_water_mark": 100023},
+                {"name": u'Tmr Svc', "high_water_mark": 552},
+                {"name": u'IDLE', "high_water_mark": 244},
+            ]
+        },
+        id='SystemStatsStatus (with 4-byte HEAP)'
+    ),
+    pytest.param(
         b'$\x00\x00\x80\x80X\x00\x00',
         DebugSubOpcode.ARAP_LIST_CONTENT_STATUS,
         {
