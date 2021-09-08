@@ -132,8 +132,8 @@ SystemStatsGet = Struct()
 
 SystemStat = Struct(
     "name" / PaddedString(8, "utf8"),
-    "high_water_mark" / Int16ul,
-    "_rfu" / Padding(4)
+    "high_water_mark" / Int32ul,
+    "_rfu" / Padding(2)
 )
 
 SystemStatsStatus = Struct(
