@@ -51,6 +51,7 @@ setup(
         'marshmallow>=3.0.1,<4.0',
     ],
     tests_require=[
+        'coverage<6.0',
         'asynctest==0.12.3',
         'coveralls==2.0.0',
         'pytest==5.0.0',
