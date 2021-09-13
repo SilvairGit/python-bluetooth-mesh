@@ -22,6 +22,7 @@ from construct import (
     Default,
     FixedSized,
     Flag,
+    FocusedSeq,
     FormatField,
     GreedyBytes,
     GreedyRange,
@@ -143,6 +144,16 @@ def convert(
             # struct_name=struct_name,
             many=True,
             message_name=message_name,
+        )
+
+    elif isinstance(con, FocusedSeq):
+        subcon = getattr(con, con.parsebuildfrom)
+        convert(
+            subcon.subcon,
+            visitor,
+            field_name=field_name,
+            struct_name=struct_name,
+            many=False,
         )
 
     elif con is Pass:
