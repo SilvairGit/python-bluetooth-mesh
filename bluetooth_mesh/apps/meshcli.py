@@ -65,8 +65,9 @@ from bluetooth_mesh.models import (
     NetworkDiagnosticSetupClient,
     SceneClient,
     SensorClient,
+    TimeClient,
+    SchedulerClient,
 )
-from bluetooth_mesh.models.models import TimeClient
 
 plugin_manager = get_plugin_manager()
 
@@ -1466,6 +1467,21 @@ class TimeRoleSetCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
                     TimeRole(pkt_time["time_role"])
                 )
 
+class SchedulerCommand(ModelCommandMixin, NodeSelectionCommandMixin, Command):
+    USAGE ="""
+    Usage:
+        %(cmd)s [options] <uuid>...
+    """
+    CMD = "sched"
+    MODEL = SchedulerClient
+    ELEMENT = 0
+
+    async def __call__(self, application, arguments):
+        model = self.get_model(application)
+        addresses = self.get_addresses(application, arguments)
+        await model.set_scheduler_action(addresses)
+
+
 
 class HelpCommand(Command):
     CMD = "help"
@@ -1494,6 +1510,7 @@ class PrimaryElement(Element):
         LightExtendedControllerSetupClient,
         SensorClient,
         TimeClient,
+        SchedulerClient,
     ]
 
 
@@ -1538,6 +1555,7 @@ class MeshCommandLine(*application_mixins, Application):
         TimeCurrentSetCommand,
         TimeRoleGetCommand,
         TimeRoleSetCommand,
+        SchedulerCommand,
     ]
 
     COMPANY_ID = 0xFEE5
@@ -1596,6 +1614,7 @@ class MeshCommandLine(*application_mixins, Application):
                 net_key_index=bound, app_key_index=index, app_key=key
             )
 
+        """
         for node in self.network.nodes:
             # don't overwrite my own key
             if node.address in range(self.address, self.address + len(self.ELEMENTS)):
@@ -1604,6 +1623,7 @@ class MeshCommandLine(*application_mixins, Application):
             await self.management_interface.import_remote_node(
                 node.address, len(node.elements), DeviceKey(node.device_key.bytes)
             )
+        """
 
         debug_client = self.get_model_instance(element=0, model=DebugClient)
         health_client = self.get_model_instance(element=0, model=HealthClient)
@@ -1705,7 +1725,7 @@ def main():
 
     logging.basicConfig(
         format="%(asctime)s %(name)-40s %(levelname)-8s %(filename)15s:%(lineno)3s  %(message)s",
-        level=logging.INFO,
+        level=logging.DEBUG,
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 

@@ -49,6 +49,7 @@ from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.messages.health import HealthOpcode
 from bluetooth_mesh.messages.properties import PropertyID
 from bluetooth_mesh.messages.scene import SceneOpcode
+from bluetooth_mesh.messages.scheduler import SchedulerOpcode, SchedulerSetupOpcode
 from bluetooth_mesh.messages.sensor import SensorOpcode
 from bluetooth_mesh.messages.silvair.debug import DebugOpcode, DebugSubOpcode
 from bluetooth_mesh.messages.silvair.gateway_config_server import (
@@ -90,6 +91,8 @@ __all__ = [
     "GatewayConfigServer",
     "GatewayConfigClient",
     "LightExtendedControllerSetupClient",
+    "TimeClient",
+    "SchedulerClient",
 ]
 
 AppKeyStatus = NamedTuple(
@@ -2780,3 +2783,48 @@ class TimeClient(Model):
             else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
+
+
+class SchedulerClient(Model):
+    MODEL_ID = (None, 0x1208)
+    OPCODES = {
+        SchedulerOpcode.SCHEDULER_STATUS,
+        SchedulerOpcode.SCHEDULER_ACTION_STATUS,
+    }
+    PUBLISH = False
+    SUBSCRIBE = True
+
+    async def set_scheduler_action(
+        self, nodes: Sequence[int]
+    ):
+        for node in nodes:
+            await self.send_app(
+                node,
+                app_index=0,
+                opcode=SchedulerSetupOpcode.SCHEDULER_ACTION_SET_UNACKNOWLEDGED,
+                params=dict(
+                    index=0,
+                    start=dict(
+                        year=2021,
+                        month=10,
+                        day=2,
+                        hour=0,
+                        minute=0,
+                        second=0,
+                    ),
+                    recurrence=dict(
+                        frequency=4,  # weekly
+                        skip=2,  # omit
+                        interval=2,
+                    ),
+                    by_second=0x7f,
+                    by_minute=0x7f,
+                    by_hour=0x7f,
+                    by_day=0x7f,
+                    by_month_day=0x7f,
+                    by_year_day=0x7f7f,
+                    by_week_no=0x7f,
+                    by_month=0x7f,
+                    by_set_pos=0x7f7f,
+                )
+            )

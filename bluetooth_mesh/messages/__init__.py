@@ -27,6 +27,12 @@ from .generic.light.lightness import (
 from .generic.onoff import GenericOnOffMessage, GenericOnOffOpcode
 from .health import HealthMessage, HealthOpcode
 from .scene import SceneMessage, SceneOpcode
+from .scheduler import (
+    SchedulerMessage,
+    SchedulerOpcode,
+    SchedulerSetupMessage,
+    SchedulerSetupOpcode,
+)
 from .sensor import SensorMessage, SensorOpcode, SensorSetupMessage, SensorSetupOpcode
 from .silvair.debug import DebugMessage, DebugOpcode
 from .silvair.debugV2 import DebugV2Message, DebugV2Opcode
@@ -69,6 +75,8 @@ class _AccessMessage(Construct):
         LightExtendedControllerOpcode: LightExtendedControllerMessage,
         TimeOpcode: TimeMessage,
         DebugV2Opcode: DebugV2Message,
+        SchedulerOpcode: SchedulerMessage,
+        SchedulerSetupOpcode: SchedulerSetupMessage,
     }
 
     OPCODE = Opcode()
