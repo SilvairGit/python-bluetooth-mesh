@@ -108,6 +108,7 @@ valid = [
     bytes.fromhex("02003601CE00FECAEFBE0BB000000000"),
     bytes.fromhex("8002000b00010000012100"),
     bytes.fromhex("8039010203040506070809"),
+    bytes.fromhex("803E00A70202000213"),
     # ctl
     bytes.fromhex("826522223333ff323c"),
     # nds

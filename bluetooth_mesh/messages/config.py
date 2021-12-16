@@ -50,6 +50,7 @@ from bluetooth_mesh.messages.util import BitList, EmbeddedBitStruct, EnumAdapter
 from bluetooth_mesh.messages.util import EnumSwitch as Switch
 from bluetooth_mesh.messages.util import (
     LogAdapter,
+    NamedSelect,
     Opcode,
     RangeValidator,
     Reversed,
@@ -429,7 +430,7 @@ VendorModelId = Struct(
     "model_id" / Int16ul,
 )
 
-ModelId = Select(
+ModelId = NamedSelect(
     vendor=VendorModelId,
     sig=SIGModelId
 )
