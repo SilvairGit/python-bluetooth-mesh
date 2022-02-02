@@ -1602,7 +1602,7 @@ class MeshCommandLine(*application_mixins, Application):
                 continue
 
             await self.management_interface.import_remote_node(
-                node.address, len(node.elements), DeviceKey(node.device_key.bytes)
+                node.address, len(node.elements), DeviceKey(node.device_key)
             )
 
         debug_client = self.get_model_instance(element=0, model=DebugClient)
