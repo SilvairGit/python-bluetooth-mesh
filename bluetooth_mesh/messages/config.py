@@ -802,7 +802,7 @@ ConfigModelPublicationVASet = Struct(
     "publish_address" / Bytes(16),
     *EmbeddedBitStruct(
         "_",
-        "RFU" / BitsInteger(3),
+        "rfu" / BitsInteger(3),
         "credential_flag" / PublishFriendshipCredentialsFlagAdapter,
         "app_key_index" / BitsInteger(12),
         reversed=True
