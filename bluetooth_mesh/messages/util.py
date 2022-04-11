@@ -101,6 +101,14 @@ def BitList(size, *, reversed=False):
     return BitListAdapter(Bitwise(Bit[size * 8]), reversed)
 
 
+class SetAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        return set(obj)
+
+    def _encode(self, obj, context, path):
+        return obj
+
+
 def EnumAdapter(subcon, enum):
     class _Enum(Enum):
         ENUM = enum
