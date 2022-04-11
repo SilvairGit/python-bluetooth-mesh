@@ -30,6 +30,7 @@ from .scene import SceneMessage, SceneOpcode
 from .sensor import SensorMessage, SensorOpcode, SensorSetupMessage, SensorSetupOpcode
 from .silvair.debug import DebugMessage, DebugOpcode
 from .silvair.debugV2 import DebugV2Message, DebugV2Opcode
+from .silvair.rrule_scheduler import RRuleSchedulerMessage, RRuleSchedulerOpcode
 from .silvair.gateway_config_server import (
     GatewayConfigMessage,
     GatewayConfigServerOpcode,
@@ -69,6 +70,7 @@ class _AccessMessage(Construct):
         LightExtendedControllerOpcode: LightExtendedControllerMessage,
         TimeOpcode: TimeMessage,
         DebugV2Opcode: DebugV2Message,
+        RRuleSchedulerOpcode: RRuleSchedulerMessage,
     }
 
     OPCODE = Opcode()
