@@ -80,6 +80,7 @@ class DebugV2ParameterTypes(IntEnum):
     UART_MODEL_INSTANCES = 0x19
     APP_THREAD_LATENCY = 0x1A
     IV_INDEX_INFO = 0x1B
+    MESH_CACHE_INFO = 0x1C
 
     NOT_KNOWN_PARAMETER = 0xFF
 
