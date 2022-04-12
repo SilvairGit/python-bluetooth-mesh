@@ -11,7 +11,7 @@ matrix:
   - python: 3.7
     env: TOX_ENV=pylint
 install:
-- pip install -v --upgrade wheel tox keyring==21.4.0 pkgconfig setuptools>=62.1.0
+- pip install -v --upgrade wheel tox keyring==21.4.0 pkgconfig setuptools>=62.1.0 importlib_metadata>=4.0 pluggy>=1.0
 script:
 - pip freeze
 - tox -e $TOX_ENV
