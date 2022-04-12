@@ -13,6 +13,7 @@ matrix:
 install:
 - pip install -v --upgrade wheel tox keyring==21.4.0 pkgconfig setuptools>=62.1.0
 script:
+- pip freeze
 - tox -e $TOX_ENV
 after_success:
 - coveralls
