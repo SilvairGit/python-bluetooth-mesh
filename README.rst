@@ -10,8 +10,8 @@ python-bluetooth-mesh
     :target: https://pypi.org/project/bluetooth-mesh
     :alt: Python versions
 
-.. image:: https://travis-ci.org/SilvairGit/python-bluetooth-mesh.svg?branch=master
-    :target: https://travis-ci.org/SilvairGit/python-bluetooth-mesh
+.. image:: https://app.travis-ci.com/SilvairGit/python-bluetooth-mesh.svg?branch=master
+    :target: https://travis-ci.com/github/SilvairGit/python-bluetooth-mesh
     :alt: See Build Status on Travis CI
 
 .. image:: https://readthedocs.org/projects/python-bluetooth-mesh/badge/?version=latest
