@@ -42,7 +42,7 @@ from construct import (
 
 from bluetooth_mesh.messages.util import EnumAdapter
 from bluetooth_mesh.messages.util import EnumSwitch as Switch
-from bluetooth_mesh.messages.util import NamedSelect, Opcode, SwitchStruct, SetAdapter
+from bluetooth_mesh.messages.util import NamedSelect, Opcode, SetAdapter, SwitchStruct
 
 
 class RRuleSchedulerOpcode(IntEnum):
