@@ -1074,8 +1074,8 @@ class ConfigOpcode(enum.IntEnum):
     CONFIG_KEY_REFRESH_PHASE_GET = 0x8015
     CONFIG_KEY_REFRESH_PHASE_SET = 0x8016
     CONFIG_KEY_REFRESH_PHASE_STATUS = 0x8017
-    CONFIG_LOW_POWER_NODE_POLLTIMEOUT_GET = 0x802D
-    CONFIG_LOW_POWER_NODE_POLLTIMEOUT_STATUS = 0x802E
+    CONFIG_LOW_POWER_NODE_POLL_TIMEOUT_GET = 0x802D
+    CONFIG_LOW_POWER_NODE_POLL_TIMEOUT_STATUS = 0x802E
     CONFIG_MODEL_APP_BIND = 0x803D
     CONFIG_MODEL_APP_STATUS = 0x803E
     CONFIG_MODEL_APP_UNBIND = 0x803F
@@ -1153,8 +1153,8 @@ ConfigMessage = SwitchStruct(
             ConfigOpcode.CONFIG_KEY_REFRESH_PHASE_GET: ConfigKeyRefreshPhaseGet,
             ConfigOpcode.CONFIG_KEY_REFRESH_PHASE_SET: ConfigKeyRefreshPhaseSet,
             ConfigOpcode.CONFIG_KEY_REFRESH_PHASE_STATUS: ConfigKeyRefreshPhaseStatus,
-            ConfigOpcode.CONFIG_LOW_POWER_NODE_POLLTIMEOUT_GET: ConfigLowPowerNodePollTimeoutGet,
-            ConfigOpcode.CONFIG_LOW_POWER_NODE_POLLTIMEOUT_STATUS: ConfigLowPowerNodePollTimeoutStatus,
+            ConfigOpcode.CONFIG_LOW_POWER_NODE_POLL_TIMEOUT_GET: ConfigLowPowerNodePollTimeoutGet,
+            ConfigOpcode.CONFIG_LOW_POWER_NODE_POLL_TIMEOUT_STATUS: ConfigLowPowerNodePollTimeoutStatus,
             ConfigOpcode.CONFIG_MODEL_APP_BIND: ConfigModelAppBind,
             ConfigOpcode.CONFIG_MODEL_APP_STATUS: ConfigModelAppStatus,
             ConfigOpcode.CONFIG_MODEL_APP_UNBIND: ConfigModelAppUnbind,
