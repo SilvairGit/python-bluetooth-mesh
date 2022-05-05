@@ -226,6 +226,7 @@ def EmbeddedBitStruct(name, *fields, reversed=False):
 
 
 class Opcode(Construct):
+    __construct_doc__ = Int32ub
     subcon = Int32ub
 
     def __init__(self, type=int):
@@ -429,7 +430,7 @@ class NamedSelect(Adapter):
     def __init__(self, **subconskw):
         subcons = list(NameAdapter(k / v.compile()) for k, v in subconskw.items())
         super().__init__(Select(*subcons))
-        self._subcon = Select(**subconskw)
+        self.__construct_doc__ = self._subcon = Select(**subconskw)
 
     def _decode(self, obj, context, path):
         return obj
