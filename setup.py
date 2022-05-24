@@ -36,7 +36,7 @@ setup(
     long_description_content_type="text/x-rst",
     url='http://github.com/silvairgit/python-bluetooth-mesh',
     packages=find_packages(exclude=('test*', )),
-    python_requires='>=3.6.0,<3.8.0',
+    python_requires='>=3.6.0,<3.11.0',
     setup_requires=[
         'pytest-runner==4.2',
     ],
