@@ -23,10 +23,12 @@ import enum
 import itertools
 import math
 import operator
+import secrets
 from uuid import UUID
 
 import bitstring
-from construct import ValidationError
+from bidict import bidict
+from construct import ConstructError, ValidationError
 from crc.crc import Configuration, CrcCalculator
 
 from bluetooth_mesh.crypto import (
@@ -47,6 +49,7 @@ from bluetooth_mesh.provisioning import (
     TransactionContinuation,
     TransactionStart,
 )
+from bluetooth_mesh.utils import Signal
 
 
 class BeaconType(enum.Enum):
@@ -529,13 +532,13 @@ CRC_CALCULATOR = CrcCalculator(configuration=MESH_CRC)
 
 class ProvisioningTransaction:
     @staticmethod
-    def pack(payload):
+    def pack(obj):
         """
         Given a dictionary that matches ProvisioningPDU, generate transaction
         a sequence of GenericProvisioning packets, starting with
         TransactionStart, followed by zero or more TransactionContinuations
         """
-        pdu = ProvisioningPDU.build(obj=payload)
+        pdu = ProvisioningPDU.build(obj=obj)
 
         segments = [pdu[0:20]]
         if len(pdu) > 20:
@@ -603,3 +606,162 @@ class ProvisioningTransaction:
             )
 
         return ProvisioningPDU.parse(pdu)
+
+
+class ProvisioningState(enum.Enum):
+    OPENING = 1
+    OPEN = 2
+
+
+@dataclass
+class Provisioning:
+    link_id: bytes
+    transaction_tx: int = 0x00
+    transaction_rx: int = 0x80
+    open: bool = False
+    segments: List[bytes]
+
+
+class ProvisioningAdv:
+    def __init__(self):
+        self.provisionings = {}
+        self.links = bidict()
+        self.send = lambda *pb_adv_pdus: None
+        self.open = lambda device_uuid: None
+        self.close = lambda device_uuid: None
+        self.receive = lambda device_uuid, pdu: None
+        self.ack = lambda device_uuid, pdu: None
+
+    def link_open(self, device_uuid):
+        """
+        Open a link to selected device, using random link id.
+
+        Calls self.send() callback with encoded "Link Open" PB-ADV packet.
+        """
+        provisioning = self.provisionings.setdefault(
+            device_uuid, ProvisioningState(link_id=secrets.token_bytes(4))
+        )
+
+        assert not provisioning.open
+
+        self.links[device_uuid] = provisioning.link_id
+
+        pdu = GenericProvisioning.build(
+            dict(
+                opcode=BearerOpcode.LINK_OPEN,
+                gpcf=GenericProvisioningPDUType.CONTROL,
+                parameters=dict(device_uuid=device_uuid.bytes),
+            )
+        )
+
+        self.send(
+            PBADVPDU.build(
+                dict(link_id=provisioning.link_id, transaction_id=0, data=pdu)
+            )
+        )
+
+    def transaction(self, device_uuid, obj):
+        """
+        Encapsulate provisioning PDU in a transaction.
+
+        Calls self.send() callback with encoded "Transaction Start" and
+        "Transaction Continuation" PB-ADV packets.
+        """
+        provisioning = self.provisionings[device_uuid]
+
+        self.send(
+            PBADVPDU.build(
+                dict(
+                    link_id=provisioning.link_id,
+                    transaction_id=provisioning.transaction_tx,
+                    data=pdu,
+                )
+            )
+            for pdu in ProvisioningTransaction.pack(obj)
+        )
+
+    def handle(self, pb_adv_pdu):
+        """
+        Handle the received PB-ADV packet:
+         - on valid "Link Ack", call self.open()
+         - on valid "Link Close", call self.close()
+         - on valid "Transaction Ack", call self.ack()
+         - on valid and complete transaction, call self.receive() and then
+           self.send() with encoded "Transaction Acknowledgement" PB-ADV packet
+        """
+        try:
+            pdu = GenericProvisioning.parse(data)
+        except ConstructError:
+            return
+
+        device_uuid = self.links.inverse[link_id]
+        provisioning = self.provisionings[device_uuid]
+
+        if (
+            not provisioning.open
+            and pdu["gpcf"] in {GenericProvisioningPDUType.CONTROL}
+            and pdu["opcode"] == BearerOpcode.LINK_ACK
+        ):
+            provisioning.open = True
+
+            self.open(device_uuid)
+            return
+
+        if not provisioning.open:
+            return
+
+        if (
+            pdu["gpcf"] in {GenericProvisioningPDUType.CONTROL}
+            and pdu["opcode"] == BearerOpcode.LINK_CLOSE
+        ):
+            del self.links[device_uuid]
+            del self.provisionings[device_uuid]
+
+            self.close(device_uuid)
+            return
+
+        if (
+            pdu["gpcf"]
+            in {
+                GenericProvisioningPDUType.START,
+                GenericProvisioningPDUType.CONTINUATION,
+            }
+            and transaction_id == provisioning.transaction_rx
+        ):
+            # TODO: sort/uniq?
+            provisioning.segments.append(pdu.data)
+            try:
+                pdu = ProvisioningTransaction.unpack(provisioning.segments)
+            except ConstructError:
+                return
+
+            self.receive(device_uuid, pdu)
+
+            ack = GenericProvisioning.build(
+                dict(
+                    gpcf=GenericProvisioningPDUType.ACK,
+                )
+            )
+            self.send(
+                PBADVPDU.build(
+                    dict(
+                        link_id=provisioning.link_id,
+                        transaction_id=transaction_id,
+                        data=ack,
+                    )
+                )
+            )
+
+            provisioning.transaction_rx += 1
+            provisioning.segments = []
+            return
+
+        if (
+            provisioning.state == ProvisioningState.OPEN
+            and pdu["gpcf"] in {GenericProvisioningPDUType.ACK}
+            and transaction_id == provisioning.transaction_tx
+        ):
+            self.ack(device_uuid)
+
+            provisioning.transaction_tx += 1
+            return
