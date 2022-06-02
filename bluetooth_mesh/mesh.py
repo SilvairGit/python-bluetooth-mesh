@@ -24,6 +24,8 @@ import itertools
 import math
 import operator
 import secrets
+from dataclasses import dataclass
+from typing import List
 from uuid import UUID
 
 import bitstring
