@@ -618,10 +618,10 @@ class ProvisioningState(enum.Enum):
 @dataclass
 class Provisioning:
     link_id: bytes
+    segments: List[bytes]
     transaction_tx: int = 0x00
     transaction_rx: int = 0x80
     open: bool = False
-    segments: List[bytes]
 
 
 class ProvisioningAdv:
