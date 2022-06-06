@@ -20,11 +20,14 @@
 #
 #
 import enum
+import itertools
 import math
 import operator
+from typing import List
 from uuid import UUID
 
 import bitstring
+from construct import ValidationError
 from crc.crc import Configuration, CrcCalculator
 
 from bluetooth_mesh.crypto import (
@@ -37,12 +40,11 @@ from bluetooth_mesh.crypto import (
 )
 from bluetooth_mesh.provisioning import (
     BearerOpcode,
+    GenericProvisioning,
+    GenericProvisioningPDUType,
     ProvisioningBearerControl,
     ProvisioningPDU,
     ProvisioningPDUType,
-    TransactionContinuationPDU,
-    TransactionPDUSegment,
-    TransactionStartPDU,
 )
 
 
@@ -524,58 +526,77 @@ MESH_CRC = Configuration(
 CRC_CALCULATOR = CrcCalculator(configuration=MESH_CRC)
 
 
-class GenericProvisioningPDU:
+class ProvisioningTransaction:
     @staticmethod
     def pack(payload):
-        if payload["type"] == ProvisioningPDUType.ACK:
-            return [b"\x01"]
+        """
+        Given a dictionary that matches ProvisioningPDU, generate transaction
+        a sequence of GenericProvisioning packets, starting with
+        TransactionStart, followed by zero or more TransactionContinuations
+        """
+        pdu = ProvisioningPDU.build(payload)
 
-        if isinstance(payload["type"], BearerOpcode):
-            return [
-                ProvisioningBearerControl.build(
-                    dict(opcode=payload["type"], parameters=payload["parameters"])
-                )
-            ]
+        segments = [pdu[0:20]]
+        if len(pdu) > 20:
+            segments += [pdu[0 + i : 23 + i] for i in range(20, len(pdu), 23)]
 
-        PDU = ProvisioningPDU.build(obj=payload)
+        total_len = len(pdu)
+        fcs = CRC_CALCULATOR.calculate_checksum(pdu)
 
-        segments = [PDU[0:20]]
-        if len(PDU) > 20:
-            segments += [PDU[0 + i : 23 + i] for i in range(20, len(PDU), 23)]
-
-        total_len = len(PDU)
-        fcs = CRC_CALCULATOR.calculate_checksum(PDU)
-
-        ret = list()
-        ret.append(
-            TransactionStartPDU.build(
-                dict(
-                    last_segment_number=len(segments) - 1,
-                    total_length=total_len,
-                    frame_check=fcs,
-                    data=segments.pop(0),
-                )
+        yield GenericProvisioning.build(
+            dict(
+                last_segment_number=len(segments) - 1,
+                gpcf=GenericProvisioningPDUType.START,
+                total_length=total_len,
+                frame_check=fcs,
+                data=segments.pop(0),
             )
         )
 
         for index, segment in enumerate(segments, start=1):
-            ret.append(
-                TransactionContinuationPDU.build(
-                    dict(segment_index=index, data=segment)
+            yield GenericProvisioning.build(
+                dict(
+                    segment_index=index,
+                    gpcf=GenericProvisioningPDUType.CONTINUATION,
+                    data=segment,
                 )
             )
 
-        return ret
-
     @staticmethod
     def unpack(segments):
-        if segments[0] == b"\x01":
-            return dict(type=ProvisioningPDUType.ACK, parameters=dict())
+        """
+        Given a sequence of GenericProvisioning packets, reassemble a
+        ProvisioningPDU, parse it and return as dictionary.
 
-        parsed = [TransactionPDUSegment.parse(segment) for segment in segments]
-        parsed.sort(key=lambda segment: getattr(segment, "segment_index", 0))
+        Note: segments must belong to a single transaction, but they don't need
+        to be in-order, may contain duplicates and may be interleaved with
+        ProvisioningBearerControl or TransactionAck packets - these are ignored.
+        """
+        parsed = map(GenericProvisioning.parse, segments)
 
-        if parsed[0].get("opcode") is not None:
-            return dict(type=parsed[0]["opcode"], parameters=parsed[0]["parameters"])
+        filtered = filter(
+            lambda segment: segment["gpcf"]
+            in {
+                GenericProvisioningPDUType.START,
+                GenericProvisioningPDUType.CONTINUATION,
+            },
+            parsed,
+        )
 
-        return ProvisioningPDU.parse(data=b"".join(segment.data for segment in parsed))
+        def key(segment):
+            return getattr(segment, "segment_index", 0)
+
+        start, *continuations = (
+            next(group)
+            for _, group in itertools.groupby(sorted(filtered, key=key), key=key)
+        )
+
+        pdu = start.data + b"".join(continuation.data for continuation in continuations)
+
+        fcs = CRC_CALCULATOR.calculate_checksum(pdu)
+        if fcs != start.frame_check:
+            raise ValidationError(
+                f"Transaction checksum is invalid, expected {start.frame_check:02x}, got {fcs:02x}",
+            )
+
+        return ProvisioningPDU.parse(pdu)

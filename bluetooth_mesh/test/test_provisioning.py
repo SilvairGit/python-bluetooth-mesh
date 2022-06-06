@@ -22,7 +22,7 @@
 import ecdsa
 import pytest
 
-from bluetooth_mesh.mesh import GenericProvisioningPDU
+from bluetooth_mesh.mesh import ProvisioningTransaction
 from bluetooth_mesh.provisioning import (
     BearerOpcode,
     GenericProvisioningPDUType,
@@ -218,7 +218,7 @@ bearer_ctrl = [
             parameters=dict(
                 device_uuid=bytes.fromhex("70cf7c9732a345b691494810d2e9cbf4")
             ),
-            type=GenericProvisioningPDUType.CONTROL
+            gpcf=GenericProvisioningPDUType.CONTROL
         ),
         id="link open"
     ),
@@ -227,7 +227,7 @@ bearer_ctrl = [
         dict(
             opcode=BearerOpcode.LINK_ACK,
             parameters=dict(),
-            type=GenericProvisioningPDUType.CONTROL
+            gpcf=GenericProvisioningPDUType.CONTROL
         ),
         id="link ack"
     ),
@@ -238,7 +238,7 @@ bearer_ctrl = [
             parameters=dict(
                 reason=LinkCloseReason.SUCCESS
             ),
-            type=GenericProvisioningPDUType.CONTROL
+            gpcf=GenericProvisioningPDUType.CONTROL
         ),
         id="link close"
     ),
@@ -260,16 +260,6 @@ def test_parse_provisioning(encoded, decoded):
 
 valid = [
     # fmt: off
-    pytest.param(
-        [bytes.fromhex('03 70cf7c9732a345b691494810d2e9cbf4')],
-        dict(
-            type=BearerOpcode.LINK_OPEN,
-            parameters=dict(
-                device_uuid=bytes.fromhex("70cf7c9732a345b691494810d2e9cbf4")
-            ),
-        ),
-        id="link open"
-    ),
     pytest.param(
         [bytes.fromhex('00 0002 14 0000')],
         dict(
@@ -295,7 +285,7 @@ valid = [
         id="start"
     ),
     pytest.param(
-        [bytes.fromhex('0400228b 07d0bd7f4a89a2ff6222af59a90a60ad58acfe31'),
+        [bytes.fromhex('04 0022 8b 07d0bd7f4a89a2ff6222af59a90a60ad58acfe31'),
          bytes.fromhex('06 23356f5cec2973e0ec50783b10c7')],
         dict(
             type=ProvisioningPDUType.DATA,
@@ -307,9 +297,9 @@ valid = [
         id="data",
     ),
     pytest.param(
-        [bytes.fromhex('0800411003f465e43ff23d3f1b9dc7dfc04da8758184dbc9'),
-         bytes.fromhex('0666204796eccf0d6cf5e16500cc0201d048bcbbd899eeef'),
-         bytes.fromhex('0ac424164e33c201c2b010ca6b4d43a8a155cad8ecb279')],
+        [bytes.fromhex('08 0041 10 03f465e43ff23d3f1b9dc7dfc04da8758184dbc9'),
+         bytes.fromhex('06 66204796eccf0d6cf5e16500cc0201d048bcbbd899eeef'),
+         bytes.fromhex('0a c424164e33c201c2b010ca6b4d43a8a155cad8ecb279')],
         dict(
             type=ProvisioningPDUType.PUBLIC_KEY,
             parameters=dict(
@@ -332,27 +322,19 @@ valid = [
         ),
         id="random",
     ),
-    pytest.param(
-        [bytes.fromhex('01')],
-        dict(
-            type=ProvisioningPDUType.ACK,
-            parameters=dict()
-        ),
-        id="ack",
-    )
     # fmt: on
 ]
 
 
 @pytest.mark.parametrize("encoded,decoded", valid)
-def test_pack_generic(encoded, decoded):
-    result = GenericProvisioningPDU.pack(payload=decoded)
+def test_transaction_pack(encoded, decoded):
+    result = list(ProvisioningTransaction.pack(payload=decoded))
     assert result == encoded
 
 
 @pytest.mark.parametrize("encoded,decoded", valid)
 def test_unpack_generic(encoded, decoded):
-    result = GenericProvisioningPDU.unpack(segments=encoded)
+    result = ProvisioningTransaction.unpack(segments=encoded)
     assert result == decoded
 
 
