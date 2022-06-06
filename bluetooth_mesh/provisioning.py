@@ -65,9 +65,6 @@ class ProvisioningPDUType(enum.IntEnum):
     DATA = 0x07
     COMPLETE = 0x08
     FAILED = 0x09
-    # ACK type is not in specification and is not actually used in constructing the message
-    # it is there just to allow consistent packing/unpacking of GenericProvisioningPDU
-    ACK = -1
 
 
 class GenericProvisioningPDUType(enum.IntEnum):
@@ -252,47 +249,59 @@ LinkClose = Struct(
     "reason" / EnumAdapter(Int8ub, LinkCloseReason)
 )
 
-ProvisioningBearerControl = BitStruct(
-    "opcode" / EnumAdapter(BitsInteger(6), BearerOpcode),
-    "type" / Const(GenericProvisioningPDUType.CONTROL, BitsInteger(2)),
+ProvisioningBearerControl = Struct(
+    *EmbeddedBitStruct(
+        "_",
+        "opcode" / EnumAdapter(BitsInteger(6), BearerOpcode),
+        "gpcf" / Const(GenericProvisioningPDUType.CONTROL, BitsInteger(2)),
+    ),
     "parameters" / Switch(
         this.opcode,
         {
-            BearerOpcode.LINK_OPEN: Struct("device_uuid" / Bytewise(Bytes(16))),
+            BearerOpcode.LINK_OPEN: Struct("device_uuid" / Bytes(16)),
             BearerOpcode.LINK_ACK: Struct(),
-            BearerOpcode.LINK_CLOSE: Struct("reason" / EnumAdapter(BitsInteger(8), LinkCloseReason))
+            BearerOpcode.LINK_CLOSE: Struct("reason" / EnumAdapter(Int8ub, LinkCloseReason))
         },
         default=GreedyBytes,
     ),
 )
 
-TransactionStartPDU = Struct(
+TransactionStart = Struct(
     *EmbeddedBitStruct(
         "_",
         "last_segment_number" / BitsInteger(6),
-        "type" / Const(GenericProvisioningPDUType.START, BitsInteger(2)),
+        "gpcf" / Const(GenericProvisioningPDUType.START, BitsInteger(2)),
     ),
     "total_length" / Int16ub,
     "frame_check" / Int8ub,
     "data" / GreedyBytes
 )
 
-TransactionContinuationPDU = Struct(
+TransactionAck = Struct(
+    *EmbeddedBitStruct(
+        "_",
+        "padding" / Const(0, BitsInteger(6)),
+        "gpcf" / Const(GenericProvisioningPDUType.ACK, BitsInteger(2)),
+    ),
+)
+
+TransactionContinuation = Struct(
     *EmbeddedBitStruct(
         "_",
         "segment_index" / BitsInteger(6),
-        "type" / Const(GenericProvisioningPDUType.CONTINUATION, BitsInteger(2)),
+        "gpcf" / Const(GenericProvisioningPDUType.CONTINUATION, BitsInteger(2)),
     ),
     "data" / GreedyBytes
 )
 
-TransactionPDUSegment = Select(
-    TransactionStartPDU,
-    TransactionContinuationPDU,
-    ProvisioningBearerControl
+GenericProvisioning = Select(
+    TransactionStart,
+    TransactionAck,
+    TransactionContinuation,
+    ProvisioningBearerControl,
 )
 
-ProvisioningMessage = Struct(
+PBADVPDU = Struct(
     "link_id" / Bytes(4),
     "transaction_id" / Int8ub,
     "data" / GreedyBytes
