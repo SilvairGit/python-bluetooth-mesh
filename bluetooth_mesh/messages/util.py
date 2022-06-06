@@ -119,7 +119,9 @@ def EnumAdapter(subcon, enum):
 
         def _decode(self, obj, context, path):
             if obj not in enum._value2member_map_:
-                raise ValidationError("object failed validation: %s" % (obj,))
+                raise ValidationError(
+                    "object failed validation: '%s' not in %s" % (obj, enum)
+                )
             return enum(obj)
 
         def _encode(self, obj, context, path):
@@ -129,7 +131,9 @@ def EnumAdapter(subcon, enum):
             try:
                 return enum[obj] if isinstance(obj, str) else enum(obj)
             except ValueError:
-                raise ValidationError("object failed validation: %s" % (obj,))
+                raise ValidationError(
+                    "object failed validation: '%s' not in %s" % (obj, enum)
+                )
 
     _EnumAdapter.__construct_doc__ = _Enum(subcon, enum)
 
