@@ -20,7 +20,7 @@
 #
 #
 import sys
-from datetime import datetime
+from datetime import date
 
 import pytest
 
@@ -604,7 +604,7 @@ valid_properties = [
         dict(sensor_property_id=PropertyID.DEVICE_DATE_OF_MANUFACTURE,
              sensor_setting_property_id=PropertyID.DEVICE_DATE_OF_MANUFACTURE,
              device_date_of_manufacture=dict(
-                 date=datetime(2019, 9, 3),
+                 date=date(2019, 9, 3),
              )),
         id="DateUTC"),
     pytest.param(

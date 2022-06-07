@@ -21,7 +21,15 @@
 #
 # pylint: disable=W0223
 
-from datetime import datetime, timedelta
+# Property IDs available in mesh:
+#   "Mesh Device Properties v2"
+#   https://www.bluetooth.com/specifications/specs/mesh-device-properties-2/
+#
+# Format specification:
+#   "GATT Specification Supplement v6"
+#   https://www.bluetooth.org/docman/handlers/DownloadDoc.ashx?doc_id=539729
+
+from datetime import date, timedelta
 from enum import IntEnum
 from math import log, pow
 
@@ -181,9 +189,13 @@ class TimeExponential8Validator(Adapter):
         return round(log(obj, 1.1)) + 64 if obj else 0
 
 
-class DateValidator(Adapter):
-    _subcon = Int32ul
-    EPOCH = datetime(1970, 1, 1)
+class DateAdapter(Adapter):
+    _subcon = Struct(
+        "year" / Int16ul,
+        "month" / Int8ul,
+        "day" / Int8ul,
+    )
+    EPOCH = date(1970, 1, 1)
 
     def _decode(self, obj, content, path):
         if obj is None:
@@ -195,7 +207,10 @@ class DateValidator(Adapter):
         if obj is None:
             return 0
 
-        if isinstance(obj, datetime):
+        if isinstance(obj, dict):
+            obj = date(obj["year"], obj["month"], obj["day"])
+
+        if isinstance(obj, date):
             return (obj - self.EPOCH).days
 
         return obj
@@ -237,7 +252,7 @@ TimeDecihour8 = Struct(
 )
 
 DateUTC = Struct(
-    "date" / DateValidator(Int24ul)
+    "date" / DateAdapter(Int24ul)
 )
 
 
