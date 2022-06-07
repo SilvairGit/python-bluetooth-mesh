@@ -31,7 +31,7 @@ import construct
 import pytest
 
 from bluetooth_mesh.messages import AccessMessage
-from bluetooth_mesh.messages.util import Opcode
+from bluetooth_mesh.messages.util import Opcode, to_camelcase_dict, to_snakecase_dict
 
 if sys.version_info >= (3, 7):
     import capnp
@@ -266,6 +266,7 @@ valid = [
     bytes.fromhex("820b010022"),
     bytes.fromhex("820b000031323c"),
     bytes.fromhex("820c000031323c"),
+    bytes.fromhex("5d8ea9282a005905490248"),
 ]
 
 
@@ -277,60 +278,6 @@ def capnproto():
         return capnp.load(f.name)
 
 
-class CaseConverter:
-    @staticmethod
-    def _camelcase(field_name):
-        head, *tail = str(field_name).lower().replace(" ", "_").split("_")
-        return "".join([head, *(i.title() for i in tail)])
-
-    @staticmethod
-    def _snakecase(field_name):
-        pattern = re.compile(r"(?<!^)(?=[A-Z])")
-        return pattern.sub("_", field_name).lower()
-
-    @classmethod
-    def to_camelcase(cls, value):
-        if isinstance(value, construct.Container):
-            name = getattr(value, "_name", None)
-            container = {
-                cls._camelcase(k): cls.to_camelcase(v)
-                for k, v in value.items()
-                if not k.startswith("_")
-            }
-
-            return {name: container} if name else container
-
-        if isinstance(value, (set, construct.ListContainer)):
-            return [cls.to_camelcase(i) for i in value]
-
-        if isinstance(value, enum.Enum):
-            return value.value
-
-        if isinstance(value, bytes):
-            return value
-
-        if isinstance(value, datetime):
-            return (value - datetime(1970, 1, 1)).days
-
-        return value
-
-    @classmethod
-    def to_snakecase(cls, value):
-        if isinstance(value, dict):
-            container = {
-                cls._snakecase(k): cls.to_snakecase(v)
-                for k, v in value.items()
-                if not k.startswith("_")
-            }
-
-            return container
-
-        if isinstance(value, list):
-            return [cls.to_snakecase(i) for i in value]
-
-        return value
-
-
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="requires Python3.7")
 @pytest.mark.parametrize("encoded", [pytest.param(i, id=i.hex()) for i in valid])
 def test_parse_capnproto(encoded, capnproto):
@@ -339,7 +286,7 @@ def test_parse_capnproto(encoded, capnproto):
     decoded = AccessMessage.parse(encoded)
     logging.info("CONSTRUCT %r", decoded)
 
-    params = CaseConverter.to_camelcase(decoded)
+    params = to_camelcase_dict(decoded)
     logging.info("CAPNP INPUT[%i] %s", len(json.dumps(params)), json.dumps(params))
 
     message = capnproto.AccessMessage.new_message(**params)
@@ -351,7 +298,10 @@ def test_parse_capnproto(encoded, capnproto):
     unpacked = capnproto.AccessMessage.from_bytes_packed(packed)
     logging.info("UNPACKED %r", unpacked)
 
-    params = CaseConverter.to_snakecase(unpacked.to_dict())
+    params = to_snakecase_dict(unpacked.to_dict())
     logging.info("CONSTRUCT INPUT %s", params)
 
-    assert AccessMessage.build(params) == encoded
+    recoded = AccessMessage.build(params)
+    logging.info("RECODED[%i] %s", len(recoded), recoded.hex())
+
+    assert recoded == encoded

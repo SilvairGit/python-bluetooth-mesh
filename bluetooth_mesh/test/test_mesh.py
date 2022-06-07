@@ -195,35 +195,38 @@ def test_unprovisioned_beacon_created_uri_hash_too_short():
 
 
 def test_network_nonce(config_appkey_status_message):
-    assert Nonce(
-        config_appkey_status_message.src,
-        config_appkey_status_message.dst,
-        config_appkey_status_message.ttl,
-        False,
-    ).network(seq=0x000006, iv_index=0x12345678) == bytes.fromhex(
-        "000b0000061201000012345678"
+    assert (
+        Nonce(
+            config_appkey_status_message.src,
+            config_appkey_status_message.dst,
+            config_appkey_status_message.ttl,
+            False,
+        ).network(seq=0x000006, iv_index=0x12345678)
+        == bytes.fromhex("000b0000061201000012345678")
     )
 
 
 def test_device_nonce(config_appkey_status_message):
-    assert Nonce(
-        config_appkey_status_message.src,
-        config_appkey_status_message.dst,
-        config_appkey_status_message.ttl,
-        False,
-    ).device(seq=0x000006, iv_index=0x12345678) == bytes.fromhex(
-        "02000000061201000312345678"
+    assert (
+        Nonce(
+            config_appkey_status_message.src,
+            config_appkey_status_message.dst,
+            config_appkey_status_message.ttl,
+            False,
+        ).device(seq=0x000006, iv_index=0x12345678)
+        == bytes.fromhex("02000000061201000312345678")
     )
 
 
 def test_application_nonce(health_current_status_message):
-    assert Nonce(
-        health_current_status_message.src,
-        health_current_status_message.dst,
-        health_current_status_message.ttl,
-        False,
-    ).application(seq=0x000007, iv_index=0x12345678) == bytes.fromhex(
-        "01000000071201ffff12345678"
+    assert (
+        Nonce(
+            health_current_status_message.src,
+            health_current_status_message.dst,
+            health_current_status_message.ttl,
+            False,
+        ).application(seq=0x000007, iv_index=0x12345678)
+        == bytes.fromhex("01000000071201ffff12345678")
     )
 
 
