@@ -117,7 +117,7 @@ class ProvisioningErrorCode(enum.IntEnum):
     OUT_OF_RESOURCES = 5
     DECRYPTION_FAILED = 6
     UNEXPECTED_ERROR = 7
-    CANNOT_ASSIGN_ADDRESS = 8
+    CANNOT_ASSIGN_ADDRESSES = 8
 
 
 class LinkCloseReason(enum.IntEnum):
