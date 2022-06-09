@@ -290,7 +290,7 @@ class DefaultCountValidator(Adapter):
         self.unknown_value = unknown_value
 
     def _decode(self, obj, content, path):
-        if self.unknown_value and obj == (256 ** self.subcon.length) - 1:
+        if self.unknown_value and obj == (256**self.subcon.length) - 1:
             return float(sys.float_info.max)
         else:
             return (
@@ -301,7 +301,7 @@ class DefaultCountValidator(Adapter):
 
     def _encode(self, obj, content, path):
         if self.unknown_value and obj == float(sys.float_info.max):
-            return (256 ** self.subcon.length) - 1
+            return (256**self.subcon.length) - 1
         else:
             return round(obj / self.resolution)
 
