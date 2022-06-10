@@ -453,8 +453,11 @@ def camelcase(field_name):
 
 
 def snakecase(camel_input):
-    pattern = re.compile(r"(?<!^)(?=[A-Z])")
-    return pattern.sub("_", camel_input).lower()
+    print(f"camel_input: {camel_input}")
+    words = re.findall(
+        r"[A-Z]?[a-z\d]+|[A-Z]{1,}(?=[A-Z][a-z]|\d|\W|$)|\d+", camel_input
+    )
+    return "_".join(map(str.lower, words))
 
 
 def to_case_dict(value, case):

@@ -266,7 +266,16 @@ valid = [
     bytes.fromhex("820b010022"),
     bytes.fromhex("820b000031323c"),
     bytes.fromhex("820c000031323c"),
+    # Time Status
     bytes.fromhex("5d8ea9282a005905490248"),
+    # debugV2
+    bytes.fromhex("EB360102090002001020300208000420"),
+    bytes.fromhex("EB3601020b020c06001000200030"),
+    bytes.fromhex("EB3601024b000b096d7920737472696e67"),
+    bytes.fromhex("EB360102550002001020300a000800320028"),
+    bytes.fromhex("EB3601031300"),
+    bytes.fromhex("EB3601000f00"),
+    bytes.fromhex("EB360102fe00ff"),
 ]
 
 
