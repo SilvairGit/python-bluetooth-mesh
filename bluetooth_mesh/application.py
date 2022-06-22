@@ -803,20 +803,22 @@ class Application(
         waiting for PB-ADV based provisioner.
         """
         self.logger.info("Join %s", self.uuid)
-
-        self._join_complete = asyncio.Future()
+        self._join_complete = JoinComplete(
+            self._join_callback, asyncio.Future()
+        )
         await self.network_interface.join("/", self.uuid)
-        return await self._join_complete
+        return await self._join_complete.future
 
     async def create_network(self):
         """
         Create a new mesh network.
         """
         self.logger.info("Create %s", self.uuid)
-
-        self._join_complete = asyncio.Future()
+        self._join_complete = JoinComplete(
+            self._join_callback, asyncio.Future()
+        )
         await self.network_interface.create_network("/", self.uuid)
-        return await self._join_complete
+        return await self._join_complete.future
 
     async def cancel(self):
         """
