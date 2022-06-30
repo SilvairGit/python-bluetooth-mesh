@@ -328,13 +328,13 @@ valid = [
 
 @pytest.mark.parametrize("encoded,decoded", valid)
 def test_transaction_pack(encoded, decoded):
-    result = list(ProvisioningTransaction.pack(payload=decoded))
+    result = list(ProvisioningTransaction.pack(pdu=ProvisioningPDU.build(decoded)))
     assert result == encoded
 
 
 @pytest.mark.parametrize("encoded,decoded", valid)
 def test_unpack_generic(encoded, decoded):
-    result = ProvisioningTransaction.unpack(segments=encoded)
+    result = ProvisioningPDU.parse(ProvisioningTransaction.unpack(segments=encoded))
     assert result == decoded
 
 
