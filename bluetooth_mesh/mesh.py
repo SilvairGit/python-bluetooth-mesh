@@ -43,7 +43,6 @@ from bluetooth_mesh.provisioning import (
     GenericProvisioning,
     GenericProvisioningPDUType,
     ProvisioningBearerControl,
-    ProvisioningPDU,
     ProvisioningPDUType,
 )
 
@@ -528,14 +527,12 @@ CRC_CALCULATOR = CrcCalculator(configuration=MESH_CRC)
 
 class ProvisioningTransaction:
     @staticmethod
-    def pack(payload):
+    def pack(pdu):
         """
-        Given a dictionary that matches ProvisioningPDU, generate transaction
+        Given bytes with already built ProvisioningPDU, generate transaction
         a sequence of GenericProvisioning packets, starting with
         TransactionStart, followed by zero or more TransactionContinuations
         """
-        pdu = ProvisioningPDU.build(payload)
-
         segments = [pdu[0:20]]
         if len(pdu) > 20:
             segments += [pdu[0 + i : 23 + i] for i in range(20, len(pdu), 23)]
@@ -566,7 +563,7 @@ class ProvisioningTransaction:
     def unpack(segments):
         """
         Given a sequence of GenericProvisioning packets, reassemble a
-        ProvisioningPDU, parse it and return as dictionary.
+        ProvisioningPDU and return as bytes that may be parsed.
 
         Note: segments must belong to a single transaction, but they don't need
         to be in-order, may contain duplicates and may be interleaved with
@@ -599,4 +596,4 @@ class ProvisioningTransaction:
                 f"Transaction checksum is invalid, expected {start.frame_check:02x}, got {fcs:02x}",
             )
 
-        return ProvisioningPDU.parse(pdu)
+        return pdu
