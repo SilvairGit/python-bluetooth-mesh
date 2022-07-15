@@ -36,8 +36,13 @@ from uuid import UUID
 
 from docopt import DocoptExit, docopt
 from prompt_toolkit import PromptSession
+from prompt_toolkit import __version__ as ptk_version
 from prompt_toolkit.completion import Completer, Completion
-from prompt_toolkit.eventloop import use_asyncio_event_loop
+
+PTK3 = ptk_version.startswith("3.")
+if not PTK3:
+    from prompt_toolkit.eventloop import use_asyncio_event_loop
+
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 
@@ -1631,7 +1636,12 @@ class MeshCommandLine(*application_mixins, Application):
 
         for line in commands:
             if line is None:
-                line = await self.session.prompt("{}> ".format(self.uuid), async_=True)
+                if PTK3:
+                    line = await self.session.prompt_async("{}> ".format(self.uuid))
+                else:
+                    line = await self.session.prompt(
+                        "{}> ".format(self.uuid), async_=True
+                    )
 
                 if not line.strip():
                     continue
@@ -1700,7 +1710,8 @@ def main():
             -h --help                      Show this help message and exit
             --version                      Show version and exit
     """
-    use_asyncio_event_loop()
+    if not PTK3:
+        use_asyncio_event_loop()
     arguments = docopt(doc, version="stat_checker 0.5")
 
     logging.basicConfig(
