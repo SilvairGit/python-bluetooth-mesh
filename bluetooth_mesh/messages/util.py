@@ -453,7 +453,6 @@ def camelcase(field_name):
 
 
 def snakecase(camel_input):
-    print(f"camel_input: {camel_input}")
     words = re.findall(
         r"[A-Z]?[a-z\d]+|[A-Z]{1,}(?=[A-Z][a-z]|\d|\W|$)|\d+", camel_input
     )
