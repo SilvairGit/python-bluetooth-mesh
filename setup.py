@@ -38,7 +38,7 @@ setup(
     packages=find_packages(exclude=('test*', )),
     python_requires='>=3.6.0,<3.11.0',
     setup_requires=[
-        'pytest-runner==4.2',
+        'pytest-runner',
     ],
     install_requires=[
         'bitstring>=3.1.5',
