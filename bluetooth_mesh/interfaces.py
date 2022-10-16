@@ -261,7 +261,7 @@ class ProvisionerInterface(ServiceInterface):
 
     @method(name="RequestProvData")
     def request_prov_data(self, count: "y") -> "qq":
-        return self.application.request_prov_data(count)
+        return list(self.application.request_prov_data(count))
 
     @method(name="AddNodeComplete")
     def add_node_complete(self, uuid: "ay", unicast: "q", count: "y"):
