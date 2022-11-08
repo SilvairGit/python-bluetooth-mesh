@@ -55,12 +55,6 @@ class DebugSubOpcode(IntEnum):
     RSSI_THRESHOLD_SET = 0x01
     RSSI_THRESHOLD_STATUS = 0x02
     RADIO_TEST = 0x03
-    TIMESLOT_TX_POWER_GET = 0x04
-    TIMESLOT_TX_POWER_SET = 0x05
-    TIMESLOT_TX_POWER_STATUS = 0x06
-    SOFTDEVICE_TX_POWER_GET = 0x07
-    SOFTDEVICE_TX_POWER_SET = 0x08
-    SOFTDEVICE_TX_POWER_STATUS = 0x09
     UPTIME_GET = 0x0A
     UPTIME_STATUS = 0x0B
     LAST_SW_FAULT_GET = 0x0C
@@ -99,18 +93,6 @@ RssiThreshold = Struct(
 
 RadioTest = Struct(
     "packet_counter" / Int8ul
-)
-
-TimeslotTxPowerGet = Struct()
-
-TimeslotTxPowerStatus = Struct(
-    "tx_power" / Int8ul
-)
-
-SoftdeviceTxPowerGet = Struct()
-
-SoftdeviceTxPowerStatus = Struct(
-    "tx_power" / Int8ul
 )
 
 UptimeGet = Struct()
@@ -226,12 +208,6 @@ DebugParams = SwitchStruct(
             DebugSubOpcode.RSSI_THRESHOLD_SET: RssiThreshold,
             DebugSubOpcode.RSSI_THRESHOLD_STATUS: RssiThreshold,
             DebugSubOpcode.RADIO_TEST: RadioTest,
-            DebugSubOpcode.TIMESLOT_TX_POWER_GET: TimeslotTxPowerGet,
-            DebugSubOpcode.TIMESLOT_TX_POWER_SET: TimeslotTxPowerStatus,
-            DebugSubOpcode.TIMESLOT_TX_POWER_STATUS: TimeslotTxPowerStatus,
-            DebugSubOpcode.SOFTDEVICE_TX_POWER_GET: SoftdeviceTxPowerGet,
-            DebugSubOpcode.SOFTDEVICE_TX_POWER_SET: SoftdeviceTxPowerStatus,
-            DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS: SoftdeviceTxPowerStatus,
             DebugSubOpcode.UPTIME_GET: UptimeGet,
             DebugSubOpcode.UPTIME_STATUS: UptimeStatus,
             DebugSubOpcode.LAST_SW_FAULT_GET: LastSwFaultGet,

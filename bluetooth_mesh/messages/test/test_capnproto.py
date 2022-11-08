@@ -44,16 +44,6 @@ valid = [
     bytes.fromhex("f5360101f0"),  # RSSI_THRESHOLD_SET
     bytes.fromhex("f5360102f0"),  # RSSI_THRESHOLD_STATUS
     bytes.fromhex("f5360103ff"),  # RADIO_TEST
-    bytes.fromhex("f5360104"),  # TIMESLOT_TX_POWER_GET
-    bytes.fromhex("f536010500"),  # TIMESLOT_TX_POWER_SET
-    bytes.fromhex("f5360105ff"),  # TIMESLOT_TX_POWER_SET
-    bytes.fromhex("f536010600"),  # TIMESLOT_TX_POWER_STATUS
-    bytes.fromhex("f5360106ff"),  # TIMESLOT_TX_POWER_STATUS
-    bytes.fromhex("f5360107"),  # SOFTDEVICE_TX_POWER_GET
-    bytes.fromhex("f536010800"),  # SOFTDEVICE_TX_POWER_SET
-    bytes.fromhex("f5360108ff"),  # SOFTDEVICE_TX_POWER_SET
-    bytes.fromhex("f536010900"),  # SOFTDEVICE_TX_POWER_STATUS
-    bytes.fromhex("f5360109ff"),  # SOFTDEVICE_TX_POWER_STATUS
     bytes.fromhex("f536010a"),  # UPTIME_GET
     bytes.fromhex("f536010b00000000"),  # UPTIME_STATUS
     bytes.fromhex("f536010bffffffff"),  # UPTIME_STATUS

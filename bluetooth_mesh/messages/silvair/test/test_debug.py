@@ -26,8 +26,6 @@ from bluetooth_mesh.messages.silvair.debug import DebugParams, DebugSubOpcode
 # fmt: off
 valid = [
     pytest.param(b'\x00', DebugSubOpcode.RSSI_THRESHOLD_GET, {}, id="RssiThresholdGet"),
-    pytest.param(b'\x04', DebugSubOpcode.TIMESLOT_TX_POWER_GET, {}, id="TimeslotTxPowerGet"),
-    pytest.param(b'\x07', DebugSubOpcode.SOFTDEVICE_TX_POWER_GET, {}, id="SoftDeviceTxPowerGet"),
     pytest.param(b'\x0a', DebugSubOpcode.UPTIME_GET, {}, id="UptimeGet"),
     pytest.param(b'\x0c', DebugSubOpcode.LAST_SW_FAULT_GET, {}, id="LastSwFaultGet"),
     pytest.param(b'\x0f', DebugSubOpcode.SYSTEM_STATS_GET, {}, id="SystemStatsGet"),
@@ -65,30 +63,6 @@ valid = [
         DebugSubOpcode.RADIO_TEST,
         {'packet_counter': 0x01},
         id="RadioTest"
-    ),
-    pytest.param(
-        b'\x05\x02',
-        DebugSubOpcode.TIMESLOT_TX_POWER_SET,
-        {'tx_power': 0x02},
-        id="TimeslotTxPowerSet"
-    ),
-    pytest.param(
-        b'\x06\x04',
-        DebugSubOpcode.TIMESLOT_TX_POWER_STATUS,
-        {'tx_power': 0x04},
-        id="TimeslotTxPowerStatus"
-    ),
-    pytest.param(
-        b'\x08\x02',
-        DebugSubOpcode.SOFTDEVICE_TX_POWER_SET,
-        {'tx_power': 0x02},
-        id="SoftDeviceTxPowerSet"
-    ),
-    pytest.param(
-        b'\x09\x04',
-        DebugSubOpcode.SOFTDEVICE_TX_POWER_STATUS,
-        {'tx_power': 0x04},
-        id="SoftDeviceTxPowerStatus"
     ),
     pytest.param(
         b'\x0b\xa2\xd0\x02\x00',
