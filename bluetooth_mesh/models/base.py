@@ -39,6 +39,7 @@ from typing import (
     Union,
 )
 from uuid import UUID
+from random import randrange
 
 from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.utils import (
@@ -66,7 +67,7 @@ class Model:
     SUBSCRIBE = False  # type: bool
 
     def __init__(self, element: "Element"):
-        self.__tid = 0
+        self.__tid = randrange(100)
         self.element = element
 
         self.logger = self.element.logger.getChild("%s" % type(self).__name__)

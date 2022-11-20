@@ -1315,6 +1315,7 @@ class GenericOnOffClient(Model):
         onoff: int,
         delay: float = 0.5,
         send_interval: float = 0.07,
+        timeout: Optional[float] = None,
     ) -> int:
         current_delay = delay
         tid = self.tid()
@@ -1326,7 +1327,7 @@ class GenericOnOffClient(Model):
             app_index=app_index,
             destination=None,
             opcode=status_opcode,
-            params=dict(present_onoff=onoff),
+            params=dict(),
         )
 
         async def request():
@@ -1347,7 +1348,10 @@ class GenericOnOffClient(Model):
             return await ret
 
         status = await self.query(
-            request, status, send_interval=send_interval, timeout=1
+            request,
+            status,
+            send_interval=send_interval,
+            timeout=timeout or 0.5,
         )
 
         return status[status_opcode.name.lower()]["present_onoff"]
@@ -1388,7 +1392,7 @@ class GenericOnOffClient(Model):
             send_interval=send_interval,
         )
 
-    async def get_light_status(
+    async def get_onoff_status(
         self,
         nodes: Sequence[int],
         app_index: int,
@@ -1412,7 +1416,7 @@ class GenericOnOffClient(Model):
         statuses = {
             node: self.expect_app(
                 node,
-                app_index=0,
+                app_index=app_index,
                 destination=None,
                 opcode=status_opcode,
                 params=dict(),
