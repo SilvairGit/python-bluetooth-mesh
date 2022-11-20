@@ -240,7 +240,7 @@ class Opcode(Construct):
 
     def _parse(self, stream, context, path):
         try:
-            opcode = stream_read(stream, 1)[0]
+            opcode = stream_read(stream, 1, None)[0]
 
             if opcode == 0x7F:
                 raise ValidationError
@@ -252,14 +252,14 @@ class Opcode(Construct):
                 return self.type(opcode)
 
             len = opcode >> 6
-            opcode = opcode << 8 | stream_read(stream, 1)[0]
+            opcode = opcode << 8 | stream_read(stream, 1, None)[0]
 
             # 2 byte opcode
             if len == 2:
                 return self.type(opcode)
 
             if len == 3:
-                opcode = opcode << 8 | stream_read(stream, 1)[0]
+                opcode = opcode << 8 | stream_read(stream, 1, None)[0]
                 return self.type(opcode)
 
             raise ValidationError
@@ -268,11 +268,11 @@ class Opcode(Construct):
 
     def _build(self, obj, stream, context, path):
         if obj > 0xFFFF:
-            stream_write(stream, obj.to_bytes(3, byteorder="big"))
+            stream_write(stream, obj.to_bytes(3, byteorder="big"), 3, None)
         elif obj > 0xFF:
-            stream_write(stream, obj.to_bytes(2, byteorder="big"))
+            stream_write(stream, obj.to_bytes(2, byteorder="big"), 2, None)
         else:
-            stream_write(stream, obj.to_bytes(1, byteorder="big"))
+            stream_write(stream, obj.to_bytes(1, byteorder="big"), 1, None)
 
         return self.type(obj)
 
