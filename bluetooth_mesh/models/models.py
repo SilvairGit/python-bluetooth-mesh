@@ -46,6 +46,7 @@ from bluetooth_mesh.messages.generic.light.lightness import (
     LightLightnessSetupOpcode,
 )
 from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
+from bluetooth_mesh.messages.generic.dtt import GenericDTTOpcode
 from bluetooth_mesh.messages.health import HealthOpcode
 from bluetooth_mesh.messages.properties import PropertyID
 from bluetooth_mesh.messages.scene import SceneOpcode
@@ -81,6 +82,8 @@ __all__ = [
     "NetworkDiagnosticSetupClient",
     "GenericOnOffServer",
     "GenericOnOffClient",
+    "GenericDTTServer",
+    "GenericDTTClient",
     "SceneClient",
     "GenericLevelClient",
     "SensorClient",
@@ -1413,6 +1416,137 @@ class GenericOnOffClient(Model):
 
         status_opcode = GenericOnOffOpcode.GENERIC_ONOFF_STATUS
 
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=app_index,
+                destination=None,
+                opcode=status_opcode,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout or len(nodes) * 0.5,
+        )
+
+        return {
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
+            for node, result in results.items()
+        }
+
+
+class GenericDTTServer(Model):
+    MODEL_ID = (None, 0x1004)
+    OPCODES = {
+        GenericDTTOpcode.GENERIC_DTT_SET,
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+
+class GenericDTTClient(Model):
+    MODEL_ID = (None, 0x1005)
+    OPCODES = {
+        GenericDTTOpcode.GENERIC_DTT_STATUS,
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+    async def set_dtt(
+        self,
+        destination: int,
+        app_index: int,
+        transition_time: float,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> float:
+        status_opcode = GenericDTTOpcode.GENERIC_DTT_STATUS
+        status = self.expect_app(
+            destination,
+            app_index=app_index,
+            destination=None,
+            opcode=status_opcode,
+            params=dict(),
+        )
+
+        async def request():
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=GenericDTTOpcode.GENERIC_DTT_SET,
+                params=dict(
+                    transition_time=transition_time,
+                ),
+            )
+
+            return await ret
+
+        status = await self.query(
+            request,
+            status,
+            send_interval=send_interval,
+            timeout=timeout or 0.5,
+        )
+
+        return status[status_opcode.name.lower()]["transition_time"]
+
+
+    async def set_dtt_unack(
+        self,
+        destination: int,
+        app_index: int,
+        transition_time: float,
+        *,
+        send_interval: float = 0.1,
+        retransmissions: int = 6,
+    ):
+        async def request():
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=GenericDTTOpcode.GENERIC_DTT_SET_UNACKNOWLEDGED,
+                params=dict(
+                    transition_time=transition_time,
+                ),
+            )
+
+            return await ret
+
+        await self.repeat(
+            request,
+            retransmissions=retransmissions,
+            send_interval=send_interval,
+        )
+
+
+    async def get_dtt_status(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[float, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=GenericDTTOpcode.GENERIC_DTT_GET,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        status_opcode = GenericDTTOpcode.GENERIC_DTT_STATUS
         statuses = {
             node: self.expect_app(
                 node,

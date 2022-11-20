@@ -23,6 +23,7 @@ import pytest
 from construct import ValidationError
 
 from bluetooth_mesh.messages.generic.onoff import *
+from bluetooth_mesh.messages.generic.dtt import *
 from bluetooth_mesh.messages.generics import *
 
 
@@ -63,6 +64,8 @@ def test_parse_transition_time(raw_bytes, expected_steps, expected_resolution):
     assert tt.resolution == expected_resolution
 
 
+# GenericOnOff
+
 valid = [
     # fmt: off
     pytest.param(
@@ -78,16 +81,6 @@ valid = [
             tid=34
         ),
         id="ONOFF_SET"),
-    pytest.param(
-        b'\x82\x02\x01\x22',
-        GenericOnOffOpcode.GENERIC_ONOFF_SET,
-        dict(
-            onoff=1,
-            tid=34,
-            transition_time=6.3,
-            delay=0.3
-        ),
-        id="ONOFF_SET_invalid"),
     pytest.param(
         b'\x82\x02\x00\x31\x32\x3c',
         GenericOnOffOpcode.GENERIC_ONOFF_SET,
@@ -113,8 +106,6 @@ valid = [
         GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
         dict(
             present_onoff=0,
-            target_onoff=None,
-            remaining_time=None
         ),
         id="ONOFF_STATUS"
     ),
@@ -141,12 +132,81 @@ valid = [
     # fmt: on
 ]
 
+invalid = [
+    # fmt: off
+    pytest.param(
+        b'\x82\x02\x01\x22',
+        GenericOnOffOpcode.GENERIC_ONOFF_SET,
+        dict(
+            onoff=1,
+            tid=34,
+            transition_time=6.3,
+            delay=0.3
+        ),
+        id="ONOFF_SET_invalid"),
+    # fmt: on
+]
+
 
 @pytest.mark.parametrize("encoded,opcode,data", valid)
-def test_parse_valid(encoded, opcode, data):
+def test_generic_onoff_parse(encoded, opcode, data):
     assert GenericOnOffMessage.parse(encoded).params == data
 
 
-@pytest.mark.parametrize("encoded,opcode,data", valid)
-def test_build_valid(encoded, opcode, data):
+@pytest.mark.parametrize("encoded,opcode,data", valid + invalid)
+def test_generic_onoff_build(encoded, opcode, data, request):
     assert GenericOnOffMessage.build(dict(opcode=opcode, params=data)) == encoded
+
+
+# GenericDTT
+
+valid = [
+    # fmt: off
+    pytest.param(
+        b'\x82\x0d',
+        GenericDTTOpcode.GENERIC_DTT_GET,
+        dict(),
+        id="GENERIC_DTT_GET"
+    ),
+    pytest.param(
+        b'\x82\x0e\x00',
+        GenericDTTOpcode.GENERIC_DTT_SET,
+        dict(
+            transition_time=0
+        ),
+        id="GENERIC_DTT_SET_zero"
+    ),
+    pytest.param(
+        b'\x82\x0e\x3e',
+        GenericDTTOpcode.GENERIC_DTT_SET,
+        dict(
+            transition_time=6.2
+        ),
+        id="GENERIC_DTT_SET_100ms"
+    ),
+    pytest.param(
+        b'\x82\x0f\x88',
+        GenericDTTOpcode.GENERIC_DTT_SET_UNACKNOWLEDGED,
+        dict(
+            transition_time=80
+        ),
+        id="GENERIC_DTT_SET_UNACKNOWLEDGED_10s"
+    ),
+    pytest.param(
+        b'\x82\x10\xfe',
+        GenericDTTOpcode.GENERIC_DTT_STATUS,
+        dict(
+            transition_time=37200
+        ),
+        id="GENERIC_DTT_STATUS_10m"
+    ),
+    # fmt: on
+]
+
+@pytest.mark.parametrize("encoded,opcode,data", valid)
+def test_generic_dtt_parse(encoded, opcode, data):
+    assert GenericDTTMessage.parse(encoded).params == data
+
+@pytest.mark.parametrize("encoded,opcode,data", valid)
+def test_generic_dtt_build(encoded, opcode, data):
+    assert GenericDTTMessage.build(dict(opcode=opcode, params=data)) == encoded
