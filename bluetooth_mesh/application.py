@@ -804,9 +804,11 @@ class Application(
         """
         self.logger.info("Join %s", self.uuid)
 
-        self._join_complete = asyncio.Future()
+        self._join_complete = JoinComplete(
+            self._join_callback, asyncio.Future()
+        )
         await self.network_interface.join("/", self.uuid)
-        return await self._join_complete
+        return await self._join_complete.future
 
     async def create_network(self):
         """
@@ -988,7 +990,7 @@ class Application(
         join_task.add_done_callback(join_complete_result)
 
     def join_failed(self, reason: str):
-        self._join_complete.set_exception(MeshError(reason))
+        self._join_complete.future.set_exception(MeshError(reason))
 
 
 class LocationMixin:
