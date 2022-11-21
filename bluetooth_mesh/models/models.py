@@ -47,6 +47,11 @@ from bluetooth_mesh.messages.generic.light.lightness import (
 )
 from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 from bluetooth_mesh.messages.generic.dtt import GenericDTTOpcode
+from bluetooth_mesh.messages.generic.ponoff import (
+    GenericPowerOnOffOpcode,
+    GenericPowerOnOffSetupOpcode,
+    GenericOnPowerUp,
+)
 from bluetooth_mesh.messages.health import HealthOpcode
 from bluetooth_mesh.messages.properties import PropertyID
 from bluetooth_mesh.messages.scene import SceneOpcode
@@ -84,6 +89,9 @@ __all__ = [
     "GenericOnOffClient",
     "GenericDTTServer",
     "GenericDTTClient",
+    "GenericPowerOnOffServer",
+    "GenericPowerOnOffSetupServer",
+    "GenericPowerOnOffClient",
     "SceneClient",
     "GenericLevelClient",
     "SensorClient",
@@ -1551,6 +1559,136 @@ class GenericDTTClient(Model):
             node: self.expect_app(
                 node,
                 app_index=app_index,
+                destination=None,
+                opcode=status_opcode,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout or len(nodes) * 0.5,
+        )
+
+        return {
+            node: None
+            if isinstance(result, Exception)
+            else result[status_opcode.name.lower()]
+            for node, result in results.items()
+        }
+
+
+class GenericPowerOnOffServer(Model):
+    MODEL_ID = (None, 0x1006)
+    OPCODES = {
+        GenericPowerOnOffOpcode.GENERIC_ON_POWERUP_GET,
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+
+class GenericPowerOnOffClient(Model):
+    MODEL_ID = (None, 0x1008)
+    OPCODES = {
+        GenericPowerOnOffOpcode.GENERIC_ON_POWERUP_STATUS,
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+    async def set_on_power_up(
+        self,
+        destination: int,
+        app_index: int,
+        on_power_up: GenericOnPowerUp,
+        send_interval: float = 0.07,
+        timeout: Optional[float] = None,
+    ) -> int:
+
+        status_opcode = GenericPowerOnOffOpcode.GENERIC_ON_POWERUP_STATUS
+
+        status = self.expect_app(
+            destination,
+            app_index=app_index,
+            destination=None,
+            opcode=status_opcode,
+            params=dict(on_power_up=on_power_up),
+        )
+
+        async def request():
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=GenericPowerOnOffSetupOpcode.GENERIC_ON_POWERUP_SET,
+                params=dict(
+                    on_power_up=on_power_up,
+                ),
+            )
+
+            return await ret
+
+        status = await self.query(
+            request, status, send_interval=send_interval, timeout=timeout or 1
+        )
+
+        return status[status_opcode.name.lower()]["on_power_up"]
+
+
+    async def set_on_power_up_unack(
+        self,
+        destination: int,
+        app_index: int,
+        on_power_up: GenericOnPowerUp,
+        *,
+        send_interval: float = 0.1,
+        retransmissions: int = 6,
+    ):
+        async def request():
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=GenericPowerOnOffSetupOpcode.GENERIC_ON_POWERUP_SET_UNACKNOWLEDGED,
+                params=dict(
+                    on_power_up=on_power_up,
+                ),
+            )
+
+            return await ret
+
+        await self.repeat(
+            request,
+            retransmissions=retransmissions,
+            send_interval=send_interval,
+        )
+
+
+    async def get_on_power_up(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                node,
+                app_index=app_index,
+                opcode=GenericPowerOnOffOpcode.GENERIC_ON_POWERUP_GET,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        status_opcode = GenericPowerOnOffOpcode.GENERIC_ON_POWERUP_STATUS
+
+        statuses = {
+            node: self.expect_app(
+                node,
+                app_index=0,
                 destination=None,
                 opcode=status_opcode,
                 params=dict(),
