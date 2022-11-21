@@ -26,6 +26,12 @@ from .generic.light.lightness import (
 )
 from .generic.onoff import GenericOnOffMessage, GenericOnOffOpcode
 from .generic.dtt import GenericDTTMessage, GenericDTTOpcode
+from .generic.ponoff import (
+    GenericPowerOnOffMessage,
+    GenericPowerOnOffOpcode,
+    GenericPowerOnOffSetupMessage,
+    GenericPowerOnOffSetupOpcode
+)
 from .health import HealthMessage, HealthOpcode
 from .scene import SceneMessage, SceneOpcode
 from .sensor import SensorMessage, SensorOpcode, SensorSetupMessage, SensorSetupOpcode
@@ -57,6 +63,8 @@ class _AccessMessage(Construct):
         GatewayConfigServerOpcode: GatewayConfigMessage,
         GenericOnOffOpcode: GenericOnOffMessage,
         GenericDTTOpcode: GenericDTTMessage,
+        GenericPowerOnOffOpcode: GenericPowerOnOffMessage,
+        GenericPowerOnOffSetupOpcode: GenericPowerOnOffSetupMessage,
         GenericBatteryOpcode: GenericBatteryMessage,
         GenericLevelOpcode: GenericLevelMessage,
         LightLightnessOpcode: LightLightnessMessage,

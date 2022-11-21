@@ -24,6 +24,7 @@ from construct import ValidationError
 
 from bluetooth_mesh.messages.generic.onoff import *
 from bluetooth_mesh.messages.generic.dtt import *
+from bluetooth_mesh.messages.generic.ponoff import *
 from bluetooth_mesh.messages.generics import *
 
 
@@ -210,3 +211,64 @@ def test_generic_dtt_parse(encoded, opcode, data):
 @pytest.mark.parametrize("encoded,opcode,data", valid)
 def test_generic_dtt_build(encoded, opcode, data):
     assert GenericDTTMessage.build(dict(opcode=opcode, params=data)) == encoded
+
+
+# Generic OnPowerUp
+valid = [
+    # fmt: off
+    pytest.param(
+        b'\x82\x11',
+        GenericPowerOnOffOpcode.GENERIC_ON_POWERUP_GET,
+        dict(),
+        id="GENERIC_ON_POWERUP_GET"
+    ),
+    pytest.param(
+        b'\x82\x12\x00',
+        GenericPowerOnOffOpcode.GENERIC_ON_POWERUP_STATUS,
+        dict(
+            on_power_up=GenericOnPowerUp.GENERIC_ON_POWERUP_OFF
+        ),
+        id="GENERIC_ON_POWERUP_STATUS_off"
+    ),
+    # fmt: on
+]
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid)
+def test_generic_ponoff_parse(encoded, opcode, data):
+    assert GenericPowerOnOffMessage.parse(encoded).params == data
+
+@pytest.mark.parametrize("encoded,opcode,data", valid)
+def test_generic_ponoff_build(encoded, opcode, data):
+    assert GenericPowerOnOffMessage.build(dict(opcode=opcode, params=data)) == encoded
+
+
+valid = [
+    # fmt: off
+    pytest.param(
+        b'\x82\x13\x01',
+        GenericPowerOnOffSetupOpcode.GENERIC_ON_POWERUP_SET,
+        dict(
+            on_power_up=GenericOnPowerUp.GENERIC_ON_POWERUP_DEFAULT
+        ),
+        id="GENERIC_ON_POWERUP_SET_default"
+    ),
+    pytest.param(
+        b'\x82\x14\x02',
+        GenericPowerOnOffSetupOpcode.GENERIC_ON_POWERUP_SET_UNACKNOWLEDGED,
+        dict(
+            on_power_up=GenericOnPowerUp.GENERIC_ON_POWERUP_RESTORE
+        ),
+        id="GENERIC_ON_POWERUP_SET_UNACKNOWLEDGED_restore"
+    ),
+    # fmt: on
+]
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid)
+def test_generic_ponoff_parse(encoded, opcode, data):
+    assert GenericPowerOnOffSetupMessage.parse(encoded).params == data
+
+@pytest.mark.parametrize("encoded,opcode,data", valid)
+def test_generic_ponoff_build(encoded, opcode, data):
+    assert GenericPowerOnOffSetupMessage.build(dict(opcode=opcode, params=data)) == encoded
