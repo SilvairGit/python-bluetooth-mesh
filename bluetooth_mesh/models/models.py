@@ -1590,6 +1590,15 @@ class GenericPowerOnOffServer(Model):
     SUBSCRIBE = True
 
 
+class GenericPowerOnOffSetupServer(Model):
+    MODEL_ID = (None, 0x1007)
+    OPCODES = {
+        GenericPowerOnOffSetupOpcode.GENERIC_ON_POWERUP_SET,
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+
 class GenericPowerOnOffClient(Model):
     MODEL_ID = (None, 0x1008)
     OPCODES = {
