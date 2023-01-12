@@ -52,12 +52,12 @@ valid = [
         id="invite"
     ),
     pytest.param(
-        bytes.fromhex('010100010101080009050002'),
+        bytes.fromhex('010100030101080009050002'),
         dict(
             type=ProvisioningPDUType.CAPABILITIES,
             parameters=dict(
                 num_elements=1,
-                algorithms={ProvisioningAlgorithm.P256_CMAC_AES128},
+                algorithms={ProvisioningAlgorithm.P256_CMAC_AES128, ProvisioningAlgorithm.P256_HMAC_SHA256},
                 public_key_type={ProvisioningPublicKeyType.OOB},
                 static_oob_type={ProvisioningStaticOOBType.AVAILABLE},
                 output_oob_size=8,
