@@ -57,7 +57,7 @@ valid = [
             type=ProvisioningPDUType.CAPABILITIES,
             parameters=dict(
                 num_elements=1,
-                algorithms={ProvisioningAlgorithm.FIPS_P256_EC},
+                algorithms={ProvisioningAlgorithm.P256_CMAC_AES128},
                 public_key_type={ProvisioningPublicKeyType.OOB},
                 static_oob_type={ProvisioningStaticOOBType.AVAILABLE},
                 output_oob_size=8,
@@ -70,11 +70,11 @@ valid = [
         id="capabilities",
     ),
     pytest.param(
-        bytes.fromhex('020000000000'),
+        bytes.fromhex('020100000000'),
         dict(
             type=ProvisioningPDUType.START,
             parameters=dict(
-                algorithm=ProvisioningAlgorithm.FIPS_P256_EC,
+                algorithm=ProvisioningAlgorithm.P256_HMAC_SHA256,
                 public_key=False,
                 authentication_method=ProvisioningAuthenticationMethod.NONE,
                 authentication_action=0,
@@ -84,11 +84,11 @@ valid = [
         id="start, no authentication",
     ),
     pytest.param(
-        bytes.fromhex('020001020304'),
+        bytes.fromhex('020101020304'),
         dict(
             type=ProvisioningPDUType.START,
             parameters=dict(
-                algorithm=ProvisioningAlgorithm.FIPS_P256_EC,
+                algorithm=ProvisioningAlgorithm.P256_HMAC_SHA256,
                 public_key=True,
                 authentication_method=ProvisioningAuthenticationMethod.OUTPUT,
                 authentication_action=ProvisioningOutputOOBAction.OUTPUT_NUMERIC,
@@ -275,7 +275,7 @@ valid = [
         dict(
             type=ProvisioningPDUType.START,
             parameters=dict(
-                algorithm=ProvisioningAlgorithm.FIPS_P256_EC,
+                algorithm=ProvisioningAlgorithm.P256_CMAC_AES128,
                 public_key=False,
                 authentication_method=ProvisioningAuthenticationMethod.NONE,
                 authentication_action=0,

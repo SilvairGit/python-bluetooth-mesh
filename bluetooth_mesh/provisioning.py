@@ -75,7 +75,8 @@ class GenericProvisioningPDUType(enum.IntEnum):
 
 
 class ProvisioningAlgorithm(enum.IntEnum):
-    FIPS_P256_EC = 0
+    P256_CMAC_AES128 = 0
+    P256_HMAC_SHA256 = 1
 
 
 class ProvisioningPublicKeyType(enum.IntEnum):
