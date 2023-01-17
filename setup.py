@@ -41,7 +41,7 @@ setup(
         'pytest-runner',
     ],
     install_requires=[
-        'bitstring>=3.1.5',
+        'bitstring>=3.1.5,<4.0.0',
         'construct>=2.9.45,<2.9.46',
         'cryptography>=2.3.1,<3.4',
         'crc==0.3.0',
