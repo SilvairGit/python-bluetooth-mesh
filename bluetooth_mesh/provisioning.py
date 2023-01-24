@@ -191,11 +191,11 @@ ProvisioningPublicKey = Struct(
 ProvisioningInputComplete = Struct()
 
 ProvisioningConfirmation = Struct(
-    "confirmation" / Bytes(16),
+    "confirmation" / GreedyBytes,
 )
 
 ProvisioningRandom = Struct(
-    "random" / Bytes(16),
+    "random" / GreedyBytes,
 )
 
 ProvisioningData = Struct(
