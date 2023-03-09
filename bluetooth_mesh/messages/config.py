@@ -43,7 +43,7 @@ from construct import (
     Struct,
     len_,
     obj_,
-    this,
+    this, Int8sl, If, Mapping, IfThenElse, Bytewise,
 )
 
 from bluetooth_mesh.messages.util import BitList, EmbeddedBitStruct, EnumAdapter
@@ -543,7 +543,7 @@ Int12ul = ExprValidator(
     (obj_ & 0xF000) == 0x00
 )
 
-CompositionDataElement = Struct(
+CompositionDataPage0Element = Struct(
     "location" / GATTNamespaceDescriptorAdapter,
     "sig_number" / Rebuild(Int8ul, len_(this["sig_models"])),
     "vendor_number" / Rebuild(Int8ul, len_(this["vendor_models"])),
@@ -551,13 +551,61 @@ CompositionDataElement = Struct(
     "vendor_models" / VendorModelId[this["vendor_number"]],
 )
 
-CompositionData = Struct(
+CompositionDataPage0 = Struct(
     "cid" / Int16ul,
     "pid" / Int16ul,
     "vid" / Int16ul,
     "crpl" / Int16ul,
     "features" / Int16ul,  # TODO should be parsed
-    "elements" / GreedyRange(CompositionDataElement),
+    "elements" / GreedyRange(CompositionDataPage0Element),
+)
+
+ExtendedModelLongFormat = Struct(
+    "model_item_index" / Int8ul,
+    "element_offset" / Int8sl
+)
+
+ElementOffsetRepresentedValue = {
+    0: 0,
+    1: 1,
+    2: 2,
+    - 4: 4,
+    - 3: 5,
+    - 2: 6,
+    - 1: 7
+}
+
+ExtendedModelShortFormat = BitStruct(
+    "model_item_index" / BitsInteger(5),
+    "element_offset" / Mapping(BitsInteger(3), ElementOffsetRepresentedValue),
+)
+
+
+class ExtendedModelsItemFormat(enum.IntEnum):
+    SHORT = False
+    LONG = True
+
+
+ModelRelationItem = BitStruct(
+    "extended_items_count" / Rebuild(BitsInteger(6), len_(this["extended_models_items"])),
+    "format" / EnumAdapter(Flag, ExtendedModelsItemFormat),
+    "corresponding_present" / Flag,
+    "corresponding_id" / If(this.corresponding_present, BitsInteger(8)),
+    "extended_models_items" / IfThenElse(
+        this.format == 0,
+        Bytewise(ExtendedModelShortFormat[this["extended_items_count"]]),
+        Bytewise(ExtendedModelLongFormat[this["extended_items_count"]])),
+)
+
+CompositionDataPage1Element = Struct(
+    "number_s" / Rebuild(Int8ul, len_(this["sig_models"])),
+    "number_v" / Rebuild(Int8ul, len_(this["vendor_models"])),
+    "sig_models" / ModelRelationItem[this["number_s"]],
+    "vendor_models" / ModelRelationItem[this["number_v"]],
+)
+
+CompositionDataPage1 = Struct(
+    'element' / GreedyRange(CompositionDataPage1Element)
 )
 
 Retransmit = BitStruct(
@@ -721,10 +769,12 @@ ConfigBeaconSet = Struct(
 
 ConfigBeaconStatus = ConfigBeaconSet
 
+
 class CompositionDataPage(enum.IntEnum):
     ZERO = 0
     FIRST = 1
     TWO_HUNDRED_AND_FIFTY_FIFTH = 255
+
 
 CompositionDataPageAdapter = EnumAdapter(Int8ul, CompositionDataPage)
 
@@ -735,14 +785,16 @@ ConfigCompositionDataGet = Struct(
 ConfigCompositionData = Switch(
     this.page,
     {
-        CompositionDataPage.ZERO: CompositionData,
-        CompositionDataPage.FIRST: GreedyBytes,
+        CompositionDataPage.ZERO: CompositionDataPage0,
+        CompositionDataPage.FIRST: CompositionDataPage1,
         CompositionDataPage.TWO_HUNDRED_AND_FIFTY_FIFTH: GreedyBytes,
-    }
+    },
+    default=GreedyBytes
+
 )
 
-ConfigCompositionDataStatus = SwitchStruct(
-    "page" / CompositionDataPageAdapter,
+ConfigCompositionDataStatus = Struct(
+    "page" / Int8ul,
     "data" / ConfigCompositionData,
 )
 

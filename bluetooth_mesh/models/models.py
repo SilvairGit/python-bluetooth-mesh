@@ -32,7 +32,7 @@ from construct import BitStruct
 
 from bluetooth_mesh.crypto import ApplicationKey, NetworkKey
 from bluetooth_mesh.messages.config import (
-    CompositionData,
+    CompositionDataPage0,
     ConfigOpcode,
     PublishFriendshipCredentialsFlag,
     PublishPeriodStepResolution,
@@ -259,7 +259,7 @@ class ConfigClient(Model):
         send_interval: float = 2.0,
         progress_callback: Optional[ProgressCallback] = None,
         timeout: float = None,
-    ) -> CompositionData:
+    ) -> CompositionDataPage0:
         return await self.get_param(
             nodes,
             net_index,
@@ -973,7 +973,7 @@ class ConfigClient(Model):
         enabled: bool,
         send_interval: float = 2.0,
         timeout: float = 5.0,
-    ) -> CompositionData:
+    ) -> CompositionDataPage0:
         status_opcode = ConfigOpcode.CONFIG_BEACON_STATUS
 
         status = self.expect_dev(
