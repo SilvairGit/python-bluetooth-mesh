@@ -24,6 +24,12 @@ from .generic.light.lightness import (
     LightLightnessSetupMessage,
     LightLightnessSetupOpcode,
 )
+from .generic.light.hsl import (
+    LightHSLMessage,
+    LightHSLOpcode,
+    LightHSLSetupMessage,
+    LightHSLSetupOpcode,
+)
 from .generic.onoff import GenericOnOffMessage, GenericOnOffOpcode
 from .generic.dtt import GenericDTTMessage, GenericDTTOpcode
 from .generic.ponoff import (
@@ -71,6 +77,8 @@ class _AccessMessage(Construct):
         LightLightnessSetupOpcode: LightLightnessSetupMessage,
         LightCTLOpcode: LightCTLMessage,
         LightCTLSetupOpcode: LightCTLSetupMessage,
+        LightHSLOpcode: LightHSLMessage,
+        LightHSLSetupOpcode: LightHSLSetupMessage,
         HealthOpcode: HealthMessage,
         NetworkDiagnosticServerOpcode: NetworkDiagnosticServerMessage,
         NetworkDiagnosticSetupServerOpcode: NetworkDiagnosticSetupServerMessage,
@@ -118,7 +126,7 @@ class _AccessMessage(Construct):
                 opcode, message = self._opcodes[opcode]
         except KeyError:
             Opcode()._build(opcode, stream, context, path)
-            stream_write(stream, obj["params"])
+            stream_write(stream, obj["params"], len(obj["params"]), None)
             return obj
 
         return message._build(obj, stream, context, path)

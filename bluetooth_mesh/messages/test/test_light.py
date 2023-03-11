@@ -23,6 +23,10 @@ import pytest
 
 from bluetooth_mesh.messages.config import StatusCode
 from bluetooth_mesh.messages.generic.light import (
+    LightHSLMessage,
+    LightHSLOpcode,
+    LightHSLSetupMessage,
+    LightHSLSetupOpcode,
     LightCTLMessage,
     LightCTLOpcode,
     LightCTLSetupMessage,
@@ -368,6 +372,223 @@ valid_ctl_setup = [
 ]
 
 
+valid_hsl = [
+    # fmt: off
+    pytest.param(
+        b'\x82\x6d',
+        LightHSLOpcode.LIGHT_HSL_GET,
+        dict(),
+        id="HSL_GET"),
+    pytest.param(
+        b'\x82\x76\xbb\xaa\xdd\xcc\xff\xee\x10',
+        LightHSLOpcode.LIGHT_HSL_SET,
+        dict(hsl_lightness=0xaabb,
+             hsl_hue=0xccdd,
+             hsl_saturation=0xeeff,
+             tid=16),
+        id="HSL_SET"),
+    pytest.param(
+        b'\x82\x76\xbb\xaa\xdd\xcc\xff\xee\x10\x32\x64',
+        LightHSLOpcode.LIGHT_HSL_SET,
+        dict(hsl_lightness=0xaabb,
+             hsl_hue=0xccdd,
+             hsl_saturation=0xeeff,
+             tid=16,
+             transition_time=5,
+             delay=0.5),
+        id="HSL_SET_with_optional"),
+    pytest.param(
+        b'\x82\x77\x34\x12\x67\x45\xbc\x9a\x11\x37\x6e',
+        LightHSLOpcode.LIGHT_HSL_SET_UNACKNOWLEDGED,
+        dict(hsl_lightness=0x1234,
+             hsl_hue=0x4567,
+             hsl_saturation=0x9abc,
+             tid=17,
+             transition_time=5.5,
+             delay=0.55),
+        id="HSL_SET_UNACKNOWLEDGED"),
+    pytest.param(
+        b'\x82\x78\x11\x00\x33\x22\x55\x44',
+        LightHSLOpcode.LIGHT_HSL_STATUS,
+        dict(hsl_lightness=0x0011,
+             hsl_hue=0x2233,
+             hsl_saturation=0x4455),
+        id="HSL_STATUS"),
+    pytest.param(
+        b'\x82\x78\x11\x00\x33\x22\x55\x44\x47',
+        LightHSLOpcode.LIGHT_HSL_STATUS,
+        dict(hsl_lightness=0x0011,
+             hsl_hue=0x2233,
+             hsl_saturation=0x4455,
+             remaining_time=7),
+        id="HSL_STATUS_with_optional"),
+    pytest.param(
+        b'\x82\x79',
+        LightHSLOpcode.LIGHT_HSL_TARGET_GET,
+        dict(),
+        id="HSL_TARGET_GET"),
+    pytest.param(
+        b'\x82\x7a\x77\x66\x99\x88\xbb\xaa',
+        LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
+        dict(hsl_lightness=0x6677,
+             hsl_hue=0x8899,
+             hsl_saturation=0xaabb),
+        id="HSL_TARGET_STATUS"),
+    pytest.param(
+        b'\x82\x7a\x77\x66\x99\x88\xbb\xaa\x48',
+        LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
+        dict(hsl_lightness=0x6677,
+             hsl_hue=0x8899,
+             hsl_saturation=0xaabb,
+             remaining_time=8),
+        id="HSL_TARGET_STATUS_with_optional"),
+
+    pytest.param(
+        b'\x82\x6e',
+        LightHSLOpcode.LIGHT_HSL_HUE_GET,
+        dict(),
+        id="HSL_HUE_GET"),
+    pytest.param(
+        b'\x82\x6f\xbb\xaa\x0a',
+        LightHSLOpcode.LIGHT_HSL_HUE_SET,
+        dict(hue=0xaabb,
+             tid=10),
+        id="HSL_HUE_SET"),
+    pytest.param(
+        b'\x82\x6f\xbb\xaa\x0b\x0a\x14',
+        LightHSLOpcode.LIGHT_HSL_HUE_SET,
+        dict(hue=0xaabb,
+             tid=11,
+             transition_time=1,
+             delay=0.1),
+        id="HSL_HUE_SET_with_optional"),
+    pytest.param(
+        b'\x82\x70\xbb\xaa\x0c\x14\x28',
+        LightHSLOpcode.LIGHT_HSL_HUE_SET_UNACKNOWLEDGED,
+        dict(hue=0xaabb,
+             tid=12,
+             transition_time=2,
+             delay=0.2),
+        id="HSL_HUE_SET_UNACKNOWLEDGED"),
+    pytest.param(
+        b'\x82\x71\xdd\xcc',
+        LightHSLOpcode.LIGHT_HSL_HUE_STATUS,
+        dict(present_hue=0xccdd),
+        id="HSL_HUE_STATUS"),
+    pytest.param(
+        b'\x82\x71\xdd\xcc\xff\xee\x1e',
+        LightHSLOpcode.LIGHT_HSL_HUE_STATUS,
+        dict(present_hue=0xccdd,
+             target_hue=0xeeff,
+             remaining_time=3),
+        id="HSL_HUE_STATUS_with_optional"),
+
+    pytest.param(
+        b'\x82\x72',
+        LightHSLOpcode.LIGHT_HSL_SATURATION_GET,
+        dict(),
+        id="HSL_SATURATION_GET"),
+    pytest.param(
+        b'\x82\x73\xbb\xaa\x0d',
+        LightHSLOpcode.LIGHT_HSL_SATURATION_SET,
+        dict(saturation=0xaabb,
+             tid=13),
+        id="HSL_SATURATION_SET"),
+    pytest.param(
+        b'\x82\x73\x22\x11\x0e\x28\x50',
+        LightHSLOpcode.LIGHT_HSL_SATURATION_SET,
+        dict(saturation=0x1122,
+             tid=14,
+             transition_time=4,
+             delay=0.4),
+        id="HSL_SATURATION_SET_with_optional"),
+    pytest.param(
+        b'\x82\x74\x44\x33\x0f\x2d\x5a',
+        LightHSLOpcode.LIGHT_HSL_SATURATION_SET_UNACKNOWLEDGED,
+        dict(saturation=0x3344,
+             tid=15,
+             transition_time=4.5,
+             delay=0.45),
+        id="HSL_SATURATION_SET_UNACKNOWLEDGED"),
+    pytest.param(
+        b'\x82\x75\x66\x55',
+        LightHSLOpcode.LIGHT_HSL_SATURATION_STATUS,
+        dict(present_saturation=0x5566),
+        id="HSL_SATURATION_SATURATION_STATUS"),
+    pytest.param(
+        b'\x82\x75\x88\x77\x00\x99\x23',
+        LightHSLOpcode.LIGHT_HSL_SATURATION_STATUS,
+        dict(present_saturation=0x7788,
+             target_saturation=0x9900,
+             remaining_time=3.5),
+        id="HSL_SATURATION_STATUS_with_optional"),
+    pytest.param(
+        b'\x82\x7b',
+        LightHSLOpcode.LIGHT_HSL_DEFAULT_GET,
+        dict(),
+        id="HSL_DEFAULT_GET"),
+    pytest.param(
+        b'\x82\x7c\xa9\xcb\x65\x87\x21\x43',
+        LightHSLOpcode.LIGHT_HSL_DEFAULT_STATUS,
+        dict(hsl_lightness=0xcba9,
+             hsl_hue=0x8765,
+             hsl_saturation=0x4321),
+        id="HSL_DEFAULT_STATUS"),
+    pytest.param(
+        b'\x82\x7d',
+        LightHSLOpcode.LIGHT_HSL_RANGE_GET,
+        dict(),
+        id="HSL_RANGE_GET"),
+    pytest.param(
+        b'\x82\x7e\x00\x10\x00\xff\x10\xaa\x00\xff\xaa',
+        LightHSLOpcode.LIGHT_HSL_RANGE_STATUS,
+        dict(status=StatusCode.SUCCESS,
+             hue_range_min=0x0010,
+             hue_range_max=0x10ff,
+             saturation_range_min=0x00aa,
+             saturation_range_max=0xaaff),
+        id="HSL_RANGE_STATUS"),
+    # fmt: on
+]
+
+
+valid_hsl_setup = [
+    # fmt: off
+    pytest.param(
+        b'\x82\x7f\xaa\xaa\xbb\xbb\xcc\xcc',
+        LightHSLSetupOpcode.LIGHT_HSL_SETUP_DEFAULT_SET,
+        dict(hsl_lightness=0xaaaa,
+             hsl_hue=0xbbbb,
+             hsl_saturation=0xcccc),
+        id="HSL_SETUP_DEFAULT_SET"),
+    pytest.param(
+        b'\x82\x80\xdd\xdd\xee\xee\xff\xff',
+        LightHSLSetupOpcode.LIGHT_HSL_SETUP_DEFAULT_SET_UNACKNOWLEDGED,
+        dict(hsl_lightness=0xdddd,
+             hsl_hue=0xeeee,
+             hsl_saturation=0xffff),
+        id="HSL_SETUP_DEFAULT_SET_UNACKNOWLEDGED"),
+
+    pytest.param(
+        b'\x82\x81\x20\x00\xff\x20\xbb\x00\xff\xbb',
+        LightHSLSetupOpcode.LIGHT_HSL_SETUP_RANGE_SET,
+        dict(hue_range_min=0x0020,
+             hue_range_max=0x20ff,
+             saturation_range_min=0x00bb,
+             saturation_range_max=0xbbff),
+        id="HSL_SETUP_RANGE_SET"),
+    pytest.param(
+        b'\x82\x82\x30\x00\xff\x30\xcc\x00\xff\xcc',
+        LightHSLSetupOpcode.LIGHT_HSL_SETUP_RANGE_SET_UNACKNOWLEDGED,
+        dict(hue_range_min=0x0030,
+             hue_range_max=0x30ff,
+             saturation_range_min=0x00cc,
+             saturation_range_max=0xccff),
+        id="HSL_SETUP_RANGE_SET_UNACKNOWLEDGED"),
+    # fmt: on
+]
+
+
 @pytest.mark.parametrize("encoded,opcode,data", valid_lightness)
 def test_parse_valid_lightness(encoded, opcode, data):
     assert LightLightnessMessage.parse(encoded).params == data
@@ -406,3 +627,23 @@ def test_parse_valid_ctl_setup(encoded, opcode, data):
 @pytest.mark.parametrize("encoded,opcode,data", valid_ctl_setup)
 def test_build_valid_ctl_setup(encoded, opcode, data):
     assert LightCTLSetupMessage.build(dict(opcode=opcode, params=data)) == encoded
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_hsl)
+def test_parse_valid_hsl(encoded, opcode, data):
+    assert LightHSLMessage.parse(encoded).params == data
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_hsl)
+def test_build_valid_hsl(encoded, opcode, data):
+    assert LightHSLMessage.build(dict(opcode=opcode, params=data)) == encoded
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_hsl_setup)
+def test_parse_valid_hsl_setup(encoded, opcode, data):
+    assert LightHSLSetupMessage.parse(encoded).params == data
+
+
+@pytest.mark.parametrize("encoded,opcode,data", valid_hsl_setup)
+def test_build_valid_hsl_setup(encoded, opcode, data):
+    assert LightHSLSetupMessage.build(dict(opcode=opcode, params=data)) == encoded
