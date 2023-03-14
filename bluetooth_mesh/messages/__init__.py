@@ -41,23 +41,6 @@ from .light.hsl import (
 from .health import HealthMessage, HealthOpcode
 from .scene import SceneMessage, SceneOpcode
 from .sensor import SensorMessage, SensorOpcode, SensorSetupMessage, SensorSetupOpcode
-from .silvair.debug import DebugMessage, DebugOpcode
-from .silvair.debugV2 import DebugV2Message, DebugV2Opcode
-from .silvair.gateway_config_server import (
-    GatewayConfigMessage,
-    GatewayConfigServerOpcode,
-)
-from .silvair.light_extended_controller import (
-    LightExtendedControllerMessage,
-    LightExtendedControllerOpcode,
-)
-from .silvair.network_diagnostic_server import (
-    NetworkDiagnosticServerMessage,
-    NetworkDiagnosticServerOpcode,
-    NetworkDiagnosticSetupServerMessage,
-    NetworkDiagnosticSetupServerOpcode,
-)
-from .silvair.rrule_scheduler import RRuleSchedulerMessage, RRuleSchedulerOpcode
 from .time import TimeMessage, TimeOpcode
 from .util import Opcode
 
@@ -65,14 +48,12 @@ from .util import Opcode
 class _AccessMessage(Construct):
     OPCODES = {
         ConfigOpcode: ConfigMessage,
-        DebugOpcode: DebugMessage,
-        GatewayConfigServerOpcode: GatewayConfigMessage,
         GenericOnOffOpcode: GenericOnOffMessage,
+        GenericLevelOpcode: GenericLevelMessage,
         GenericDTTOpcode: GenericDTTMessage,
         GenericPowerOnOffOpcode: GenericPowerOnOffMessage,
         GenericPowerOnOffSetupOpcode: GenericPowerOnOffSetupMessage,
         GenericBatteryOpcode: GenericBatteryMessage,
-        GenericLevelOpcode: GenericLevelMessage,
         LightLightnessOpcode: LightLightnessMessage,
         LightLightnessSetupOpcode: LightLightnessSetupMessage,
         LightCTLOpcode: LightCTLMessage,
@@ -80,15 +61,10 @@ class _AccessMessage(Construct):
         LightHSLOpcode: LightHSLMessage,
         LightHSLSetupOpcode: LightHSLSetupMessage,
         HealthOpcode: HealthMessage,
-        NetworkDiagnosticServerOpcode: NetworkDiagnosticServerMessage,
-        NetworkDiagnosticSetupServerOpcode: NetworkDiagnosticSetupServerMessage,
         SceneOpcode: SceneMessage,
         SensorOpcode: SensorMessage,
         SensorSetupOpcode: SensorSetupMessage,
-        LightExtendedControllerOpcode: LightExtendedControllerMessage,
         TimeOpcode: TimeMessage,
-        DebugV2Opcode: DebugV2Message,
-        RRuleSchedulerOpcode: RRuleSchedulerMessage,
     }
 
     OPCODE = Opcode()
