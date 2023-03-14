@@ -1,9 +1,6 @@
 from construct import Select
 
 from .level import GenericLevelMessage
-from .light.ctl import LightCTLMessage, LightCTLSetupMessage
-from .light.lightness import LightLightnessMessage, LightLightnessSetupMessage
-from .light.hsl import LightHSLMessage, LightHSLSetupMessage
 from .onoff import GenericOnOffMessage
 from .dtt import GenericDTTMessage
 from .ponoff import  GenericPowerOnOffMessage, GenericPowerOnOffSetupMessage
@@ -14,10 +11,4 @@ GenericMessage = Select(
     GenericDTTMessage,
     GenericPowerOnOffMessage,
     GenericPowerOnOffSetupMessage,
-    LightCTLMessage,
-    LightCTLSetupMessage,
-    LightLightnessMessage,
-    LightLightnessSetupMessage,
-    LightHSLMessage,
-    LightHSLSetupMessage,
 )

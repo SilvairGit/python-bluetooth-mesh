@@ -22,7 +22,7 @@
 import pytest
 
 from bluetooth_mesh.messages.config import StatusCode
-from bluetooth_mesh.messages.generic.light import (
+from bluetooth_mesh.messages.light import (
     LightHSLMessage,
     LightHSLOpcode,
     LightHSLSetupMessage,

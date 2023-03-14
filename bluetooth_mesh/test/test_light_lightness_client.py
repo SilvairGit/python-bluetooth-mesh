@@ -27,7 +27,7 @@ from bluetooth_mesh import Element, LightLightnessClient
 from bluetooth_mesh.messages import LightLightnessMessage, LightLightnessOpcode
 from bluetooth_mesh.messages.config import GATTNamespaceDescriptor
 from bluetooth_mesh.messages.generic import LightLightnessSetupMessage
-from bluetooth_mesh.messages.generic.light import LightLightnessSetupOpcode
+from bluetooth_mesh.messages.light import LightLightnessSetupOpcode
 from bluetooth_mesh.test.fixtures import *  # pylint: disable=unused-wildcard-import, wildcard-import
 
 

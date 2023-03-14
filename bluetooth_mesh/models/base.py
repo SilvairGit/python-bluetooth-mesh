@@ -40,6 +40,9 @@ from typing import (
 )
 from uuid import UUID
 from random import randrange
+from functools import partial
+from enum import IntEnum
+
 
 from bluetooth_mesh.messages import AccessMessage
 from bluetooth_mesh.utils import (
@@ -65,6 +68,11 @@ class Model:
     OPCODES = []  # type: List[int]
     PUBLISH = False  # type: bool
     SUBSCRIBE = False  # type: bool
+    TIMEOUT = 0.5  # type: float
+    SEND_INTERVAL = 0.1  # type: float
+    UNACK_DELAY = 0.5  # type: float
+    UNACK_RETRANSMISSIONS = 6  # type: int
+    UNACK_SEND_INTERVAL = 0.075  # type: float
 
     def __init__(self, element: "Element"):
         self.__tid = randrange(100)
@@ -345,8 +353,8 @@ class Model:
         self,
         request: Callable[[], Awaitable],
         *,
-        retransmissions: int = 6,
-        send_interval: float = 0.05,
+        retransmissions: Optional[int] = None,
+        send_interval: Optional[float] = None
     ):
         """
         Application retransmissions
@@ -357,9 +365,9 @@ class Model:
 
         """
 
-        for _ in range(retransmissions):
+        for _ in range(retransmissions or self.UNACK_RETRANSMISSIONS):
             await request()
-            await asyncio.sleep(send_interval)
+            await asyncio.sleep(send_interval or self.UNACK_SEND_INTERVAL)
 
     async def query(
         self,
@@ -400,9 +408,9 @@ class Model:
         requests: Mapping[Hashable, Callable[[], Awaitable[None]]],
         statuses: Mapping[Hashable, asyncio.Future],
         *,
-        send_interval: float = 0.5,
+        send_interval: Optional[float] = None,
+        timeout: Optional[float] = None,
         progress_callback: Optional[ProgressCallback] = None,
-        timeout: float = 5.0,
     ) -> Mapping[Hashable, Any]:
         """
         Bulk query
@@ -410,8 +418,8 @@ class Model:
         :param requests:
         :param statuses:
         :param send_interval:
-        :param progress_callback:
         :param timeout:
+        :param progress_callback:
 
         """
 
@@ -421,12 +429,12 @@ class Model:
             while requests:
                 for request in list(requests.values()):
                     await request()
-                    await asyncio.sleep(send_interval)
+                    await asyncio.sleep(send_interval or self.SEND_INTERVAL)
 
         key_mapping = {status: key for key, status in statuses.items()}
 
         sender = asyncio.ensure_future(sender())
-        async for status, result in Gatherer(statuses.values(), timeout=timeout):
+        async for status, result in Gatherer(statuses.values(), timeout=timeout or len(requests) * self.TIMEOUT):
             key = key_mapping[status]
             requests.pop(key)
             done[key] = result
@@ -548,6 +556,159 @@ class Model:
         """
 
         return await self.element.application.bind_app_key(app_key_index, model=self)
+
+
+    # implementation of simple client *get command
+    async def client_simple_get(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        request_opcode: IntEnum,
+        status_opcode: IntEnum,
+        *,
+        send_interval: Optional[float] = None,
+        timeout: Optional[float] = None
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                destination=node,
+                app_index=app_index,
+                opcode=request_opcode,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                source=node,
+                app_index=app_index,
+                destination=None,
+                opcode=status_opcode,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout,
+        )
+
+        return {
+            node: None if isinstance(result, Exception)
+                    or not hasattr(result, '__getitem__')
+                else result[status_opcode.name.lower()]
+            for node, result in results.items()
+        }
+
+    # implementation of simple client *set command
+    async def client_simple_set(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        request_opcode: IntEnum,
+        status_opcode: IntEnum,
+        params: dict,
+        *,
+        send_interval: Optional[float] = None,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        requests = {
+            node: partial(
+                self.send_app,
+                destination=node,
+                app_index=app_index,
+                opcode=request_opcode,
+                params=params,
+            )
+            for node in nodes
+        }
+
+        statuses = {
+            node: self.expect_app(
+                source=node,
+                app_index=app_index,
+                destination=None,
+                opcode=status_opcode,
+                params=dict(),
+            )
+            for node in nodes
+        }
+
+        results = await self.bulk_query(
+            requests,
+            statuses,
+            send_interval=send_interval,
+            timeout=timeout,
+        )
+
+        return {
+            node: None if isinstance(result, Exception)
+                    or not hasattr(result, '__getitem__')
+                else result[status_opcode.name.lower()]
+            for node, result in results.items()
+        }
+
+    async def client_simple_set_unack(
+        self,
+        destination: int,
+        app_index: int,
+        request_opcode: IntEnum,
+        params: dict,
+        *,
+        retransmissions: Optional[int] = None,
+        send_interval: Optional[float] = None
+    ) -> None:
+        async def request():
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=request_opcode,
+                params=params,
+            )
+            return await ret
+
+        await self.repeat(
+            request,
+            retransmissions=retransmissions,
+            send_interval=send_interval,
+        )
+
+
+    # implementation of client *set_unack command with delay argument
+    async def client_delay_set_unack(
+        self,
+        destination: int,
+        app_index: int,
+        request_opcode: IntEnum,
+        params: dict,
+        *,
+        delay: Optional[float] = None,
+        retransmissions: Optional[int] = None,
+        send_interval: Optional[float] = None
+    ) -> None:
+        remaining_delay = delay or self.UNACK_DELAY
+
+        async def request():
+            nonlocal remaining_delay
+            ret = self.send_app(
+                destination=destination,
+                app_index=app_index,
+                opcode=request_opcode,
+                params=params | dict(delay=remaining_delay),
+            )
+            remaining_delay = max(0.0, remaining_delay - (send_interval or self.UNACK_SEND_INTERVAL))
+            return await ret
+
+        await self.repeat(
+            request,
+            retransmissions=retransmissions,
+            send_interval=send_interval
+        )
 
 
 class ModelConfig:

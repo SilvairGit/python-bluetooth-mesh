@@ -12,24 +12,6 @@ from construct import (
 from .config import ConfigMessage, ConfigOpcode
 from .generic.battery import GenericBatteryMessage, GenericBatteryOpcode
 from .generic.level import GenericLevelMessage, GenericLevelOpcode
-from .generic.light.ctl import (
-    LightCTLMessage,
-    LightCTLOpcode,
-    LightCTLSetupMessage,
-    LightCTLSetupOpcode,
-)
-from .generic.light.lightness import (
-    LightLightnessMessage,
-    LightLightnessOpcode,
-    LightLightnessSetupMessage,
-    LightLightnessSetupOpcode,
-)
-from .generic.light.hsl import (
-    LightHSLMessage,
-    LightHSLOpcode,
-    LightHSLSetupMessage,
-    LightHSLSetupOpcode,
-)
 from .generic.onoff import GenericOnOffMessage, GenericOnOffOpcode
 from .generic.dtt import GenericDTTMessage, GenericDTTOpcode
 from .generic.ponoff import (
@@ -37,6 +19,24 @@ from .generic.ponoff import (
     GenericPowerOnOffOpcode,
     GenericPowerOnOffSetupMessage,
     GenericPowerOnOffSetupOpcode
+)
+from .light.lightness import (
+    LightLightnessMessage,
+    LightLightnessOpcode,
+    LightLightnessSetupMessage,
+    LightLightnessSetupOpcode,
+)
+from .light.ctl import (
+    LightCTLMessage,
+    LightCTLOpcode,
+    LightCTLSetupMessage,
+    LightCTLSetupOpcode,
+)
+from .light.hsl import (
+    LightHSLMessage,
+    LightHSLOpcode,
+    LightHSLSetupMessage,
+    LightHSLSetupOpcode,
 )
 from .health import HealthMessage, HealthOpcode
 from .scene import SceneMessage, SceneOpcode
