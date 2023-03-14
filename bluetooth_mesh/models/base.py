@@ -599,9 +599,8 @@ class Model:
         )
 
         return {
-            node: None if isinstance(result, Exception)
-                    or not hasattr(result, '__getitem__')
-                else result[status_opcode.name.lower()]
+            node: None if isinstance(result, BaseException)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
@@ -647,9 +646,8 @@ class Model:
         )
 
         return {
-            node: None if isinstance(result, Exception)
-                    or not hasattr(result, '__getitem__')
-                else result[status_opcode.name.lower()]
+            node: None if isinstance(result, BaseException)
+            else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
 
