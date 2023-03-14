@@ -54,6 +54,7 @@ __all__ = [
     "HealthClient",
     "SceneClient",
     "SensorClient",
+    "TimeClient",
 ]
 
 AppKeyStatus = NamedTuple(

@@ -133,9 +133,9 @@ class LightHSLClient(Model):
         timeout: Optional[float] = None
     ) -> Dict[int, Optional[Any]]:
         params = dict(
-            hsl_lightness=lightness,
-            hsl_hue=hue,
-            hsl_saturation=saturation,
+            hsl_lightness=hsl_lightness,
+            hsl_hue=hsl_hue,
+            hsl_saturation=hsl_saturation,
             tid=self.tid(),
             delay=0,
             transition_time=transition_time,
@@ -164,9 +164,9 @@ class LightHSLClient(Model):
         send_interval: Optional[float] = None
     ) -> Dict[int, Optional[Any]]:
         params = dict(
-            hsl_lightness=lightness,
-            hsl_hue=hue,
-            hsl_saturation=saturation,
+            hsl_lightness=hsl_lightness,
+            hsl_hue=hsl_hue,
+            hsl_saturation=hsl_saturation,
             tid=self.tid(),
             transition_time=transition_time,
         )
