@@ -189,174 +189,6 @@ valid = [
         id="VirtualAddress - Min"
     ),
     pytest.param(
-        CompositionDataPage0Element,
-        bytes.fromhex('00000101ADDEEFBEADDE'),
-        {
-            "location": GATTNamespaceDescriptor.UNKNOWN,
-            "sig_number": 0x01,
-            "vendor_number": 0x01,
-            "sig_models": [{"model_id": 0xDEAD}],
-            "vendor_models": [{"model_id": 0xDEAD, "vendor_id": 0xBEEF}]
-        },
-        id="CompositionDataPage0Element", ),
-    pytest.param(
-        CompositionDataPage0Element,
-        bytes.fromhex('00000001EFBEADDE'),
-        {
-            "location": GATTNamespaceDescriptor.UNKNOWN,
-            "sig_number": 0x00,
-            "vendor_number": 0x01,
-            "sig_models": [],
-            "vendor_models": [{"model_id": 0xDEAD, "vendor_id": 0xBEEF}]
-        },
-        id="CompositionDataPage0Element - No SIG", ),
-    pytest.param(
-        CompositionDataPage0Element,
-        bytes.fromhex('00000100ADDE'),
-        {
-            "location": GATTNamespaceDescriptor.UNKNOWN,
-            "sig_number": 0x01,
-            "vendor_number": 0x00,
-            "sig_models": [{"model_id": 0xDEAD}],
-            "vendor_models": []
-        },
-        id="CompositionDataPage0Element - No vendor"
-    ),
-    pytest.param(
-        CompositionDataPage0,
-        bytes.fromhex('3601CE00FECAEFBE0BB000000000'),
-        {
-            "cid": 0x0136,
-            "pid": 0x00CE,
-            "vid": 0xCAFE,
-            "crpl": 0xBEEF,
-            "features": 0xB00B,
-            "elements": [
-                {
-                    "location": GATTNamespaceDescriptor.UNKNOWN,
-                    "sig_number": 0x00,
-                    "vendor_number": 0x00,
-                    "sig_models": [],
-                    "vendor_models": []
-                }
-            ]
-        },
-        id="CompositionData - One element", ),
-    pytest.param(
-        CompositionDataPage0,
-        bytes.fromhex('3601CE00FECAEFBE0BB00000000000000000'),
-        {
-            "cid": 0x0136,
-            "pid": 0x00CE,
-            "vid": 0xCAFE,
-            "crpl": 0xBEEF,
-            "features": 0xB00B,
-            "elements": [
-                {
-                    "location": GATTNamespaceDescriptor.UNKNOWN,
-                    "sig_number": 0x00,
-                    "vendor_number": 0x00,
-                    "sig_models": [],
-                    "vendor_models": []
-                },
-                {
-                    "location": GATTNamespaceDescriptor.UNKNOWN,
-                    "sig_number": 0x00,
-                    "vendor_number": 0x00,
-                    "sig_models": [],
-                    "vendor_models": []
-                }
-            ]
-        },
-        id="CompositionData - Two elements"
-    ),
-    pytest.param(
-        CompositionDataPage1,
-        bytes.fromhex('02010005000000010201000501170101'),
-        {"element": [
-            {
-                "number_s": 2,
-                "number_v": 1,
-                "sig_models": [
-                    {
-                        "extended_items_count": 0,
-                        "format": ExtendedModelsItemFormat.SHORT,
-                        "corresponding_present": False,
-                        "corresponding_id": None,
-                        "extended_models_items": []
-                    },
-                    {
-                        "extended_items_count": 1,
-                        "format": ExtendedModelsItemFormat.SHORT,
-                        "corresponding_present": True,
-                        "corresponding_id": 0,
-                        "extended_models_items": [
-                            {
-                                "model_item_index": 0,
-                                "element_offset": 0
-                            }
-                        ]
-                    },
-                ],
-                "vendor_models": [
-                    {
-                        "extended_items_count": 0,
-                        "format": ExtendedModelsItemFormat.SHORT,
-                        "corresponding_present": False,
-                        "corresponding_id": None,
-                        "extended_models_items": []
-                    },
-                ]
-            },
-            {
-                "number_s": 1,
-                "number_v": 2,
-                "sig_models": [
-                    {
-                        "extended_items_count": 0,
-                        "format": ExtendedModelsItemFormat.SHORT,
-                        "corresponding_present": True,
-                        "corresponding_id": 0,
-                        "extended_models_items": []
-                    },
-                ],
-                "vendor_models": [
-                    {
-                        "extended_items_count": 1,
-                        "format": ExtendedModelsItemFormat.SHORT,
-                        "corresponding_present": True,
-                        "corresponding_id": 1,
-                        "extended_models_items": [
-                            {
-                                "model_item_index": 2,
-                                "element_offset": -1
-                            }
-                        ]
-                    },
-                    {
-                        "extended_items_count": 0,
-                        "format": ExtendedModelsItemFormat.SHORT,
-                        "corresponding_present": True,
-                        "corresponding_id": 1,
-                        "extended_models_items": []
-                    }
-
-                ]
-            }
-        ]
-        },
-        id="CompositionData Page 1"
-    ),
-    pytest.param(
-        ConfigCompositionDataStatus,
-        bytes.fromhex('03CAFE'),
-        {
-            "page": 0x03,
-            "data": bytes.fromhex('CAFE'),
-        },
-        id="ConfigCompositionDataStatus - not page 0 or 1"
-    ),
-    pytest.param(
         Retransmit,
         bytes.fromhex('07'),
         {
@@ -605,6 +437,198 @@ valid = [
         id="ConfigCompositionDataStatus - page 1"
     ),
     pytest.param(
+        ConfigCompositionDataStatus,
+        bytes.fromhex('02001601000001010000'),
+        {
+            "page": 0x02,
+            "second":
+                {"record_list": [
+                    {
+                        "mesh_profile_identifier": 0x1600,
+                        "version": {
+                            "version_x": 1,
+                            "version_y": 0,
+                            "version_z": 0
+                        },
+                        "num_element_offsets": 1,
+                        "element_offset_list": [1],
+                        "additional_data_len": 0,
+                        "additional_data": []
+                    }
+                ]}
+        },
+        id="ConfigCompositionDataStatus - page 2"
+    ),
+    pytest.param(
+        ConfigCompositionDataStatus,
+        bytes.fromhex('FFCAFE'),
+        {
+            "page": 0xFF,
+            "two_hundred_and_fifty_fifth": bytes.fromhex('CAFE'),
+        },
+        id="ConfigCompositionDataStatus - not page 0 or 1 or 3"
+    ),
+    pytest.param(
+        CompositionDataPage0,
+        bytes.fromhex('3601CE00FECAEFBE0BB000000000'),
+        {
+            "cid": 0x0136,
+            "pid": 0x00CE,
+            "vid": 0xCAFE,
+            "crpl": 0xBEEF,
+            "features": 0xB00B,
+            "elements": [
+                {
+                    "location": GATTNamespaceDescriptor.UNKNOWN,
+                    "sig_number": 0x00,
+                    "vendor_number": 0x00,
+                    "sig_models": [],
+                    "vendor_models": []
+                }
+            ]
+        },
+        id="CompositionData - One element", ),
+    pytest.param(
+        CompositionDataPage0,
+        bytes.fromhex('3601CE00FECAEFBE0BB00000000000000000'),
+        {
+            "cid": 0x0136,
+            "pid": 0x00CE,
+            "vid": 0xCAFE,
+            "crpl": 0xBEEF,
+            "features": 0xB00B,
+            "elements": [
+                {
+                    "location": GATTNamespaceDescriptor.UNKNOWN,
+                    "sig_number": 0x00,
+                    "vendor_number": 0x00,
+                    "sig_models": [],
+                    "vendor_models": []
+                },
+                {
+                    "location": GATTNamespaceDescriptor.UNKNOWN,
+                    "sig_number": 0x00,
+                    "vendor_number": 0x00,
+                    "sig_models": [],
+                    "vendor_models": []
+                }
+            ]
+        },
+        id="CompositionData - Two elements"
+    ),
+    pytest.param(
+        CompositionDataPage0Element,
+        bytes.fromhex('00000101ADDEEFBEADDE'),
+        {
+            "location": GATTNamespaceDescriptor.UNKNOWN,
+            "sig_number": 0x01,
+            "vendor_number": 0x01,
+            "sig_models": [{"model_id": 0xDEAD}],
+            "vendor_models": [{"model_id": 0xDEAD, "vendor_id": 0xBEEF}]
+        },
+        id="CompositionDataPage0Element", ),
+    pytest.param(
+        CompositionDataPage0Element,
+        bytes.fromhex('00000001EFBEADDE'),
+        {
+            "location": GATTNamespaceDescriptor.UNKNOWN,
+            "sig_number": 0x00,
+            "vendor_number": 0x01,
+            "sig_models": [],
+            "vendor_models": [{"model_id": 0xDEAD, "vendor_id": 0xBEEF}]
+        },
+        id="CompositionDataPage0Element - No SIG", ),
+    pytest.param(
+        CompositionDataPage0Element,
+        bytes.fromhex('00000100ADDE'),
+        {
+            "location": GATTNamespaceDescriptor.UNKNOWN,
+            "sig_number": 0x01,
+            "vendor_number": 0x00,
+            "sig_models": [{"model_id": 0xDEAD}],
+            "vendor_models": []
+        },
+        id="CompositionDataPage0Element - No vendor"
+    ),
+
+    pytest.param(
+        CompositionDataPage1,
+        bytes.fromhex('02010005000000010201000501170101'),
+        {"element": [
+            {
+                "number_s": 2,
+                "number_v": 1,
+                "sig_models": [
+                    {
+                        "extended_items_count": 0,
+                        "format": ExtendedModelsItemFormat.SHORT,
+                        "corresponding_present": False,
+                        "corresponding_id": None,
+                        "extended_models_items": []
+                    },
+                    {
+                        "extended_items_count": 1,
+                        "format": ExtendedModelsItemFormat.SHORT,
+                        "corresponding_present": True,
+                        "corresponding_id": 0,
+                        "extended_models_items": [
+                            {
+                                "model_item_index": 0,
+                                "element_offset": 0
+                            }
+                        ]
+                    },
+                ],
+                "vendor_models": [
+                    {
+                        "extended_items_count": 0,
+                        "format": ExtendedModelsItemFormat.SHORT,
+                        "corresponding_present": False,
+                        "corresponding_id": None,
+                        "extended_models_items": []
+                    },
+                ]
+            },
+            {
+                "number_s": 1,
+                "number_v": 2,
+                "sig_models": [
+                    {
+                        "extended_items_count": 0,
+                        "format": ExtendedModelsItemFormat.SHORT,
+                        "corresponding_present": True,
+                        "corresponding_id": 0,
+                        "extended_models_items": []
+                    },
+                ],
+                "vendor_models": [
+                    {
+                        "extended_items_count": 1,
+                        "format": ExtendedModelsItemFormat.SHORT,
+                        "corresponding_present": True,
+                        "corresponding_id": 1,
+                        "extended_models_items": [
+                            {
+                                "model_item_index": 2,
+                                "element_offset": -1
+                            }
+                        ]
+                    },
+                    {
+                        "extended_items_count": 0,
+                        "format": ExtendedModelsItemFormat.SHORT,
+                        "corresponding_present": True,
+                        "corresponding_id": 1,
+                        "extended_models_items": []
+                    }
+
+                ]
+            }
+        ]
+        },
+        id="CompositionData Page 1"
+    ),
+    pytest.param(
         CompositionDataPage1Element,
         bytes.fromhex('050307011AFD0901383001080508480000050A00050AD0'),
         {
@@ -701,6 +725,26 @@ valid = [
                     ]
         },
         id="Config Composition Data Page 1 - single element"
+    ),
+    pytest.param(
+        CompositionDataPage2,
+        bytes.fromhex('021601020303010203020011FF'),
+        {"record_list": [
+            {
+                "mesh_profile_identifier": 0x1602,
+                "version": {
+                    "version_x": 1,
+                    "version_y": 2,
+                    "version_z": 3
+                },
+                "num_element_offsets": 3,
+                "element_offset_list": [1, 2, 3],
+                "additional_data_len": 2,
+                "additional_data":  [0x11, 0xFF]
+
+            }]
+        },
+        id="CompositionData Page 2"
     ),
     pytest.param(
         ModelRelationItem,
