@@ -29,26 +29,32 @@ from construct import (
     BitsInteger,
     BitStruct,
     Bytes,
+    Bytewise,
     Embedded,
     ExprValidator,
     Flag,
     GreedyBytes,
     GreedyRange,
+    If,
+    IfThenElse,
     Int8ul,
     Int16ul,
     Int24ul,
+    Int8sl,
+    Mapping,
     Padding,
     Rebuild,
     Select,
     Struct,
     len_,
     obj_,
-    this, Int8sl, If, Mapping, IfThenElse, Bytewise,
+    this
 )
 
-from bluetooth_mesh.messages.util import BitList, EmbeddedBitStruct, EnumAdapter
-from bluetooth_mesh.messages.util import EnumSwitch as Switch
 from bluetooth_mesh.messages.util import (
+    BitList,
+    EmbeddedBitStruct,
+    EnumAdapter,
     LogAdapter,
     NamedSelect,
     Opcode,
@@ -56,6 +62,7 @@ from bluetooth_mesh.messages.util import (
     Reversed,
     SwitchStruct,
 )
+from bluetooth_mesh.messages.util import EnumSwitch as Switch
 
 
 class SecureNetworkBeacon(enum.IntEnum):
@@ -608,6 +615,25 @@ CompositionDataPage1 = Struct(
     'element' / GreedyRange(CompositionDataPage1Element)
 )
 
+Version = Struct(
+    'version_x' / Int8ul,
+    'version_y' / Int8ul,
+    'version_z' / Int8ul,
+)
+
+MeshProfileEntry = Struct(
+    "mesh_profile_identifier" / Int16ul,
+    "version" / Version,
+    "num_element_offsets" / Rebuild(Int8ul, len_(this["element_offset_list"])),
+    "element_offset_list" / Int8ul[this["num_element_offsets"]],
+    "additional_data_len" / Int16ul,
+    "additional_data" / Bytes(this.additional_data_len),
+)
+
+CompositionDataPage2 = Struct(
+    'record_list' / GreedyRange(MeshProfileEntry)
+)
+
 Retransmit = BitStruct(
     # sssssccc
     "interval_steps" / BitsInteger(5),
@@ -773,6 +799,7 @@ ConfigBeaconStatus = ConfigBeaconSet
 class CompositionDataPage(enum.IntEnum):
     ZERO = 0
     FIRST = 1
+    SECOND = 2
     TWO_HUNDRED_AND_FIFTY_FIFTH = 255
 
 
@@ -787,6 +814,7 @@ ConfigCompositionData = Switch(
     {
         CompositionDataPage.ZERO: CompositionDataPage0,
         CompositionDataPage.FIRST: CompositionDataPage1,
+        CompositionDataPage.SECOND: CompositionDataPage2,
         CompositionDataPage.TWO_HUNDRED_AND_FIFTY_FIFTH: GreedyBytes,
     },
     default=GreedyBytes
