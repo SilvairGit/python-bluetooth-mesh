@@ -41,7 +41,6 @@ from bluetooth_mesh.messages.config import (
 )
 from bluetooth_mesh.messages.health import HealthOpcode
 from bluetooth_mesh.messages.properties import PropertyID
-from bluetooth_mesh.messages.scene import SceneOpcode
 from bluetooth_mesh.messages.sensor import SensorOpcode
 from bluetooth_mesh.messages.time import TimeOpcode, TimeRole
 from bluetooth_mesh.models.base import Model
@@ -52,7 +51,6 @@ __all__ = [
     "ConfigClient",
     "HealthServer",
     "HealthClient",
-    "SceneClient",
     "SensorClient",
     "TimeClient",
 ]
@@ -1035,100 +1033,6 @@ class HealthClient(Model):
         )
 
         await self.repeat(request)
-
-
-class SceneClient(Model):
-    MODEL_ID = (None, 0x1205)
-    OPCODES = {
-        SceneOpcode.SCENE_GET,
-        SceneOpcode.SCENE_RECALL,
-        SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED,
-        SceneOpcode.SCENE_STATUS,
-        SceneOpcode.SCENE_REGISTER_GET,
-        SceneOpcode.SCENE_REGISTER_STATUS,
-        SceneOpcode.SCENE_STORE,
-        SceneOpcode.SCENE_STORE_UNACKNOWLEDGED,
-        SceneOpcode.SCENE_DELETE,
-        SceneOpcode.SCENE_DELETE_UNACKNOWLEDGED,
-    }
-    PUBLISH = True
-    SUBSCRIBE = True
-
-    async def recall_scene_unack(
-        self,
-        destination: int,
-        app_index: int,
-        scene_number: int,
-        transition_time: float,
-    ):
-        tid = self.tid()
-        current_delay = 0.5
-        send_interval = 0.075
-
-        async def request():
-            nonlocal current_delay
-            ret = self.send_app(
-                destination,
-                app_index=app_index,
-                opcode=SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED,
-                params=dict(
-                    scene_number=scene_number,
-                    tid=tid,
-                    transition_time=transition_time,
-                    delay=current_delay,
-                ),
-            )
-            current_delay = max(0.0, current_delay - send_interval)
-
-            return await ret
-
-        await self.repeat(request, retransmissions=6, send_interval=send_interval)
-
-    async def get_scene(
-        self,
-        nodes: Sequence[int],
-        app_index: int,
-        *,
-        send_interval: float = 0.1,
-        timeout: Optional[float] = None,
-    ):
-        requests = {
-            node: partial(
-                self.send_app,
-                node,
-                app_index=app_index,
-                opcode=SceneOpcode.SCENE_GET,
-                params=dict(),
-            )
-            for node in nodes
-        }
-
-        status_opcode = SceneOpcode.SCENE_STATUS
-
-        statuses = {
-            node: self.expect_app(
-                node,
-                app_index=0,
-                destination=None,
-                opcode=status_opcode,
-                params=dict(),
-            )
-            for node in nodes
-        }
-
-        results = await self.bulk_query(
-            requests,
-            statuses,
-            send_interval=send_interval,
-            timeout=timeout or len(nodes) * 0.5,
-        )
-
-        return {
-            node: None
-            if isinstance(result, Exception)
-            else result[status_opcode.name.lower()]
-            for node, result in results.items()
-        }
 
 
 class SensorClient(Model):
