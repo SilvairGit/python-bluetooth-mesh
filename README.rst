@@ -34,8 +34,10 @@ https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/mesh-api.txt
 Installation
 ------------
 
-TODO:
-
+git clone https://github.com/aozyumenko/python-bluetooth-mesh.git
+cd python-bluetooth-mesh
+python3 setup.py bdist_wheel
+pip install dist/aozyumenko_bluetooth_mesh-1.0.0-py3-none-any.whl
 
 License
 -------
