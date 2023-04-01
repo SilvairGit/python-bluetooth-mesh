@@ -26,16 +26,16 @@ with open("README.rst", "r") as f:
 
 # fmt: off
 setup(
-    name='bluetooth-mesh',
-    version='0.7.20',
-    author_email='michal.lowas-rzechonek@silvair.com',
+    name='aozyumenko-bluetooth-mesh',
+    version='1.0.0',
+    author_email='a.ozumenko@gmail.com',
     description=(
         'Bluetooth mesh for Python'
     ),
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    url='http://github.com/silvairgit/python-bluetooth-mesh',
-    packages=find_packages(exclude=('test*', )),
+    url='https://github.com/aozyumenko/python-bluetooth-mesh',
+    packages=find_packages(exclude=('bluetooth_mesh.apps', 'bluetooth_mesh.test', 'test*', )),
     python_requires='>=3.6.0,<3.11.0',
     setup_requires=[
         'pytest-runner',
@@ -69,14 +69,6 @@ setup(
         capnp=[
             'pycapnp',
         ],
-    ),
-    entry_points=dict(
-        console_scripts=[
-            'meshcli = bluetooth_mesh.apps.meshcli:main [tools]',
-        ],
-        bluetooth_mesh=[
-            'bluetooth_mesh = bluetooth_mesh.apps.mixins',
-        ]
     ),
     classifiers=[
         'Development Status :: 3 - Alpha',
