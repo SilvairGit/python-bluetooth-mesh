@@ -36,7 +36,7 @@ from bluetooth_mesh.messages.util import Opcode, to_camelcase_dict, to_snakecase
 if sys.version_info >= (3, 7):
     import capnp
 
-    from bluetooth_mesh.messages.capnproto import generate
+    from bluetooth_mesh.messages.capnproto import generate, load_definitions
 
 valid = [
     # debug
@@ -271,10 +271,8 @@ valid = [
 
 @pytest.fixture(scope="session")
 def capnproto():
-    with NamedTemporaryFile("w", suffix=".capnp") as f:
-        generate(0xD988DA1AAFBE9E47, f)
-        f.flush()
-        return capnp.load(f.name)
+    _, messages = load_definitions()
+    return messages
 
 
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="requires Python3.7")
