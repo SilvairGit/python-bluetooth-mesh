@@ -27,7 +27,7 @@ from functools import partial
 from typing import Any, Dict, Iterable, NamedTuple, Optional, Sequence, Tuple, Type
 
 from bluetooth_mesh.models.base import Model
-from bluetooth_mesh.messages.generic.level import GenericLevelOpcode
+from bluetooth_mesh.messages.scene import SceneOpcode
 
 
 __all__ = [
@@ -123,7 +123,7 @@ class SceneClient(Model):
         await self.client_delay_set_unack(
             destination=destination,
             app_index=app_index,
-            request_opcode==SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED,
+            request_opcode=SceneOpcode.SCENE_RECALL_UNACKNOWLEDGED,
             params=params,
             delay=delay,
             retransmissions=retransmissions,
