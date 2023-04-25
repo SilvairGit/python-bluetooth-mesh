@@ -48,7 +48,7 @@ from construct import (
     Struct,
     len_,
     obj_,
-    this
+    this, Byte
 )
 
 from bluetooth_mesh.messages.util import (
@@ -626,8 +626,8 @@ MeshProfileEntry = Struct(
     "version" / Version,
     "num_element_offsets" / Rebuild(Int8ul, len_(this["element_offset_list"])),
     "element_offset_list" / Int8ul[this["num_element_offsets"]],
-    "additional_data_len" / Int16ul,
-    "additional_data" / Bytes(this.additional_data_len),
+    "additional_data_len" / Rebuild(Int16ul, len_(this["additional_data"])),
+    "additional_data" / Int8ul[this["additional_data_len"]],
 )
 
 CompositionDataPage2 = Struct(
@@ -817,12 +817,10 @@ ConfigCompositionData = Switch(
         CompositionDataPage.SECOND: CompositionDataPage2,
         CompositionDataPage.TWO_HUNDRED_AND_FIFTY_FIFTH: GreedyBytes,
     },
-    default=GreedyBytes
-
 )
 
-ConfigCompositionDataStatus = Struct(
-    "page" / Int8ul,
+ConfigCompositionDataStatus = SwitchStruct(
+    "page" / CompositionDataPageAdapter,
     "data" / ConfigCompositionData,
 )
 
