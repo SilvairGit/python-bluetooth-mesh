@@ -1337,6 +1337,8 @@ def test_build(message, encoded, decoded):
 @pytest.mark.parametrize("message,encoded,decoded", valid)
 def test_parse(message, encoded, decoded):
     result = message.parse(data=encoded)
+    import logging
+    logging.error(result)
     assert result == decoded
 
 

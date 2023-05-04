@@ -48,7 +48,7 @@ from construct import (
     Struct,
     len_,
     obj_,
-    this, Byte
+    this, Pass
 )
 
 from bluetooth_mesh.messages.util import (
@@ -593,15 +593,20 @@ class ExtendedModelsItemFormat(enum.IntEnum):
     LONG = True
 
 
+
+
 ModelRelationItem = BitStruct(
     "extended_items_count" / Rebuild(BitsInteger(6), len_(this["extended_models_items"])),
     "format" / EnumAdapter(Flag, ExtendedModelsItemFormat),
     "corresponding_present" / Flag,
-    "corresponding_id" / If(this.corresponding_present, BitsInteger(8)),
-    "extended_models_items" / IfThenElse(
-        this.format == 0,
-        Bytewise(ExtendedModelShortFormat[this["extended_items_count"]]),
-        Bytewise(ExtendedModelLongFormat[this["extended_items_count"]])),
+    "corresponding_id" / IfThenElse(this.corresponding_present, BitsInteger(8), Pass),
+    "extended_models_items" / Switch(
+        this.format,
+        {
+            ExtendedModelsItemFormat.SHORT: Bytewise(ExtendedModelShortFormat[this["extended_items_count"]]),
+            ExtendedModelsItemFormat.LONG: Bytewise(ExtendedModelLongFormat[this["extended_items_count"]]),
+        }
+    ),
 )
 
 CompositionDataPage1Element = Struct(

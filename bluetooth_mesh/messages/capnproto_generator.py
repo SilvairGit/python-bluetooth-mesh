@@ -27,6 +27,7 @@ from construct import (
     GreedyBytes,
     GreedyRange,
     NullStripped,
+    IfThenElse,
     Padded,
     Pass,
     Rebuild,
@@ -133,6 +134,12 @@ def convert(
             many=many,
         )
 
+    elif isinstance(con, IfThenElse):
+        visitor.enter_union(field_name)
+        convert(con.thensubcon, visitor, "then")
+        convert(con.elsesubcon, visitor, "else")
+        visitor.exit()
+
     elif isinstance(con, StringEncoded):
         visitor.field(con, field_name, struct_name)
 
@@ -156,8 +163,8 @@ def convert(
             many=False,
         )
 
-    elif con is Pass:
-        return
+    # elif con is Pass:
+    #     return
 
     elif isinstance(con, StopIf):
         return
@@ -237,6 +244,9 @@ class Visitor:
         elif isinstance(con, BytesInteger):
             width = max(2 ** math.ceil(math.log2(con.length * 8)), 8)
             return f"Int{width}" if con.signed else f"UInt{width}"
+
+        elif con is Pass:
+            return "Void"
 
         elif con is Flag:
             return "Bool"

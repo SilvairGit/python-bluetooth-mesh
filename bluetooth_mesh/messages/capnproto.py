@@ -14,6 +14,8 @@ def load_definitions():
         generate(0x97EBBC55406EDFB4, file=tmp_file)
         tmp_file.seek(0)
         source = tmp_file.read()
+        with open("out.txt", "w+") as ff:
+            ff.write(source)
 
         capnp.remove_import_hook()
         messages = capnp.load(tmp_file.name)
