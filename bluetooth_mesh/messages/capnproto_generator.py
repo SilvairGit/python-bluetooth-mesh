@@ -18,6 +18,7 @@ from construct import (
     Bytes,
     BytesInteger,
     Const,
+    Computed,
     Construct,
     Default,
     FixedSized,
@@ -27,6 +28,7 @@ from construct import (
     GreedyBytes,
     GreedyRange,
     NullStripped,
+    IfThenElse,
     Padded,
     Pass,
     Rebuild,
@@ -77,6 +79,9 @@ def convert(
     struct_name = struct_name or names[con] or f"{message_name}Params"
 
     if field_name and field_name.startswith("_"):
+        return
+
+    elif isinstance(con, Computed):
         return
 
     if isinstance(con, Struct):
@@ -132,6 +137,9 @@ def convert(
             message_name=message_name,
             many=many,
         )
+
+    elif isinstance(con, IfThenElse) and con.elsesubcon is Pass:
+        visitor.field(con.thensubcon, field_name, None)
 
     elif isinstance(con, StringEncoded):
         visitor.field(con, field_name, struct_name)

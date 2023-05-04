@@ -35,32 +35,32 @@ from construct import (
     Flag,
     GreedyBytes,
     GreedyRange,
-    If,
-    IfThenElse,
     Int8ul,
     Int16ul,
     Int24ul,
     Int8sl,
-    Mapping,
     Padding,
     Rebuild,
     Select,
     Struct,
     len_,
     obj_,
-    this, Byte
+    this,
 )
 
 from bluetooth_mesh.messages.util import (
     BitList,
     EmbeddedBitStruct,
     EnumAdapter,
+    EnumSwitchStruct,
     LogAdapter,
     NamedSelect,
     Opcode,
     RangeValidator,
     Reversed,
     SwitchStruct,
+    IfThenElseDefault,
+    enum_switch_struct_len_,
 )
 from bluetooth_mesh.messages.util import EnumSwitch as Switch
 
@@ -572,36 +572,29 @@ ExtendedModelLongFormat = Struct(
     "element_offset" / Int8sl
 )
 
-ElementOffsetRepresentedValue = {
-    0: 0,
-    1: 1,
-    2: 2,
-    - 4: 4,
-    - 3: 5,
-    - 2: 6,
-    - 1: 7
-}
-
 ExtendedModelShortFormat = BitStruct(
     "model_item_index" / BitsInteger(5),
-    "element_offset" / Mapping(BitsInteger(3), ElementOffsetRepresentedValue),
+    "element_offset" / BitsInteger(3, signed=True),
 )
 
 
 class ExtendedModelsItemFormat(enum.IntEnum):
-    SHORT = False
-    LONG = True
+    SHORT = 0
+    LONG = 1
 
 
 ModelRelationItem = BitStruct(
-    "extended_items_count" / Rebuild(BitsInteger(6), len_(this["extended_models_items"])),
-    "format" / EnumAdapter(Flag, ExtendedModelsItemFormat),
-    "corresponding_present" / Flag,
-    "corresponding_id" / If(this.corresponding_present, BitsInteger(8)),
-    "extended_models_items" / IfThenElse(
-        this.format == 0,
-        Bytewise(ExtendedModelShortFormat[this["extended_items_count"]]),
-        Bytewise(ExtendedModelLongFormat[this["extended_items_count"]])),
+    "extended_items_count" / Rebuild(BitsInteger(6), enum_switch_struct_len_(this["extended_models_items"])),
+    "format" / EnumAdapter(BitsInteger(1), ExtendedModelsItemFormat),
+    "corresponding_present" / BitsInteger(1),
+    "corresponding_id" / IfThenElseDefault(this.corresponding_present, BitsInteger(8), default=0),
+    "extended_models_items" / Bytewise(EnumSwitchStruct(Switch(
+        this.format,
+        {
+            ExtendedModelsItemFormat.SHORT: ExtendedModelShortFormat[this["extended_items_count"]],
+            ExtendedModelsItemFormat.LONG: ExtendedModelLongFormat[this["extended_items_count"]],
+        }
+    ))),
 )
 
 CompositionDataPage1Element = Struct(
