@@ -39,12 +39,15 @@ from construct import (
     Embedded,
     Enum,
     ExprValidator,
+    FuncPath,
     Float32b,
     Float64b,
+    IfThenElse,
     Int8ub,
     Int16ub,
     Int24ub,
     Int32ub,
+    Pass,
     Rebuild,
     Restreamed,
     Select,
@@ -364,6 +367,36 @@ class EnumSwitch(Switch):
         return "%s.get(%s, %s)(io, this)" % (fname, self.keyfunc, defaultfname)
 
 
+class EnumSwitchStruct(Adapter):
+    def __init__(self, subcon):
+        assert isinstance(subcon, EnumSwitch), "subcon must be an EnumSwitch"
+        assert subcon.default is Pass, "subcon must have a default Pass"
+
+        super().__init__(subcon)
+
+    def _decode(self, obj, context, path):
+        keyfunc = self.subcon.keyfunc
+        if callable(keyfunc):
+            keyfunc = keyfunc(context)
+
+        assert isinstance(keyfunc, enum.Enum), "keyfunc must be an enum"
+
+        return {keyfunc.name.lower(): obj}
+
+    def _encode(self, obj, context, path):
+        keyfunc = self.subcon.keyfunc
+        if callable(keyfunc):
+            keyfunc = keyfunc(context)
+
+        mapping = {_enum.value: _enum.name.lower() for _enum in self.subcon.cases.keys()}
+        key = mapping[keyfunc]
+
+        return obj[key]
+
+
+enum_switch_struct_len_ = FuncPath(lambda arg: len(next(iter(arg.values()))))
+
+
 class SwitchStruct(Adapter):
     def __init__(self, key, switch):
         super().__init__(Struct(key, switch))
@@ -442,6 +475,20 @@ class NamedSelect(Adapter):
 
     def _encode(self, obj, context, path):
         return obj
+
+
+class IfThenElseDefault(IfThenElse):
+    def __init__(self, condfunc, thensubcon, default):
+        super().__init__(condfunc, thensubcon, Pass)
+        self.condfunc = condfunc
+        self.thensubcon = thensubcon
+        self.default = default
+
+    def _parse(self, stream, context, path):
+        condfunc = self.condfunc
+        if callable(condfunc):
+            condfunc = condfunc(context)
+        return self.thensubcon._parsereport(stream, context, path) if condfunc else self.default
 
 
 def camelcase(field_name):

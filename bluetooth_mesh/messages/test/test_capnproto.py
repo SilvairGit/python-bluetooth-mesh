@@ -19,19 +19,16 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #
-import enum
 import json
 import logging
-import re
 import sys
-from datetime import datetime
 from tempfile import NamedTemporaryFile
 
-import construct
 import pytest
 
 from bluetooth_mesh.messages import AccessMessage
-from bluetooth_mesh.messages.util import Opcode, to_camelcase_dict, to_snakecase_dict
+from bluetooth_mesh.messages.util import to_camelcase_dict, to_snakecase_dict
+
 
 if sys.version_info >= (3, 7):
     import capnp
@@ -266,6 +263,11 @@ valid = [
     bytes.fromhex("EB3601031300"),
     bytes.fromhex("EB3601000f00"),
     bytes.fromhex("EB360102fe00ff"),
+    # config - Composition Data Page 1 - Status
+    bytes.fromhex("0201010000"),
+    bytes.fromhex("020101000400"),
+    bytes.fromhex("020102010005000000010201000501170101"),
+    bytes.fromhex("0201050307011AFD0901383001080508480000050A00050AD0"),
 ]
 
 

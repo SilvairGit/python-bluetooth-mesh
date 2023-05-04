@@ -407,7 +407,7 @@ valid = [
                                 "format": ExtendedModelsItemFormat.SHORT,
                                 "corresponding_present": True,
                                 "corresponding_id": 0x0A,
-                                "extended_models_items": []
+                                "extended_models_items": {"short": []}
                             },
                         ],
                         "vendor_models": []
@@ -426,7 +426,7 @@ valid = [
                                 "format": ExtendedModelsItemFormat.SHORT,
                                 "corresponding_present": True,
                                 "corresponding_id": 0x0A,
-                                "extended_models_items": []
+                                "extended_models_items": {"short": []}
                             }
                         ],
                         "vendor_models": []
@@ -563,20 +563,22 @@ valid = [
                         "extended_items_count": 0,
                         "format": ExtendedModelsItemFormat.SHORT,
                         "corresponding_present": False,
-                        "corresponding_id": None,
-                        "extended_models_items": []
+                        "corresponding_id": 0,
+                        "extended_models_items": {"short": []}
                     },
                     {
                         "extended_items_count": 1,
                         "format": ExtendedModelsItemFormat.SHORT,
                         "corresponding_present": True,
                         "corresponding_id": 0,
-                        "extended_models_items": [
-                            {
-                                "model_item_index": 0,
-                                "element_offset": 0
-                            }
-                        ]
+                        "extended_models_items": {
+                            "short": [
+                                {
+                                    "model_item_index": 0,
+                                    "element_offset": 0
+                                }
+                            ]
+                        }
                     },
                 ],
                 "vendor_models": [
@@ -584,8 +586,8 @@ valid = [
                         "extended_items_count": 0,
                         "format": ExtendedModelsItemFormat.SHORT,
                         "corresponding_present": False,
-                        "corresponding_id": None,
-                        "extended_models_items": []
+                        "corresponding_id": 0,
+                        "extended_models_items": {"short": []}
                     },
                 ]
             },
@@ -598,7 +600,7 @@ valid = [
                         "format": ExtendedModelsItemFormat.SHORT,
                         "corresponding_present": True,
                         "corresponding_id": 0,
-                        "extended_models_items": []
+                        "extended_models_items": {"short": []}
                     },
                 ],
                 "vendor_models": [
@@ -607,19 +609,21 @@ valid = [
                         "format": ExtendedModelsItemFormat.SHORT,
                         "corresponding_present": True,
                         "corresponding_id": 1,
-                        "extended_models_items": [
-                            {
-                                "model_item_index": 2,
-                                "element_offset": -1
-                            }
-                        ]
+                        "extended_models_items": {
+                            "short": [
+                                {
+                                    "model_item_index": 2,
+                                    "element_offset": -1
+                                }
+                            ]
+                        }
                     },
                     {
                         "extended_items_count": 0,
                         "format": ExtendedModelsItemFormat.SHORT,
                         "corresponding_present": True,
                         "corresponding_id": 1,
-                        "extended_models_items": []
+                        "extended_models_items": {"short": []}
                     }
 
                 ]
@@ -640,54 +644,60 @@ valid = [
                     "format": ExtendedModelsItemFormat.LONG,
                     "corresponding_present": True,
                     "corresponding_id": 0x01,
-                    "extended_models_items": [
-                        {
-                            "model_item_index": 26,
-                            "element_offset": -3
-                        }
-                    ]
+                    "extended_models_items": {
+                        "long": [
+                            {
+                                "model_item_index": 26,
+                                "element_offset": -3
+                            }
+                        ]
+                    }
                 },
                 {
                     "extended_items_count": 2,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": True,
                     "corresponding_id": 0x01,
-                    "extended_models_items": [
-                        {
-                            "model_item_index": 0x07,
-                            "element_offset": 0x00
-                        },
-                        {
-                            "model_item_index": 0x06,
-                            "element_offset": 0x00
-                        }
-                    ]
+                    "extended_models_items": {
+                        "short": [
+                            {
+                                "model_item_index": 0x07,
+                                "element_offset": 0x00
+                            },
+                            {
+                                "model_item_index": 0x06,
+                                "element_offset": 0x00
+                            }
+                        ]
+                    }
                 },
                 {
                     "extended_items_count": 0,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": True,
                     "corresponding_id": 0x08,
-                    "extended_models_items": []
+                    "extended_models_items": {"short": []}
                 },
                 {
                     "extended_items_count": 1,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": True,
                     "corresponding_id": 0x08,
-                    "extended_models_items": [
-                        {
-                            "model_item_index": 0x09,
-                            "element_offset": 0x00
-                        }
-                    ]
+                    "extended_models_items": {
+                        "short": [
+                            {
+                                "model_item_index": 0x09,
+                                "element_offset": 0x00
+                            }
+                        ]
+                    }
                 },
                 {
                     "extended_items_count": 0,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": False,
-                    "corresponding_id": None,
-                    "extended_models_items": []
+                    "corresponding_id": 0,
+                    "extended_models_items": {"short": []}
                 },
             ],
             "vendor_models": [
@@ -695,32 +705,36 @@ valid = [
                             "extended_items_count": 0,
                             "format": ExtendedModelsItemFormat.SHORT,
                             "corresponding_present": False,
-                            "corresponding_id": None,
-                            "extended_models_items": []
+                            "corresponding_id": 0,
+                            "extended_models_items": {"short": []}
                         },
                         {
                             "extended_items_count": 1,
                             "format": ExtendedModelsItemFormat.SHORT,
                             "corresponding_present": True,
                             "corresponding_id": 0x0A,
-                            "extended_models_items": [
-                                {
-                                    "model_item_index": 0x00,
-                                    "element_offset": 0x00
-                                }
-                            ]
+                            "extended_models_items": {
+                                "short": [
+                                    {
+                                        "model_item_index": 0x00,
+                                        "element_offset": 0x00
+                                    }
+                                ]
+                            }
                         },
                         {
                             "extended_items_count": 1,
                             "format": ExtendedModelsItemFormat.SHORT,
                             "corresponding_present": True,
                             "corresponding_id": 0x0A,
-                            "extended_models_items": [
-                                {
-                                    "model_item_index": 0x1A,
-                                    "element_offset": 0x00
-                                }
-                            ]
+                            "extended_models_items": {
+                                "short": [
+                                    {
+                                        "model_item_index": 0x1A,
+                                        "element_offset": 0x00
+                                    }
+                                ]
+                            }
                         },
                     ]
         },
@@ -754,7 +768,7 @@ valid = [
             "format": ExtendedModelsItemFormat.SHORT,
             "corresponding_present": True,
             "corresponding_id": 10,
-            "extended_models_items": []
+            "extended_models_items": {"short": []}
         },
         id="Config Composition Data Page 1 - Single model item in short format with corresponding"
     ),
@@ -766,7 +780,7 @@ valid = [
             "format": ExtendedModelsItemFormat.LONG,
             "corresponding_present": True,
             "corresponding_id": 11,
-            "extended_models_items": []
+            "extended_models_items": {"long": []}
         },
         id="Config Composition Data Page 1 - Single model item in long format with corresponding"
     ),
@@ -777,13 +791,15 @@ valid = [
             "extended_items_count": 1,
             "format": ExtendedModelsItemFormat.SHORT,
             "corresponding_present": False,
-            "corresponding_id": None,
-            "extended_models_items": [
-                        {
-                            "model_item_index": 0x0B,
-                            "element_offset": 0x00
-                        }
-                    ]
+            "corresponding_id": 0,
+            "extended_models_items": {
+                "short": [
+                    {
+                        "model_item_index": 0x0B,
+                        "element_offset": 0x00
+                    }
+                ]
+            }
         },
         id="Config Composition Data Page 1 - Single model item in short format with extending"
     ),
@@ -794,13 +810,15 @@ valid = [
             "extended_items_count": 1,
             "format": ExtendedModelsItemFormat.LONG,
             "corresponding_present": False,
-            "corresponding_id": None,
-            "extended_models_items": [
-                {
-                    "model_item_index": 10,
-                    "element_offset": 11
-                }
-            ]
+            "corresponding_id": 0,
+            "extended_models_items": {
+                "long": [
+                    {
+                        "model_item_index": 10,
+                        "element_offset": 11
+                    }
+                ]
+            }
         },
         id="Config Composition Data Page 1 - Single model item in long format with extending"
     ),
