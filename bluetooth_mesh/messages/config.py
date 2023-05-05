@@ -593,21 +593,17 @@ class ExtendedModelsItemFormat(enum.IntEnum):
     LONG = 1
 
 
-from bluetooth_mesh.messages.util import OptionalAdapter, NamedSwitch
+from construct import Array, Default
+from bluetooth_mesh.messages.util import OptionalAdapter, MyConstruct, MyConstruct2
+
 
 ModelRelationItem = BitStruct(
-    "extended_items_count" / Rebuild(BitsInteger(6), len_(this["extended_models_items"]["short" if this.format == 0 else "long"])),
-    "format" / BitsInteger(1),
+    "extended_items_count" / Rebuild(BitsInteger(6), len_(this["extended_models_items_short"]) + len_(this["extended_models_items_long"])),
+    "format" / EnumAdapter(BitsInteger(1), ExtendedModelsItemFormat),
     "corresponding_present" / BitsInteger(1),
-    # "corresponding_id" / OptionalAdapter(this.corresponding_present, BitsInteger(8)),
-    # "corresponding_id" / IfThenElse(this.corresponding_present, BitsInteger(8), Pass),
-    "extended_models_items" / NamedSwitch(
-        "short" if this.format == 0 else "long",
-        {
-            "short": Bytewise(ExtendedModelLongFormat[this["extended_items_count"]]),
-            "long": Bytewise(ExtendedModelShortFormat[this["extended_items_count"]]),
-        }
-    ),
+    "corresponding_id" / MyConstruct2(this.corresponding_present, BitsInteger(8)),
+    "extended_models_items_short" / Default(IfThenElse(this.format == ExtendedModelsItemFormat.SHORT, Array(this["extended_items_count"], ExtendedModelShortFormat), Pass), []),
+    "extended_models_items_long" / Default(IfThenElse(this.format == ExtendedModelsItemFormat.LONG, Array(this["extended_items_count"], ExtendedModelLongFormat), Pass), []),
 )
 
 CompositionDataPage1Element = Struct(

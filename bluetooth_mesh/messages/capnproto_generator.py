@@ -28,6 +28,7 @@ from construct import (
     GreedyRange,
     NullStripped,
     IfThenElse,
+    If,
     Padded,
     Pass,
     Rebuild,
@@ -40,6 +41,7 @@ from construct import (
     Switch,
     Transformed,
 )
+from bluetooth_mesh.messages.util import MyConstruct, MyConstruct2
 
 from bluetooth_mesh.messages import AccessMessage
 
@@ -135,11 +137,13 @@ def convert(
         )
 
     elif isinstance(con, IfThenElse):
-        visitor.enter_union(field_name)
-        convert(con.elsesubcon, visitor, "else")
-        convert(con.thensubcon, visitor, "then")
+        convert(con.thensubcon, visitor, field_name, struct_name, many=many)
 
-        visitor.exit()
+    # elif isinstance(con, IfThenElse):
+    #     visitor.enter_union(field_name)
+    #     convert(con.thensubcon, visitor, "long")
+    #     convert(con.elsesubcon, visitor, "short")
+    #     visitor.exit()
 
     elif isinstance(con, StringEncoded):
         visitor.field(con, field_name, struct_name)
@@ -164,8 +168,17 @@ def convert(
             many=False,
         )
 
-    # elif con is Pass:
-    #     return
+    elif isinstance(con, MyConstruct):
+        visitor.enter_union(field_name)
+        convert(con.t, visitor, "long")
+        convert(con.e, visitor, "short")
+        visitor.exit()
+
+    elif isinstance(con, MyConstruct2):
+        visitor.field(con.t, field_name, None)
+
+    elif con is Pass:
+        return
 
     elif isinstance(con, StopIf):
         return

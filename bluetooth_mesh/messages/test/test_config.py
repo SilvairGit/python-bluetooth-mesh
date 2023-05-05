@@ -404,10 +404,10 @@ valid = [
                         "sig_models": [
                             {
                                 "extended_items_count": 0,
-                                "format": ExtendedModelsItemFormat.SHORT,
+                                "format": 0,
                                 "corresponding_present": True,
                                 "corresponding_id": 0x0A,
-                                "extended_models_items": []
+                                "extended_models_items": {"short": []}
                             },
                         ],
                         "vendor_models": []
@@ -423,10 +423,10 @@ valid = [
                         "sig_models": [
                             {
                                 "extended_items_count": 0,
-                                "format": ExtendedModelsItemFormat.SHORT,
+                                "format": 0,
                                 "corresponding_present": True,
                                 "corresponding_id": 0x0A,
-                                "extended_models_items": []
+                                "extended_models_items": {"short": []}
                             }
                         ],
                         "vendor_models": []
@@ -564,7 +564,7 @@ valid = [
                         "format": ExtendedModelsItemFormat.SHORT,
                         "corresponding_present": False,
                         "corresponding_id": None,
-                        "extended_models_items": []
+                        "extended_models_items": {"short": []}
                     },
                     {
                         "extended_items_count": 1,
@@ -640,19 +640,20 @@ valid = [
                     "format": ExtendedModelsItemFormat.LONG,
                     "corresponding_present": True,
                     "corresponding_id": 0x01,
-                    "extended_models_items": [
+                    "extended_models_items": {"long": [
                         {
                             "model_item_index": 26,
                             "element_offset": -3
                         }
                     ]
+                    }
                 },
                 {
                     "extended_items_count": 2,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": True,
                     "corresponding_id": 0x01,
-                    "extended_models_items": [
+                    "extended_models_items": {"short": [
                         {
                             "model_item_index": 0x07,
                             "element_offset": 0x00
@@ -662,32 +663,34 @@ valid = [
                             "element_offset": 0x00
                         }
                     ]
+                    }
                 },
                 {
                     "extended_items_count": 0,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": True,
                     "corresponding_id": 0x08,
-                    "extended_models_items": []
+                    "extended_models_items": {"short": []}
                 },
                 {
                     "extended_items_count": 1,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": True,
                     "corresponding_id": 0x08,
-                    "extended_models_items": [
+                    "extended_models_items": {"short": [
                         {
                             "model_item_index": 0x09,
                             "element_offset": 0x00
                         }
                     ]
+                    }
                 },
                 {
                     "extended_items_count": 0,
                     "format": ExtendedModelsItemFormat.SHORT,
                     "corresponding_present": False,
                     "corresponding_id": None,
-                    "extended_models_items": []
+                    "extended_models_items": {"short": []}
                 },
             ],
             "vendor_models": [
@@ -696,35 +699,37 @@ valid = [
                             "format": ExtendedModelsItemFormat.SHORT,
                             "corresponding_present": False,
                             "corresponding_id": None,
-                            "extended_models_items": []
+                            "extended_models_items": {"short": []}
                         },
                         {
                             "extended_items_count": 1,
                             "format": ExtendedModelsItemFormat.SHORT,
                             "corresponding_present": True,
                             "corresponding_id": 0x0A,
-                            "extended_models_items": [
+                            "extended_models_items": {"short": [
                                 {
                                     "model_item_index": 0x00,
                                     "element_offset": 0x00
                                 }
                             ]
+                            }
                         },
                         {
                             "extended_items_count": 1,
                             "format": ExtendedModelsItemFormat.SHORT,
                             "corresponding_present": True,
                             "corresponding_id": 0x0A,
-                            "extended_models_items": [
+                            "extended_models_items": {"short": [
                                 {
                                     "model_item_index": 0x1A,
                                     "element_offset": 0x00
                                 }
                             ]
+                            }
                         },
                     ]
         },
-        id="Config Composition Data Page 1 - single element"
+        id="Config1 Composition Data Page 1 - single element"
     ),
     pytest.param(
         CompositionDataPage2,

@@ -269,7 +269,7 @@ valid = [
     bytes.fromhex("02010000"),#0005000000010201000501170101")
     bytes.fromhex("0201010000"),#0005000000010201000501170101")
     bytes.fromhex("020101010000"),#0005000000010201000501170101")
-    # bytes.fromhex("020102010005000000010201000501170101"),
+    bytes.fromhex("020102010005000000010201000501170101"),
 ]
 
 
@@ -300,10 +300,10 @@ def test_parse_capnproto(encoded, capnproto):
     logging.info("PACKED[%i] %s", len(packed), packed.hex())
 
     unpacked = capnproto.AccessMessage.from_bytes_packed(packed)
-    logging.info("UNPACKED %r", unpacked)
+    logging.error("UNPACKED %r", unpacked)
 
     params = to_snakecase_dict(unpacked.to_dict())
-    logging.info("CONSTRUCT INPUT %s", params)
+    logging.error("CONSTRUCT INPUT %s", params)
 
     recoded = Debugger(AccessMessage).build(params)
     logging.info("RECODED[%i] %s", len(recoded), recoded.hex())

@@ -459,26 +459,83 @@ class NamedSelect(Adapter):
         return obj
 
 
-class NamedSwitch(Adapter):
+class MyConstruct(Construct):
 
-    def __init__(self, key, switch):
-        self.key=key
-        super().__init__(Switch(key, switch))
-        # self.__construct_doc__ = self._subcon = Switch(key, switch[key])
+    MAPPING = {
+        0: "short",
+        1: "long"
+    }
 
-    def _decode(self, obj, context, path):
+    def __init__(self, k, t):
+        super().__init__()
+        self.k = k
+        self.t = t
+
+    def _parse(self, stream, context, path):
+        func = self.t[self.k]
+        print(func)
+        raise NotImplementedError
+
+
+        key = self.MAPPING[self.k(context)]
+        func = self.t if key == "long" else self.e
+        value = func._parse(stream, context, path)
+
         import logging
-        logging.error("%s %s %s %s", obj, context, path, self.key)
+        logging.error("%s %s %s\nkey: %s\nvalue: %s", stream, context, path, key, value)
 
         return {
-            self.key: obj
+            key: value
         }
 
-    def _encode(self, obj, context, path):
-        import logging
-        logging.error("obj: %s\ncontext: %s\npath: %s\nkey: %s", obj, context, path, self.key)
+    def _build(self, obj, stream, context, path):
+        key = self.MAPPING[self.k(context)]
+        func = self.t if key == "long" else self.e
 
-        return obj[self.key]
+        import logging
+        logging.error("%s %s %s\nkey: %s\nvalue: %s", stream, context, path, key, value)
+
+        value = func._build(stream, context, path)
+
+        import logging
+        logging.error("%s %s %s\nkey: %s\nvalue: %s", stream, context, path, key, value)
+
+        return value
+
+    def _sizeof(self, context, path):
+        key = self.MAPPING[self.k(context)]
+        func = self.t if key == "long" else self.e
+
+        return func._sizeof(context, path)
+
+
+class MyConstruct2(Construct):
+    def __init__(self, k, t):
+        super().__init__()
+        self.k = k
+        self.t = t
+
+
+    def _parse(self, stream, context, path):
+        if self.k(context):
+            result = self.t._parse(stream, context, path)
+            import logging
+            logging.error("%s %s %s\nresult: %s", stream, context, path, result)
+            return result
+
+        return 0
+
+    def _build(self, obj, stream, context, path):
+        if self.k(context):
+            result = self.t._build(obj, stream, context, path)
+            import logging
+            logging.error("%s %s %s\nresult: %s", stream, context, path, result)
+            return result
+
+        return 0
+
+    def _sizeof(self, context, path):
+        return self.t._sizeof(context, path)
 
 
 def camelcase(field_name):
