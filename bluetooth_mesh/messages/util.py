@@ -109,6 +109,21 @@ class SetAdapter(Adapter):
     def _encode(self, obj, context, path):
         return obj
 
+import logging
+def OptionalAdapter(cond, con):
+
+    class _OptAdapter(Adapter):
+
+        def _decode(self, obj, context, path):
+            logging.error("%s", obj)
+            return obj
+
+        def _encode(self, obj, context, path):
+            logging.error("%s", obj)
+            raise NotImplementedError
+
+    return _OptAdapter(con)
+
 
 def EnumAdapter(subcon, enum):
     class _Enum(Enum):
@@ -442,6 +457,28 @@ class NamedSelect(Adapter):
 
     def _encode(self, obj, context, path):
         return obj
+
+
+class NamedSwitch(Adapter):
+
+    def __init__(self, key, switch):
+        self.key=key
+        super().__init__(Switch(key, switch))
+        # self.__construct_doc__ = self._subcon = Switch(key, switch[key])
+
+    def _decode(self, obj, context, path):
+        import logging
+        logging.error("%s %s %s %s", obj, context, path, self.key)
+
+        return {
+            self.key: obj
+        }
+
+    def _encode(self, obj, context, path):
+        import logging
+        logging.error("obj: %s\ncontext: %s\npath: %s\nkey: %s", obj, context, path, self.key)
+
+        return obj[self.key]
 
 
 def camelcase(field_name):

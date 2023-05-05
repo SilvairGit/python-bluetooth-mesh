@@ -589,22 +589,23 @@ ExtendedModelShortFormat = BitStruct(
 
 
 class ExtendedModelsItemFormat(enum.IntEnum):
-    SHORT = False
-    LONG = True
+    SHORT = 0
+    LONG = 1
 
 
-
+from bluetooth_mesh.messages.util import OptionalAdapter, NamedSwitch
 
 ModelRelationItem = BitStruct(
-    "extended_items_count" / Rebuild(BitsInteger(6), len_(this["extended_models_items"])),
-    "format" / EnumAdapter(Flag, ExtendedModelsItemFormat),
-    "corresponding_present" / Flag,
-    "corresponding_id" / IfThenElse(this.corresponding_present, BitsInteger(8), Pass),
-    "extended_models_items" / Switch(
-        this.format,
+    "extended_items_count" / Rebuild(BitsInteger(6), len_(this["extended_models_items"]["short" if this.format == 0 else "long"])),
+    "format" / BitsInteger(1),
+    "corresponding_present" / BitsInteger(1),
+    # "corresponding_id" / OptionalAdapter(this.corresponding_present, BitsInteger(8)),
+    # "corresponding_id" / IfThenElse(this.corresponding_present, BitsInteger(8), Pass),
+    "extended_models_items" / NamedSwitch(
+        "short" if this.format == 0 else "long",
         {
-            ExtendedModelsItemFormat.SHORT: Bytewise(ExtendedModelShortFormat[this["extended_items_count"]]),
-            ExtendedModelsItemFormat.LONG: Bytewise(ExtendedModelLongFormat[this["extended_items_count"]]),
+            "short": Bytewise(ExtendedModelLongFormat[this["extended_items_count"]]),
+            "long": Bytewise(ExtendedModelShortFormat[this["extended_items_count"]]),
         }
     ),
 )

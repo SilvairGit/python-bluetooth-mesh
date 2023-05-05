@@ -136,8 +136,9 @@ def convert(
 
     elif isinstance(con, IfThenElse):
         visitor.enter_union(field_name)
-        convert(con.thensubcon, visitor, "then")
         convert(con.elsesubcon, visitor, "else")
+        convert(con.thensubcon, visitor, "then")
+
         visitor.exit()
 
     elif isinstance(con, StringEncoded):

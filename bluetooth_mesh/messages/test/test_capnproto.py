@@ -266,7 +266,10 @@ valid = [
     # bytes.fromhex("EB3601031300"),
     # bytes.fromhex("EB3601000f00"),
     # bytes.fromhex("EB360102fe00ff"),
-    bytes.fromhex("020102010005000000010201000501170101")
+    bytes.fromhex("02010000"),#0005000000010201000501170101")
+    bytes.fromhex("0201010000"),#0005000000010201000501170101")
+    bytes.fromhex("020101010000"),#0005000000010201000501170101")
+    # bytes.fromhex("020102010005000000010201000501170101"),
 ]
 
 
@@ -278,12 +281,13 @@ def capnproto():
         return capnp.load(f.name)
 
 
+from construct import Debugger
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="requires Python3.7")
 @pytest.mark.parametrize("encoded", [pytest.param(i, id=i.hex()) for i in valid])
 def test_parse_capnproto(encoded, capnproto):
     logging.info("MESH[%i] %s", len(encoded), encoded.hex())
 
-    decoded = AccessMessage.parse(encoded)
+    decoded = Debugger(AccessMessage).parse(encoded)
     logging.info("CONSTRUCT %r", decoded)
 
     params = to_camelcase_dict(decoded)
@@ -301,7 +305,7 @@ def test_parse_capnproto(encoded, capnproto):
     params = to_snakecase_dict(unpacked.to_dict())
     logging.info("CONSTRUCT INPUT %s", params)
 
-    recoded = AccessMessage.build(params)
+    recoded = Debugger(AccessMessage).build(params)
     logging.info("RECODED[%i] %s", len(recoded), recoded.hex())
 
     assert recoded == encoded
