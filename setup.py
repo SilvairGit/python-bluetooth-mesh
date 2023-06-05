@@ -54,8 +54,8 @@ setup(
         'coverage<6.0',
         'asynctest==0.12.3',
         'coveralls==2.0.0',
-        'pytest==5.0.0',
-        'pytest-asyncio==0.10.0',
+        'pytest==6.2.2',
+        'pytest-asyncio==0.14.0',
         'pytest-cov>=2.8.1',
     ],
     extras_require=dict(
