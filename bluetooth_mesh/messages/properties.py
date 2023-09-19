@@ -327,8 +327,8 @@ Energy = Struct(
     "energy" / DefaultCountValidator(Int24ul)
 )
 
-PreciseEnergy = Struct(
-    "energy" / DefaultCountValidator(Int32ul)
+Energy32 = Struct(
+    "energy" / DefaultCountValidator(Int32ul, resolution=0.001)
 )
 
 
@@ -623,7 +623,7 @@ PropertyDict = {
     PropertyID.TOTAL_DEVICE_RUNTIME: TimeHour24,
     PropertyID.TOTAL_LIGHT_EXPOSURE_TIME: TimeHour24,
     PropertyID.TOTAL_LUMINOUS_ENERGY: LuminousEnergy,
-    PropertyID.PRECISE_TOTAL_DEVICE_ENERGY_USE: PreciseEnergy,
+    PropertyID.PRECISE_TOTAL_DEVICE_ENERGY_USE: Energy32,
 }
 
 PropertyValue = Switch(

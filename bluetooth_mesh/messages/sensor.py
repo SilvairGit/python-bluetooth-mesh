@@ -21,6 +21,7 @@
 #
 import io
 from enum import IntEnum
+from math import log, pow
 
 from construct import (
     Array,
@@ -302,37 +303,51 @@ SensorStatus = GreedyRange(SensorData)
 # )
 
 FastCadencePeriodDivisorAndTriggerType = EmbeddedBitStruct(
+    "_",
     "status_trigger_type" / BitsInteger(1),
-    "fast_cadence_period_divisor" / BitsInteger(7)
-)
-
-UnitlessTriggerDelta = DefaultCountValidator(Int8ul, rounding=1, resolution=0.1)
-
-TriggerDelta = Struct(
-    Switch(
-        this.status_trigger_type,
-        {
-            0: Struct(
-                "status_trigger_delta_down" / PropertyValue,
-                "status_trigger_delta_up" / PropertyValue
-            ),
-            1: Struct(
-                "status_trigger_delta_down" / UnitlessTriggerDelta,
-                "status_trigger_delta_up" / UnitlessTriggerDelta
-            )
-        }
+    "fast_cadence_period_divisor" / ExprAdapter(
+        BitsInteger(7),
+        lambda obj, ctx: int(pow(2, obj)),
+        lambda obj, ctx: int(log(obj, 2))
     )
 )
 
-# TODO: message not implemented due to somewhat complicated structure and lack of examples
-# SensorCadence = Struct(
-#     "sensor_setting_property_id" / Int16ul,
-#     *FastCadencePeriodDivisorAndTriggerType,
-#     Embedded(TriggerDelta),
-#     "status_min_interval" / ExprAdapter(Int16ul, lambda obj, ctx: pow(2, obj), lambda obj, ctx: log(obj, 2)),
-#     "fast_cadence_low" / PropertyValue,
-#     "fast_cadence_high" / PropertyValue
-# )
+UnitlessTriggerDelta = DefaultCountValidator(Int16ul, resolution=0.01)
+
+SensorCadenceMinimal = Struct(
+    "sensor_setting_property_id" / Int16ul
+)
+
+SensorCadenceOptional = Struct(
+    Embedded(SensorCadenceMinimal),
+    *FastCadencePeriodDivisorAndTriggerType,
+    "status_trigger_delta_down" / Switch(
+        this.status_trigger_type,
+        {
+            0: PropertyValue,
+            1: UnitlessTriggerDelta
+        }
+    ),
+    "status_trigger_delta_up" / Switch(
+        this.status_trigger_type,
+        {
+            0: PropertyValue,
+            1: UnitlessTriggerDelta
+        }
+    ),
+    "status_min_interval" / ExprAdapter(
+        Int8ul, 
+        lambda obj, ctx: int(pow(2, obj)),
+        lambda obj, ctx: int(log(obj, 2))
+    ),
+    "fast_cadence_low" / PropertyValue,
+    "fast_cadence_high" / PropertyValue
+)
+
+SensorCadence = NamedSelect (
+    optional=SensorCadenceOptional,
+    minimal=SensorCadenceMinimal
+)
 
 SensorMessage = SwitchStruct(
     "opcode" / Opcode(SensorOpcode),
@@ -357,9 +372,9 @@ SensorSetupMessage = SwitchStruct(
         this.opcode,
         {
             SensorSetupOpcode.SENSOR_CADENCE_GET: SensorGetOptional,
-            # SensorSetupOpcode.SENSOR_CADENCE_SET: SensorCadence,
-            # SensorSetupOpcode.SENSOR_CADENCE_SET_UNACKNOWLEDGED: SensorCadence,
-            # SensorSetupOpcode.SENSOR_CADENCE_STATUS: SensorCadence,
+            SensorSetupOpcode.SENSOR_CADENCE_SET: SensorCadenceOptional,
+            SensorSetupOpcode.SENSOR_CADENCE_SET_UNACKNOWLEDGED: SensorCadenceOptional,
+            SensorSetupOpcode.SENSOR_CADENCE_STATUS: SensorCadence,
             SensorSetupOpcode.SENSOR_SETTINGS_GET: SensorSettingsGet,
             SensorSetupOpcode.SENSOR_SETTINGS_STATUS: SensorSettingsStatus,
             SensorSetupOpcode.SENSOR_SETTING_GET: SensorSettingGet,
