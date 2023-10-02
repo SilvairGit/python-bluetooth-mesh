@@ -19,3 +19,7 @@ from .network_diagnostic_server import (
     NetworkDiagnosticSetupServerMessage,
     NetworkDiagnosticSetupServerSubOpcode,
 )
+from .emergency_lighting_test import (
+    EmergencyLightingTestServerMessage,
+    EmergencyLightingTestServerSubOpcode,
+)

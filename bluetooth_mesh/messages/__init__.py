@@ -45,6 +45,10 @@ from .silvair.network_diagnostic_server import (
     NetworkDiagnosticSetupServerOpcode,
 )
 from .silvair.rrule_scheduler import RRuleSchedulerMessage, RRuleSchedulerOpcode
+from .silvair.emergency_lighting_test import (
+    EmergencyLightingTestServerMessage,
+    EmergencyLightingTestServerOpcode,
+)
 from .time import TimeMessage, TimeOpcode
 from .util import Opcode
 
@@ -71,6 +75,7 @@ class _AccessMessage(Construct):
         TimeOpcode: TimeMessage,
         DebugV2Opcode: DebugV2Message,
         RRuleSchedulerOpcode: RRuleSchedulerMessage,
+        EmergencyLightingTestServerOpcode: EmergencyLightingTestServerMessage,
     }
 
     OPCODE = Opcode()
