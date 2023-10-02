@@ -173,7 +173,15 @@ class PropertyID(IntEnum):
     TOTAL_DEVICE_RUNTIME = 0x006E
     TOTAL_LIGHT_EXPOSURE_TIME = 0x006F
     TOTAL_LUMINOUS_ENERGY = 0x0070
-    PRECISE_TOTAL_DEVICE_ENERGY_USE = 0x0072
+    ELT_PRECISE_TOTAL_DEVICE_ENERGY_USE = 0x0072
+    ELT_DURATION_TEST_EXECUTION_TIMEOUT = 0xFF84
+    ELT_FUNCTIONAL_TEST_EXECUTION_TIMEOUT = 0xFF85
+    ELT_DURATION_TEST_RETRY_PERIOD = 0xFF86
+    ELT_FUNCTIONAL_TEST_RETRY_PERIOD = 0xFF87
+    ELT_DURATION_TEST_BACKUP_AUTOMATIC_DELAY = 0xFF88
+    ELT_FUNCTIONAL_TEST_BACKUP_AUTOMATIC_DELAY = 0xFF89
+    ELT_DURATION_TEST_BACKUP_AUTOMATIC_INTERVAL = 0xFF8A
+    ELT_FUNCTIONAL_TEST_BACKUP_AUTOMATIC_INTERVAL = 0xFF8B
 
     def __repr__(self):
         return str(self.value)
@@ -241,6 +249,10 @@ TimeHour24 = Struct(
 
 TimeSecond16 = Struct(
     "seconds" / DefaultCountValidator(Int16ul)
+)
+
+TimeSecond32 = Struct(
+    "seconds" / DefaultCountValidator(Int32ul)
 )
 
 TimeExponential8 = Struct(
@@ -623,12 +635,20 @@ PropertyDict = {
     PropertyID.TOTAL_DEVICE_RUNTIME: TimeHour24,
     PropertyID.TOTAL_LIGHT_EXPOSURE_TIME: TimeHour24,
     PropertyID.TOTAL_LUMINOUS_ENERGY: LuminousEnergy,
-    PropertyID.PRECISE_TOTAL_DEVICE_ENERGY_USE: PreciseEnergy,
+    PropertyID.ELT_PRECISE_TOTAL_DEVICE_ENERGY_USE: PreciseEnergy,
+    PropertyID.ELT_DURATION_TEST_EXECUTION_TIMEOUT: TimeSecond32,
+    PropertyID.ELT_FUNCTIONAL_TEST_EXECUTION_TIMEOUT: TimeSecond32,
+    PropertyID.ELT_DURATION_TEST_RETRY_PERIOD: TimeSecond32,
+    PropertyID.ELT_FUNCTIONAL_TEST_RETRY_PERIOD: TimeSecond32,
+    PropertyID.ELT_DURATION_TEST_BACKUP_AUTOMATIC_DELAY: TimeSecond32,
+    PropertyID.ELT_FUNCTIONAL_TEST_BACKUP_AUTOMATIC_DELAY: TimeSecond32,
+    PropertyID.ELT_DURATION_TEST_BACKUP_AUTOMATIC_INTERVAL: TimeSecond32,
+    PropertyID.ELT_FUNCTIONAL_TEST_BACKUP_AUTOMATIC_INTERVAL: TimeSecond32,
 }
 
 PropertyValue = Switch(
     this.sensor_setting_property_id,
-        PropertyDict,
-        default=Array(this.length, Byte)
+    PropertyDict,
+    default=Array(this.length, Byte)
 )
 # fmt: off

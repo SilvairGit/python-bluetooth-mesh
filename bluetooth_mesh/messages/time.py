@@ -165,18 +165,21 @@ class UncertaintyAdapter(Adapter):
         return math.floor(obj * 100)
 
 
+DateTime = Struct(
+    "year" / Int16ul,
+    "month" / Int8ul,
+    "day" / Int8ul,
+    "hour" / Int8ul,
+    "minute" / Int8ul,
+    "second" / Int8ul,
+    "microsecond" / Int24ul,
+    "time_zone_offset" / TimeZoneOffsetAdapter(Int16sl),
+)
+
+
 class TimeAdapter(Adapter):
     _subcon = Struct(
-        "date" / Struct(
-            "year" / Int16ul,
-            "month" / Int8ul,
-            "day" / Int8ul,
-            "hour" / Int8ul,
-            "minute" / Int8ul,
-            "second" / Int8ul,
-            "microsecond" / Int24ul,
-            "time_zone_offset" / TimeZoneOffsetAdapter(Int16sl),
-        ),
+        "date" / DateTime,
         "tai_utc_delta" / TAIUTCDeltaAdapter(Int16sl),
         "time_authority" / Flag,
         "uncertainty" / UncertaintyAdapter(Float32l),
