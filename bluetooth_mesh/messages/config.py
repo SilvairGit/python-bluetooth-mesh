@@ -636,7 +636,7 @@ Retransmit = BitStruct(
 
 
 class RetransmitAdapter(Adapter):
-    _subcon = Int16ul
+    _subcon = Struct("count" / Int8ul, "interval" / Int16ul)
 
     def __init__(self, subcon, interval):
         self.interval = interval

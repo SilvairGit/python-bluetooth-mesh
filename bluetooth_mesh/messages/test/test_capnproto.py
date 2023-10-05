@@ -268,6 +268,18 @@ valid = [
     bytes.fromhex("020101000400"),
     bytes.fromhex("020102010005000000010201000501170101"),
     bytes.fromhex("0201050307011AFD0901383001080508480000050A00050AD0"),
+    # config - Relay - Status
+    bytes.fromhex("80280200"),
+    bytes.fromhex("802802FF"),
+    bytes.fromhex("80280100"),
+    bytes.fromhex("80280000"),
+    bytes.fromhex("802801FF"),
+    bytes.fromhex("802800FF"),
+    # config - Relay - Set
+    bytes.fromhex("80270100"),
+    bytes.fromhex("80270000"),
+    bytes.fromhex("802701FF"),
+    bytes.fromhex("802700FF"),
 ]
 
 
