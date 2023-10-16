@@ -6,8 +6,6 @@ from bluetooth_mesh.messages.capnproto_generator import generate
 
 
 def load_definitions():
-    print("Loading CapNProto messages definitions")
-
     with tempfile.NamedTemporaryFile(
         suffix=".capnp", mode="w+", encoding="utf-8"
     ) as tmp_file:
