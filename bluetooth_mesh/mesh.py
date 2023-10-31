@@ -591,7 +591,7 @@ class ProvisioningTransaction:
         pdu = start.data + b"".join(continuation.data for continuation in continuations)
 
         fcs = CRC_CALCULATOR.calculate_checksum(pdu)
-        if fcs != start.frame_check:
+        if start.total_length != len(pdu) or fcs != start.frame_check:
             raise ValidationError(
                 f"Transaction checksum is invalid, expected {start.frame_check:02x}, got {fcs:02x}",
             )
