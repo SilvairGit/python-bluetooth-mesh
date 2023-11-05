@@ -908,7 +908,7 @@ class ConfigClient(Model):
                 ttl=ttl,
                 app_key_index=app_key_index,
                 credential_flag=PublishFriendshipCredentialsFlag.MASTER_SECURITY,
-                RFU=0,
+                rfu=0,
                 publish_period=dict(
                     step_resolution=publish_step_resolution,
                     number_of_steps=publish_number_of_steps,
@@ -929,7 +929,7 @@ class ConfigClient(Model):
                 ttl=ttl,
                 app_key_index=app_key_index,
                 credential_flag=PublishFriendshipCredentialsFlag.MASTER_SECURITY,
-                RFU=0,
+                rfu=0,
                 publish_period=dict(
                     step_resolution=publish_step_resolution,
                     number_of_steps=publish_number_of_steps,
