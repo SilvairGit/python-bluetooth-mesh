@@ -50,6 +50,7 @@ from bluetooth_mesh.provisioning import (
 class BeaconType(enum.Enum):
     UNPROVISIONED_DEVICE = 0x00
     SECURE_NETWORK = 0x01
+    PRIVATE_MESH = 0x02
 
 
 class UnprovisionedDeviceBeacon:
@@ -134,6 +135,69 @@ class SecureNetworkBeacon:
     def verify(self, auth, network_key):
         _, _auth = self.pack(network_key)
         return auth == _auth
+
+
+class MeshPrivateBeacon:
+    BEACON_FORMAT = "pad:6, uint:1, uint:1, uintbe:32"
+    BEACON_AUTH_SIZE = 8
+    RANDOM_SIZE = 13
+
+    def __init__(self, private_beacon_key, random, key_refresh, iv_update, iv_index):
+        self.private_beacon_key = private_beacon_key
+        self.key_refresh = key_refresh
+        self.iv_update = iv_update
+        self.iv_index = iv_index
+        self.random = random
+
+    def __str__(self):
+        return "<%s: key_refresh=%s, iv_update=%s, ivindex=%s>" % (
+            type(self).__name__,
+            self.key_refresh,
+            self.iv_update,
+            self.iv_index,
+        )
+
+    @classmethod
+    def unpack(cls, message, private_beacon_key):
+        random, obfuscated_private_beacon_data, auth_tag = (
+            message[:cls.RANDOM_SIZE],
+            message[cls.RANDOM_SIZE: -cls.BEACON_AUTH_SIZE],
+            message[-cls.BEACON_AUTH_SIZE:],
+        )
+        c1 = b"\x01" + random + b"\x00\x01"
+        s = aes_ecb(private_beacon_key, c1)
+
+        private_beacon_data = bytes(map(operator.xor, s[:5], obfuscated_private_beacon_data))
+
+        iv_update, key_refresh, iv_index = bitstring.BitString(
+            private_beacon_data
+        ).unpack(cls.BEACON_FORMAT)
+
+        return cls(private_beacon_key, random, bool(key_refresh), bool(iv_update), iv_index), auth_tag
+
+    def pack(self, private_beacon_key):
+        b0 = b"\x19" + self.random + b"\x00\x05"
+        c0 = b"\x01" + self.random + b"\x00\x00"
+        c1 = b"\x01" + self.random + b"\x00\x01"
+
+        private_beacon_data = bitstring.pack(
+            self.BEACON_FORMAT,
+            self.iv_update,
+            self.key_refresh,
+            self.iv_index).bytes
+
+        s = aes_ecb(private_beacon_key, c1)
+        p = private_beacon_data + (b"\x00" * 11)
+
+        obfuscated_private_beacon_data = bytes(map(operator.xor, s[:5], private_beacon_data))
+
+        t0 = aes_ecb(private_beacon_key, b0)
+        t1 = aes_ecb(private_beacon_key, bytes(map(operator.xor, t0, p)))
+        t2 = bytes(map(operator.xor, t1, aes_ecb(private_beacon_key, c0)))
+
+        authentication_tag = t2[: self.BEACON_AUTH_SIZE]
+
+        return obfuscated_private_beacon_data, authentication_tag
 
 
 class Nonce:

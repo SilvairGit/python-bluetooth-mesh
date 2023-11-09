@@ -141,3 +141,8 @@ class NetworkKey(Key):
     @lru_cache(maxsize=1)
     def beacon_key(self):
         return k1(self.bytes, s1(b"nkbk"), b"id128\x01")
+
+    @property
+    @lru_cache(maxsize=1)
+    def private_beacon_key(self):
+        return k1(self.bytes, s1(b"nkpk"), b"id128\x01")

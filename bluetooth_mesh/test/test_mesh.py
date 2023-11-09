@@ -31,6 +31,7 @@ from bluetooth_mesh.mesh import (
     Nonce,
     ProxyConfigMessage,
     SecureNetworkBeacon,
+    MeshPrivateBeacon,
     SegmentAckMessage,
     SolicitationMessage,
     UnprovisionedDeviceBeacon,
@@ -136,6 +137,58 @@ def test_network_beacon_created(net_key):
     assert beacon.pack(net_key) == (
         bytes.fromhex("003ecaff672f67337012345678"),
         bytes.fromhex("8ea261582f364f6f"),
+    )
+
+
+def test_private_beacon_received_iv_update(net_key):
+    net_key = NetworkKey(bytes.fromhex("f7a2a44f8e8a8029064f173ddc1e2b00"))
+    private_beacon_key = net_key.private_beacon_key
+    beacon, auth = MeshPrivateBeacon.unpack(
+        bytes.fromhex("435f18f85cf78a3121f58478a561e488e7cbf3174f022a514741"),
+        private_beacon_key
+    )
+
+    assert not beacon.key_refresh
+    assert beacon.iv_update
+    assert beacon.iv_index == 0x1010abcd
+
+
+def test_private_beacon_received_iv_update_complete(net_key):
+    net_key = NetworkKey(bytes.fromhex("3bbb6f1fbd53e157417f308ce7aec58f"))
+    private_beacon_key = net_key.private_beacon_key
+    beacon, auth = MeshPrivateBeacon.unpack(
+        bytes.fromhex("1b998f82927535ea6f3076f422ce827408ab2f0ffb94cf97f881"),
+        private_beacon_key
+    )
+
+    assert not beacon.key_refresh
+    assert not beacon.iv_update
+    assert beacon.iv_index == 00000000
+
+
+def test_mesh_private_beacon_created_iv_update_in_progress():
+    net_key = NetworkKey(bytes.fromhex("f7a2a44f8e8a8029064f173ddc1e2b00"))
+    private_beacon_key = net_key.private_beacon_key
+    random = bytes.fromhex("435f18f85cf78a3121f58478a5")
+    beacon = MeshPrivateBeacon(
+        private_beacon_key, random, False, True, 0x1010abcd,
+    )
+    assert beacon.pack(private_beacon_key) == (
+        bytes.fromhex("61e488e7cb"),
+        bytes.fromhex("f3174f022a514741"),
+    )
+
+
+def test_mesh_private_beacon_created_iv_update_complete():
+    net_key = NetworkKey(bytes.fromhex("3bbb6f1fbd53e157417f308ce7aec58f"))
+    private_beacon_key = net_key.private_beacon_key
+    random = bytes.fromhex("1b998f82927535ea6f3076f422")
+    beacon = MeshPrivateBeacon(
+        private_beacon_key, random, False, False, 00000000,
+    )
+    assert beacon.pack(private_beacon_key) == (
+        bytes.fromhex("ce827408ab"),
+        bytes.fromhex("2f0ffb94cf97f881"),
     )
 
 
