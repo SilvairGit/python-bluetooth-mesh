@@ -1,27 +1,34 @@
-[tool.black]
-line-length = 88
-target-version = ['py36']
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.mypy_cache
-    | _build
-    | build
-    | dist
-    | docs
-    | bluez
-  )/
-)
-'''
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
-[tool.isort]
-line_length = 88
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-skip_glob = [".local/*", ".venv/*", "doc/*"]
-known_first_party = ["bluetooth_mesh"]
-default_section = "THIRDPARTY"
+[project]
+name = "bluetooth-mesh"
+version = "0.9"
+readme = "README.rst"
+authors = [
+    { name = "Michał Lowas-Rzechonek", email = "michal.lowas-rzechonek@silvair.com" },
+    { name = "Amadeusz Herzog", email = "amadeusz.hercog@silvair.com" },
+    { name = "Jakub Witowski", email = "jakub.witowski@silvair.com" },
+    { name = "Kamil Janowski", email = "kamil.janowski@silvair.com" },
+    { name = "Przemysław Fierek", email = "przemyslaw.fierek@silvair.com" },
+    { name = "Rafał Gajda", email = "rafal.gajda@silvair.com" }
+]
+dependencies = [
+    "bluetooth-mesh-messages>=0.9",
+    "bluetooth-mesh-network>=0.9",
+]
+classifiers = [
+    "Development Status :: 2 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: System :: Networking",
+]
+
+[project.optional-dependencies]
+bluez = [
+    "bluetooth-mesh-bluez>=0.9",
+]
