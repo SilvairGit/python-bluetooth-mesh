@@ -19,7 +19,7 @@ dependencies = [
     "bluetooth-mesh-network>=0.9",
 ]
 classifiers = [
-    "Development Status :: 2 - Beta",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     "Operating System :: POSIX :: Linux",
