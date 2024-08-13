@@ -644,6 +644,24 @@ class Application(
 
         return configuration
 
+    async def set_network_retransmissions(self, interval: int, count: int):
+        client = self.elements[0][ConfigClient]
+
+        return await client.set_network_transmission(
+            self.address,
+            net_index=self.primary_net_key[0],
+            interval=interval,
+            count=count,
+        )
+
+    async def get_network_retransmissions(self):
+        client = self.elements[0][ConfigClient]
+
+        return await client.get_network_transmission(
+            self.address,
+            net_index=self.primary_net_key[0],
+        )
+
     async def add_net_key(self, net_key_index: int, net_key: NetworkKey) -> Any:
         """
         Imports a network key into daemon's keyring.
