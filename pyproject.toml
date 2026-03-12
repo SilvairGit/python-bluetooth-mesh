@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bluetooth-mesh"
-version = "0.9.2"
+version = "0.9.3"
 readme = "README.rst"
 authors = [
     { name = "Michał Lowas-Rzechonek", email = "michal.lowas-rzechonek@silvair.com" },
