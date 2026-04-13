@@ -1,11 +1,14 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "bluetooth-mesh"
 version = "0.9.3"
 readme = "README.rst"
+requires-python = ">=3.14,<3.15"
+license = "GPL-2.0-only"
+license-files = ["LICENSE"]
 authors = [
     { name = "Michał Lowas-Rzechonek", email = "michal.lowas-rzechonek@silvair.com" },
     { name = "Amadeusz Herzog", email = "amadeusz.hercog@silvair.com" },
@@ -16,20 +19,26 @@ authors = [
     { name = "Patryk Bieleń", email = "patryk.bielen@silvair.com" }
 ]
 dependencies = [
-    "bluetooth-mesh-messages>=0.9,<0.10",
-    "bluetooth-mesh-network>=0.9,<0.10",
+    "bluetooth-mesh-messages>=1.0.0,<1.1.0",
+    "bluetooth-mesh-network>=1.0.0,<1.1.0",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: System :: Networking",
 ]
 
 [project.optional-dependencies]
 bluez = [
-    "bluetooth-mesh-bluez>=0.9.1,<0.10",
+    "bluetooth-mesh-bluez>=1.0.0,<1.1.0",
 ]
+
+[tool.poetry]
+package-mode = true
+requires-poetry = ">=2.2.1"
+packages = [{ include = "bluetooth_mesh" }]
+
