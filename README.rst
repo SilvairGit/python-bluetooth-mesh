@@ -10,14 +10,6 @@ python-bluetooth-mesh
     :target: https://pypi.org/project/bluetooth-mesh
     :alt: Python versions
 
-.. image:: https://app.travis-ci.com/SilvairGit/python-bluetooth-mesh.svg?branch=master
-    :target: https://travis-ci.com/github/SilvairGit/python-bluetooth-mesh
-    :alt: See Build Status on Travis CI
-
-.. image:: https://readthedocs.org/projects/python-bluetooth-mesh/badge/?version=latest
-    :target: https://python-bluetooth-mesh.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-
 Bluetooth mesh SDK for Python allows developing applications communicating with
 Bluetooth mesh network using BlueZ's bluetooth-meshd.
 
@@ -34,15 +26,38 @@ https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/mesh-api.txt
 Installation
 ------------
 
+This project requires Python 3.14.
+
 You can install "python-bluetooth-mesh" via `pip`_ from `PyPI`_::
 
     $ pip install bluetooth-mesh
 
+The package exposes an optional ``bluez`` extra for BlueZ integration::
+
+    $ pip install bluetooth-mesh[bluez]
+
+You can also add it to a Poetry-managed project::
+
+    $ poetry add bluetooth-mesh
+
+To install the optional BlueZ dependencies with Poetry::
+
+    $ poetry add bluetooth-mesh --extras bluez
+
+If you want to work on this repository locally, install the project and development dependencies
+with Poetry::
+
+    $ poetry install
 
 Contributing
 ------------
-Contributions are very welcome. Tests can be run with `tox`_, please ensure
-the coverage at least stays the same before you submit a pull request.
+Contributions are very welcome. This package is a wrapper around the underlying ``bluetooth-mesh-messages``,
+``bluetooth-mesh-network``, and ``bluetooth-mesh-bluez`` packages, so code changes should be proposed
+in the appropriate dependency repository rather than here:
+
+* ``bluetooth-mesh-bluez``: https://github.com/SilvairGit/python-bluetooth-mesh-bluez
+* ``bluetooth-mesh-messages``: https://github.com/SilvairGit/python-bluetooth-mesh-messages
+* ``bluetooth-mesh-network``: https://github.com/SilvairGit/python-bluetooth-mesh-network
 
 
 License
@@ -59,7 +74,5 @@ If you encounter any problems, please `file an issue`_ along with a detailed des
 
 .. _`GPL-2.0`: http://opensource.org/licenses/GPL-2.0
 .. _`file an issue`: https://github.com/SilvairGit/python-bluetooth-mesh/issues
-.. _`pytest`: https://github.com/pytest-dev/pytest
-.. _`tox`: https://tox.readthedocs.io/en/latest/
 .. _`pip`: https://pypi.org/project/pip/
 .. _`PyPI`: https://pypi.org/project
