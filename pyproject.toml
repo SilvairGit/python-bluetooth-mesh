@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "bluetooth-mesh"
-version = "0.9.3"
+version = "1.0.0"
 readme = "README.rst"
 requires-python = ">=3.14,<3.15"
 license = "GPL-2.0-only"
